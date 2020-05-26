@@ -1285,7 +1285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   godMode: 0
-  levelLoadDeveloperMode: 1
+  levelLoadDeveloperMode: 0
   levelQuickLoad: 0
   levels:
   - {fileID: 134250215}
@@ -1294,8 +1294,8 @@ MonoBehaviour:
   - {fileID: 996263362}
   - {fileID: 377798679}
   - {fileID: 2134281381}
-  levelQuickLoadReal: 0
-  objectiveQuickLoad: 5
+  levelQuickLoadReal: 4
+  objectiveQuickLoad: 0
   firstLoadDelay: 1
   tutorialEnergy: 10
   startEnergy: 2
@@ -7345,7 +7345,7 @@ MonoBehaviour:
     pitch:
       minValue: 1.0004693
       maxValue: 1.0004693
-    volume: 1
+    volume: 0.608
   pitchAndVolLogic: 1
   seq: 0
   voiceMax: 1
@@ -38191,7 +38191,7 @@ Transform:
   m_GameObject: {fileID: 581612164}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -9.16, z: 0.001}
-  m_LocalScale: {x: 0, y: 2.01, z: 0.01}
+  m_LocalScale: {x: 28, y: 2.01, z: 0.01}
   m_Children: []
   m_Father: {fileID: 79291316}
   m_RootOrder: 2
@@ -38227,7 +38227,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 24fbafa753c496a4eba25defe3aea6bc, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -66767,7 +66767,6 @@ GameObject:
   - component: {fileID: 1142740325}
   - component: {fileID: 1142740324}
   - component: {fileID: 1142740323}
-  - component: {fileID: 1142740328}
   m_Layer: 0
   m_Name: HealthBar
   m_TagString: Untagged
@@ -66815,11 +66814,17 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   tutorialEndFadeOut: {fileID: 0}
-  redColor: {r: 0.6886792, g: 0, b: 0.1154257, a: 0}
-  greenColor: {r: 0, g: 1, b: 0.031424284, a: 0}
-  shadowRedColor: {r: 1, g: 0.6462264, b: 0.6462264, a: 0}
-  shadowGreenColor: {r: 0.7309847, g: 1, b: 0.6556604, a: 0}
+  redColor: {r: 0.6886792, g: 0, b: 0.1154257, a: 1}
+  greenColor: {r: 0, g: 1, b: 0.031424284, a: 1}
+  shadowRedColor: {r: 1, g: 0.6462264, b: 0.6462264, a: 1}
+  shadowGreenColor: {r: 0.7309847, g: 1, b: 0.6556604, a: 1}
   fadeOutColor: {r: 1, g: 1, b: 1, a: 0}
+  energyCorrelation:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   colorCurve:
     serializedVersion: 2
     m_Curve:
@@ -66954,25 +66959,6 @@ Transform:
   m_Father: {fileID: 79291316}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &1142740328
-Animator:
-  serializedVersion: 3
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1142740322}
-  m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 6160b2f8d00877d46b7537753be78357, type: 2}
-  m_CullingMode: 0
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 0
-  m_LinearVelocityBlending: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorControllerStateOnDisable: 0
 --- !u!1 &1152413483
 GameObject:
   m_ObjectHideFlags: 0
@@ -69160,7 +69146,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1320128329
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69179,8 +69165,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "When the comet hits a green node, \nyour power meter updates (screen bottom).\nIf
-    you did good, it gets charged up!"
+  m_text: "When the comet hits a green node, \nyour power meter gets updated (here
+    at the bottom of the screen).\n\nIf you did good, it gets charged up!"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -69249,12 +69235,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: -111.3233, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 1320128329}
-    characterCount: 97
+    characterCount: 138
     spriteCount: 0
-    spaceCount: 19
-    wordCount: 19
+    spaceCount: 28
+    wordCount: 27
     linkCount: 0
-    lineCount: 3
+    lineCount: 5
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -69298,7 +69284,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 25.9}
-  m_SizeDelta: {x: 422.5, y: 0}
+  m_SizeDelta: {x: 418.3, y: 152}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1322094963
 GameObject:

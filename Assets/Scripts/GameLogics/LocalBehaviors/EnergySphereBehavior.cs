@@ -136,7 +136,7 @@ public class EnergySphereBehavior : MonoBehaviour
     
     private void OnMouseDown()
     {
-        if (!hasHitNode && !isGhost && !isDead)
+        if (!hasHitNode && !isGhost && !isDead && Time.timeScale == 1)
         {
             soundManager.SpherePickedUp();
             mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;

@@ -76,10 +76,13 @@ public class ObjectiveManager : MonoBehaviour
     {
         for (int i = 0; i < energySpheresSpawned.Length; i++)
         {
-            energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().CollisionParticleEffectBad();
-            energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().KillTheLights();
-            energySpheresSpawned[i].GetComponent<EnergySphereDeath>().StopRemainingParticlesThenDestroy();
-            energySpheresSpawned[i].GetComponentInChildren<EnergySphereCollision>().DisableCollider();
+            if (energySpheresSpawned[i] != null)
+            {
+                energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().CollisionParticleEffectBad();
+                energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().KillTheLights();
+                energySpheresSpawned[i].GetComponent<EnergySphereDeath>().StopRemainingParticlesThenDestroy();
+                energySpheresSpawned[i].GetComponentInChildren<EnergySphereCollision>().DisableCollider();
+            }
         }
     }
 }

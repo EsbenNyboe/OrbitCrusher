@@ -19,6 +19,7 @@ public class HealthBar : MonoBehaviour
     public Color redColor, greenColor;
     public Color shadowRedColor, shadowGreenColor;
     public Color fadeOutColor;
+    public AnimationCurve energyCorrelation;
     public AnimationCurve colorCurve;
     [Range(0, 1)]
     public float curveController;
@@ -49,6 +50,7 @@ public class HealthBar : MonoBehaviour
         scaleY = transform.localScale.y;
         scaleZ = transform.localScale.z;
         transform.localScale = new Vector3(0, scaleY, scaleZ);
+        shadow.transform.localScale = new Vector3(0, scaleY, scaleZ);
         material = GetComponent<MeshRenderer>().material;
         shadowMaterial = shadow.GetComponent<MeshRenderer>().material;
     }
@@ -124,6 +126,7 @@ public class HealthBar : MonoBehaviour
     {
         Vector3 scale;
         Vector3 newScale = Vector3.Lerp(new Vector3(minSize, scaleY, scaleZ), new Vector3(maxSize, scaleY, scaleZ), curveController);
+        //float time = energyCorrelation.Evaluate(curveController);
         scale = Vector3.Lerp(oldScale, newScale, gradualSizingCurve.Evaluate(gradualStatus));
         return scale;
     }

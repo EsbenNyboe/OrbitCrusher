@@ -102,7 +102,6 @@ public class SoundManager : MonoBehaviour
             //sphereSpawn.TriggerSpecificSoundVariant(spawnIndex % sphereSpawn.voicePlayerNew.Length);
             sphereSpawn.VolumeChangeInParent(sphereSpawn.initialVolume, 0.01f, true);
             spawnSequenceRepeatIndex = 0;
-            print("normal:" + sphereSpawn.initialVolume);
         }
         sphereSpawn.TriggerAudioObject();
     }
@@ -177,6 +176,7 @@ public class SoundManager : MonoBehaviour
     }
     public void HealthCharge()
     {
+        
         healthCharge.TriggerAudioObject();
         healthCharge.VolumeChangeInParent(healthCharge.initialVolume, healthFadeTime, false);
     }
@@ -192,20 +192,18 @@ public class SoundManager : MonoBehaviour
     }
     public void HealthDrain()
     {
-        float pitchCorrelator = CalcPitchCorrelation();
+        float pitchCorrelator = CalcPitchCorrelation(1.0f, 0.7f);
 
         healthDrain.PitchChangeInParent(healthDrain.initialPitch * pitchCorrelator, 0f, true);
         healthDrain.TriggerAudioObject();
         healthDrain.VolumeChangeInParent(healthDrain.initialVolume, healthFadeTime, false);
     }
 
-    private float CalcPitchCorrelation()
+    private float CalcPitchCorrelation(float pitchMax, float pitchMin)
     {
         int max = gameManager.maxEnergy;
         int energy = GameManager.energy;
         float energyCrunched = (float)energy / max;
-        float pitchMax = 1.2f;
-        float pitchMin = 0.7f;
         float pitchCorrelator = pitchMin + energyCrunched * (pitchMax - pitchMin);
         return pitchCorrelator;
     }
