@@ -149,6 +149,9 @@ public class GameManager : MonoBehaviour
         {
             soundManager.TutorialCompleted();
             inTutorial = false;
+            HealthBar.tutorialFadeOut = true;
+            energy = 0;
+            healthBar.UpdateHealthbarOnObjectiveConclusion(false);
         }
         soundManager.LevelCompleted();
         UnloadLevel();
@@ -178,6 +181,7 @@ public class GameManager : MonoBehaviour
     }
     private void LoadTransitionToLevel()
     {
+        HealthBar.tutorialFadeOut = false;
         if (energy < startEnergy)
         {
             if (inTutorial)

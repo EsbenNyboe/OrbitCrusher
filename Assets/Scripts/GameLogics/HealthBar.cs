@@ -12,11 +12,13 @@ public class HealthBar : MonoBehaviour
     float scaleY;
     float scaleZ;
     public AnimationCurve sizeCurve;
+    public Animation tutorialEndFadeOut;
 
     Material material;
     Material shadowMaterial;
     public Color redColor, greenColor;
     public Color shadowRedColor, shadowGreenColor;
+    public Color fadeOutColor;
     public AnimationCurve colorCurve;
     [Range(0, 1)]
     public float curveController;
@@ -149,7 +151,8 @@ public class HealthBar : MonoBehaviour
         else
         {
             drainDone = false;
-            soundManager.HealthDrain();
+            if (!tutorialFadeOut)
+                soundManager.HealthDrain();
             dontUpdateMainHealthbar = false;
             shadowGradualStatus = 0; // make shadow decrease gradually
             mainGradualStatus = 1; // make main decrease instantly
@@ -173,4 +176,5 @@ public class HealthBar : MonoBehaviour
             mainGradualStatus = 1; // make main decrease instantly
         }
     }
+    public static bool tutorialFadeOut;
 }

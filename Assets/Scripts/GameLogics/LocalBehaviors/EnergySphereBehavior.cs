@@ -10,7 +10,8 @@ public class EnergySphereBehavior : MonoBehaviour
     public GameObject particleTrailPrefabB;
     public GameObject particleCollisionBad;
     public GameObject particleCollisionGood;
-    public GameObject particleSpawn;
+    public GameObject particleSpawnA;
+    public GameObject particleSpawnB;
 
     ParticleSystem.MainModule psLight;
     ParticleSystem.MainModule psmainA;
@@ -123,7 +124,8 @@ public class EnergySphereBehavior : MonoBehaviour
         isGhost = false;
         SetTrailColorA(psmainA);
         SetTrailColorA(psmainB);
-        particleSpawn.GetComponent<ParticleSystem>().Play();
+        particleSpawnA.GetComponent<ParticleSystem>().Play();
+        particleSpawnB.GetComponent<ParticleSystem>().Play();
     }
 
     void Start()

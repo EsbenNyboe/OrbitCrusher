@@ -46,7 +46,7 @@ public class SoundManager : MonoBehaviour
         {
             musicInTutorial.VolumeChangeInParent(0f, 0f, true);
             musicInTutorial.TriggerAudioObject();
-            musicInTutorial.VolumeChangeInParent(musicInTutorial.initialVolume, 1f, true);
+            musicInTutorial.VolumeChangeInParent(musicInTutorial.initialVolume, 3f, false);
         }
 
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
@@ -100,26 +100,40 @@ public class SoundManager : MonoBehaviour
         if (newSpawnSequence)
         {
             //sphereSpawn.TriggerSpecificSoundVariant(spawnIndex % sphereSpawn.voicePlayerNew.Length);
-            sphereSpawn.TriggerAudioObject();
+            sphereSpawn.VolumeChangeInParent(sphereSpawn.initialVolume, 0.01f, true);
+            spawnSequenceRepeatIndex = 0;
+            print("normal:" + sphereSpawn.initialVolume);
         }
+        sphereSpawn.TriggerAudioObject();
     }
+    int spawnSequenceRepeatIndex;
+    public void RepeatingSpawnSequence()
+    {
+        spawnSequenceRepeatIndex++;
+        float decreaseFactorPerRepeat = 1 - spawnSequenceRepeatIndex * 0.13f;
+        if (decreaseFactorPerRepeat < 0.4f)
+            decreaseFactorPerRepeat = 0.4f;
+        float decreasedVolume = sphereSpawn.initialVolume * decreaseFactorPerRepeat;
+        sphereSpawn.VolumeChangeInParent(decreasedVolume, 0.01f, true);
+    }
+
     public void LevelTransition()
     {
-        musicBetweenLevels.VolumeChangeInParent(0f, 2f, true);
-        levelCompleted.VolumeChangeInParent(0f, 2f, true);
-        levelFailed.VolumeChangeInParent(0f, 2f, true);
+        musicBetweenLevels.VolumeChangeInParent(0f, 2f, false);
+        levelCompleted.VolumeChangeInParent(0f, 2f, false);
+        levelFailed.VolumeChangeInParent(0f, 2f, false);
     }
     public void LevelCompleted()
     {
-        levelCompleted.VolumeChangeInParent(levelCompleted.initialVolume, 0f, true);
+        levelCompleted.VolumeChangeInParent(levelCompleted.initialVolume, 0f, false);
         levelCompleted.TriggerAudioObject();
-        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, true);
+        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, false);
     }
     public void LevelFailed()
     {
-        levelFailed.VolumeChangeInParent(levelFailed.initialVolume, 0f, true);
+        levelFailed.VolumeChangeInParent(levelFailed.initialVolume, 0f, false);
         levelFailed.TriggerAudioObject();
-        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 1f, true);
+        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, false);
     }
     public void ObjectiveCompleted()
     {

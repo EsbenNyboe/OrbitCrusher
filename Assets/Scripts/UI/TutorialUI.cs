@@ -55,11 +55,13 @@ public class TutorialUI : MonoBehaviour
     {
         panel.SetActive(false);
     }
+    public static bool tutorialSkip;
     public void SkipTutorial()
     {
         TimeNormal();
         panel.SetActive(false);
-        GameManager.inTutorial = false;
+        UnloadTutorial();
+        StopAllCoroutines();
         LevelManager.levelObjectiveCurrent = 10;
         levelManager.ObjectiveCompleted();
     }
@@ -108,7 +110,7 @@ public class TutorialUI : MonoBehaviour
 
     public void ShowText1FirstSpawn()
     {
-        if (!textShown1)
+        if (!textShown1 && !tutorialSkip)
         {
             text1.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstSpawnDelay));
@@ -117,7 +119,7 @@ public class TutorialUI : MonoBehaviour
     }
     public void ShowText2FirstCorrectHit()
     {
-        if (!textShown2)
+        if (!textShown2 && !tutorialSkip)
         {
             text2.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstCorrectHitDelay));
@@ -126,7 +128,7 @@ public class TutorialUI : MonoBehaviour
     }
     public void ShowText7FirstHealthbarCharge()
     {
-        if (textShown1 && textShown2)
+        if (textShown1 && textShown2 && !tutorialSkip)
         {
             if (!textShown7)
             {
@@ -143,7 +145,7 @@ public class TutorialUI : MonoBehaviour
 
     public void ShowText3FirstObjectiveFailed()
     {
-        if (textShown1 && textShown2)
+        if (textShown1 && textShown2 && !tutorialSkip)
         {
             if (!textShown3)
             {
@@ -155,7 +157,7 @@ public class TutorialUI : MonoBehaviour
     }
     public void ShowText4FirstCometHit()
     {
-        if (!textShown4)
+        if (!textShown4 && !tutorialSkip)
         {
             text4.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstCometHitDelay));
@@ -164,7 +166,7 @@ public class TutorialUI : MonoBehaviour
     }
     public void ShowText5FirstRedNodeHit()
     {
-        if (!textShown5)
+        if (!textShown5 && !tutorialSkip)
         {
             text5.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstRedNodeHitDelay));
@@ -175,7 +177,7 @@ public class TutorialUI : MonoBehaviour
     {
         if (currentObjective == 5)
         {
-            if (!textShown6)
+            if (!textShown6 && !tutorialSkip)
             {
                 text6.SetActive(true);
                 StartCoroutine(TimeStopDelayed(threeAlignedDelay));

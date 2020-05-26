@@ -172,6 +172,7 @@ public class LevelManager : MonoBehaviour
                             soundManager.ObjectiveFailed();
                         }
                         ObjectiveFailed();
+                        soundManager.RepeatingSpawnSequence();
                     }
                 }
             }
