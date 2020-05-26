@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -15,12 +16,16 @@ public class UIManager : MonoBehaviour
     public GameObject uiGameWon;
     public GameObject uiLevelFailed;
     public GameObject uiMenuIcon;
+    public TextMeshProUGUI uiCurrentLevel;
+    public TextMeshProUGUI uiCurrentLevelObjective;
     public Color uiHoverColor;
     GameManager gameManager;
+    TutorialUI tutorialUI;
 
     private void Awake()
     {
         gameManager = FindObjectOfType<GameManager>();
+        tutorialUI = FindObjectOfType<TutorialUI>();
         uiStart.SetActive(true);
         uiStart3D.SetActive(true);
         uiMenuIcon.SetActive(false);
@@ -41,6 +46,7 @@ public class UIManager : MonoBehaviour
     }
     public void ShowTextLevelCompleted()
     {
+        tutorialUI.UnloadTutorial();
         uiLevelCompleted.SetActive(true);
         uiLevelCompleted3D.SetActive(true);
     }
@@ -51,6 +57,7 @@ public class UIManager : MonoBehaviour
     }
     public void StartGame()
     {
+        tutorialUI.LoadTutorial();
         gameManager.LevelStartTriggered();
         uiStart.SetActive(false);
         uiStart3D.SetActive(false);

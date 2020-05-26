@@ -73,6 +73,10 @@ public class SpawnManager : MonoBehaviour
                 spawnProgressCounter--;
                 spawnedSpheres[i].GetComponent<EnergySphereBehavior>().BecomeAlive();
                 soundManager.SphereSpawn(i);
+                if (GameManager.inTutorial && !TutorialUI.textShown1)
+                {
+                    FindObjectOfType<TutorialUI>().ShowText1FirstSpawn();
+                }
             }
         }
         if (spawnProgressCounter <= 0)

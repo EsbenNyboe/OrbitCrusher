@@ -5,7 +5,7 @@ using UnityEngine;
 public class SoundManager : MonoBehaviour
 {
     public AudioObject musicBetweenLevels;
-    public AudioObject musicInMenu;
+    public AudioObject musicInTutorial;
     public AudioObject debugSound;
     public AudioObject levelCompleted;
     public AudioObject levelFailed;
@@ -42,9 +42,15 @@ public class SoundManager : MonoBehaviour
 
     private void Start()
     {
+        if (GameManager.inTutorial)
+        {
+            musicInTutorial.VolumeChangeInParent(0f, 0f, true);
+            musicInTutorial.TriggerAudioObject();
+            musicInTutorial.VolumeChangeInParent(musicInTutorial.initialVolume, 1f, true);
+        }
+
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
         musicBetweenLevels.TriggerAudioObject();
-        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 1f, true);
 
         sphereDragA.VolumeChangeInParent(0f, 0f, true);
         sphereDragB.VolumeChangeInParent(0f, 0f, true);
@@ -77,6 +83,11 @@ public class SoundManager : MonoBehaviour
     {
         spherePickup.TriggerAudioObject();
         sphereDragB.VolumeChangeInParent(sphereDragB.initialVolume, sphereDragVolFade, true);
+    }
+    public void KillSphereSoundInstant()
+    {
+        sphereDragA.VolumeChangeInParent(0, 0, true);
+        sphereDragB.VolumeChangeInParent(0, 0, true);
     }
     public void SpherePickedUpNoMore()
     {
@@ -145,6 +156,11 @@ public class SoundManager : MonoBehaviour
         hitTimer = 0;
     }
     public float healthFadeTime;
+    public void HealthChargeInstant()
+    {
+        healthCharge.TriggerAudioObject();
+        healthCharge.VolumeChangeInParent(healthCharge.initialVolume, 0, true);
+    }
     public void HealthCharge()
     {
         healthCharge.TriggerAudioObject();
@@ -153,6 +169,12 @@ public class SoundManager : MonoBehaviour
     public void HealthChargeStop()
     {
         healthCharge.VolumeChangeInParent(0f, healthFadeTime, false);
+    }
+    public void HealthDrainInstant()
+    {
+        healthDrain.PitchChangeInParent(healthDrain.initialPitch, 0, true);
+        healthDrain.TriggerAudioObject();
+        healthDrain.VolumeChangeInParent(healthDrain.initialVolume, 0, true);
     }
     public void HealthDrain()
     {
@@ -195,5 +217,10 @@ public class SoundManager : MonoBehaviour
     {
         //musicInMenu.VolumeChangeInParent(0, 0.1f, false);
         AudioListener.pause = false;
+    }
+
+    public void TutorialCompleted()
+    {
+        musicInTutorial.VolumeChangeInParent(0f, 1f, true);
     }
 }

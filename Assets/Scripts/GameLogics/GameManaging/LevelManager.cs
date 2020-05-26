@@ -43,9 +43,12 @@ public class LevelManager : MonoBehaviour
     HealthBar healthBar;
     SoundManager soundManager;
     EnergySphereBehavior energySphereBehavior;
+    TutorialUI tutorialUI;
+    UIManager uiManager;
 
     private void Awake()
     {
+        tutorialUI = FindObjectOfType<TutorialUI>();
         gameManager = FindObjectOfType<GameManager>();
         cometMovement = FindObjectOfType<CometMovement>();
         objectiveManager = FindObjectOfType<ObjectiveManager>();
@@ -57,6 +60,7 @@ public class LevelManager : MonoBehaviour
         healthBar = FindObjectOfType<HealthBar>();
         soundManager = FindObjectOfType<SoundManager>();
         energySphereBehavior = FindObjectOfType<EnergySphereBehavior>();
+        uiManager = FindObjectOfType<UIManager>();
     }
     public void LoadLevelTransition()
     {
@@ -139,6 +143,10 @@ public class LevelManager : MonoBehaviour
             {
                 if (firstTimeHittingTarget)
                 {
+                    if (GameManager.inTutorial)
+                    {
+                        tutorialUI.ShowText6ThreeAligned(levelObjectiveCurrent);
+                    }
                     soundManager.ObjectiveActivated();
                     nodeBehavior.HighlightNewTarget(cometDestination);
                     objectiveManager.ResetSphereArrays();
@@ -149,14 +157,16 @@ public class LevelManager : MonoBehaviour
                 {
                     if (objectiveManager.HasAllEnergySpheresHitTheTargetNode())
                     {
-                        objectiveManager.RemoveEnergySpheres();
-                        objectiveManager.ResetSphereArrays();
-                        firstTimeHittingTarget = true;
+                        
                         ObjectiveCompleted();
-                        nodeBehavior.TargetExplode(cometDestination);
+                        
                     }
                     else
                     {
+                        if (GameManager.inTutorial && CountRemainingSpheresNotYetIncludedInScoreAccounting() < 0)
+                        {
+                            tutorialUI.ShowText3FirstObjectiveFailed();
+                        }
                         if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() > 0)
                         {
                             soundManager.ObjectiveFailed();
@@ -207,8 +217,16 @@ public class LevelManager : MonoBehaviour
         return sphereYetToBeAccountedFor;
     }
 
-    private void ObjectiveCompleted()
+    public void ObjectiveCompleted()
     {
+        if (GameManager.inTutorial)
+        {
+            tutorialUI.ShowText7FirstHealthbarCharge();
+        }
+        objectiveManager.RemoveEnergySpheres();
+        objectiveManager.ResetSphereArrays();
+        firstTimeHittingTarget = true;
+
         gameManager.UpdateEnergyHealth(1);
         healthBar.UpdateHealthbarOnObjectiveConclusion(true);
         levelObjectiveCurrent++;
@@ -219,11 +237,13 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
+            uiManager.uiCurrentLevelObjective.text = ": " + levelObjectiveCurrent.ToString();
             soundManager.ObjectiveCompleted();
             levelDesigner.LoadSpawnSequence(levelObjectiveCurrent);
             nodeBehavior.RemoveTargetHighlighting(targetNodes[levelObjectiveCurrent]);
             //spawnManager.StartNewSpawnSequence();
         }
+        nodeBehavior.TargetExplode(cometDestination);
     }
 
     void FirstSoundOnLevelStart()
@@ -241,15 +261,18 @@ public class LevelManager : MonoBehaviour
     bool[] repeatActive;
     void CheckIfSoundShouldPlay() // find a way to load this before game events at any time
     {
-        MusicMeter.MeterCondition sampleRef = new MusicMeter.MeterCondition();
-        sampleRef.division = sampleRef.beat = sampleRef.bar = 1;
-        sampleRef.section = 0;
-        if (musicMeter.MeterConditionSpecificTarget(sampleRef))
+        if (!GameManager.inTutorial)
         {
-            sampleLengthReference.TriggerAudioObject();
-            MusicMeter.sampleController = sampleLengthReference.voicePlayerNew[0].audioSource; 
-            MusicMeter.sampleControlledMeter = true;
-            musicMeter.InitializeSampleController();
+            MusicMeter.MeterCondition sampleRef = new MusicMeter.MeterCondition();
+            sampleRef.division = sampleRef.beat = sampleRef.bar = 1;
+            sampleRef.section = 0;
+            if (musicMeter.MeterConditionSpecificTarget(sampleRef))
+            {
+                sampleLengthReference.TriggerAudioObject();
+                MusicMeter.sampleController = sampleLengthReference.voicePlayerNew[0].audioSource;
+                MusicMeter.sampleControlledMeter = true;
+                musicMeter.InitializeSampleController();
+            }
         }
 
         for (int i = 0; i < soundTriggers.Length; i++)

@@ -14,12 +14,14 @@ public class PauseMenu : MonoBehaviour
 
     SoundManager soundManager;
     UIManager uiManager;
+    TutorialUI tutorialUI;
 
     // Start is called before the first frame update
     private void Awake()
     {
         soundManager = FindObjectOfType<SoundManager>();
         uiManager = FindObjectOfType<UIManager>();
+        tutorialUI = FindObjectOfType<TutorialUI>();
     }
     void Start()
     {
@@ -33,8 +35,15 @@ public class PauseMenu : MonoBehaviour
         {
             uiManager.ToggleIngameUI(true);
             menuIcon.SetActive(true);
-            soundManager.UnpauseAll();
-            Time.timeScale = 1;
+            if (!GameManager.inTutorial)
+            {
+                soundManager.UnpauseAll();
+                Time.timeScale = 1;
+            }
+            else
+            {
+                tutorialUI.ToggleWhenMenu(true);
+            }
             menu = false;
             displayVolSliders.ToggleSliderDisplay(false);
             if (audioSettings.activeInHierarchy)
@@ -46,8 +55,15 @@ public class PauseMenu : MonoBehaviour
         {
             uiManager.ToggleIngameUI(false);
             menuIcon.SetActive(false);
-            soundManager.PauseAll();
-            Time.timeScale = 0;
+            if (!GameManager.inTutorial)
+            {
+                soundManager.PauseAll();
+                Time.timeScale = 0;
+            }
+            else
+            {
+                tutorialUI.ToggleWhenMenu(false);
+            }
             menu = true;
             if (audioSettingsIsActive)
                 displayVolSliders.ToggleSliderDisplay(true);

@@ -10,6 +10,7 @@ public class EnergySphereCollision : MonoBehaviour
     CometMovement cometMovement;
     NodeBehavior nodeManager;
     SoundManager soundManager;
+    TutorialUI tutorialUI;
     bool nodeHit;
 
     private void Awake()
@@ -19,6 +20,7 @@ public class EnergySphereCollision : MonoBehaviour
         cometMovement = FindObjectOfType<CometMovement>();
         nodeManager = FindObjectOfType<NodeBehavior>();
         soundManager = FindObjectOfType<SoundManager>();
+        tutorialUI = FindObjectOfType<TutorialUI>();
     }
     void OnCollisionEnter(Collision collision)
     {
@@ -30,6 +32,10 @@ public class EnergySphereCollision : MonoBehaviour
                 GameObject comet = collision.gameObject;
                 MakeSpherePosSnapToCollObjectPos(comet);
                 ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(comet);
+                if (GameManager.inTutorial)
+                {
+                    tutorialUI.ShowText4FirstCometHit();
+                }
                 BadCollision();
             }
         }
@@ -44,10 +50,18 @@ public class EnergySphereCollision : MonoBehaviour
                 if (node == cometMovement.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]])
                 {
                     GoodCollision();
+                    if (GameManager.inTutorial)
+                    {
+                        tutorialUI.ShowText2FirstCorrectHit();
+                    }
                 }
                 else
                 {
                     BadCollision();
+                    if (GameManager.inTutorial)
+                    {
+                        tutorialUI.ShowText5FirstRedNodeHit();
+                    }
                 }
             }
         }

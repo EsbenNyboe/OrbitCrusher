@@ -140,7 +140,7 @@ public class HealthBar : MonoBehaviour
         if (getPoints)
         {
             chargeDone = false;
-            if (GameManager.energy < gameManager.maxEnergy)
+            if (transform.localScale.x < maxSize)
                 soundManager.HealthCharge();
             dontUpdateMainHealthbar = false;
             shadowGradualStatus = 1; // make shadow increase instantly

@@ -5,16 +5,20 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public bool godMode;
-    public bool useLevelQuickLoad;
+    public bool levelLoadDeveloperMode;
     [Range(0, 5)]
     public int levelQuickLoad;
+    public static bool inTutorial;
     public GameObject [] levels;
     GameObject currentLevel;
 
     private int levelProgression;
+    public int levelQuickLoadReal;
+    public int objectiveQuickLoad;
     public float firstLoadDelay;
     public static bool betweenLevels = true;
     public static bool preTransition = true;
+    public int tutorialEnergy;
     public int startEnergy;
     public int maxEnergy;
     public static int energy;
@@ -30,6 +34,7 @@ public class GameManager : MonoBehaviour
     LevelDesigner levelSettings;
     LevelManager levelManager;
 
+    public bool autoUnloadActiveLevels;
     private void Awake()
     {
         Application.targetFrameRate = 600;
@@ -45,44 +50,64 @@ public class GameManager : MonoBehaviour
         
 
 
-        if (useLevelQuickLoad)
+        if (levelLoadDeveloperMode)
         {
-            firstLoad = FirstLoad();
-            StartCoroutine(firstLoad);
+            LoadQuickloadLevelSelection();
         }
         else
         {
-            LoadTheLevelThatsAlreadyActiveInTheScene();
+            inTutorial = true;
+            if (autoUnloadActiveLevels)
+            {
+                foreach (var levelObject in levels)
+                {
+                    levelObject.SetActive(false);
+                }
+            }
+            //firstLoad = FirstLoad();
+            //StartCoroutine(firstLoad);
         }
     }
 
-    private void LoadTheLevelThatsAlreadyActiveInTheScene()
+    private void LoadQuickloadLevelSelection()
     {
+        if (levelQuickLoadReal == 0)
+            inTutorial = true;
         for (int i = 0; i < levels.Length; i++)
         {
-            if (levels[i].activeSelf)
+            if (i == levelQuickLoadReal)
             {
                 levelProgression = i;
-                levels[i].SetActive(false);
+                levels[i].SetActive(true);
             }
+            else
+                levels[i].SetActive(false);
         }
+        StartCoroutine(DeveloperStart());
     }
+    IEnumerator DeveloperStart()
+    {
+        yield return new WaitForSeconds(1f);
+        uiManager.StartGame();
+    }
+
+    //private void LoadTheLevelThatsAlreadyActiveInTheScene()
+    //{
+    //    for (int i = 0; i < levels.Length; i++)
+    //    {
+    //        if (levels[i].activeSelf)
+    //        {
+    //            levelProgression = i;
+    //            levels[i].SetActive(false);
+    //        }
+    //    }
+    //}
 
     bool gameActive = true;
     bool firstLevelLoad = true;
     private void Update()
     {
-        if (betweenLevels && preTransition && levelProgression < levels.Length && gameActive)
-        {
-            if (firstLevelLoad && !PauseMenu.menu)
-            {
-                if (Input.GetKeyDown(KeyCode.Mouse0))
-                {
-                    //LevelStartTriggered();
-                    //firstLevelLoad = false;
-                }
-            }
-        }
+        
     }
 
     public void LevelStartTriggered()
@@ -119,6 +144,12 @@ public class GameManager : MonoBehaviour
 
     public void LevelCompleted()
     {
+        objectiveQuickLoad = 0;
+        if (inTutorial)
+        {
+            soundManager.TutorialCompleted();
+            inTutorial = false;
+        }
         soundManager.LevelCompleted();
         UnloadLevel();
         levelProgression++;
@@ -126,12 +157,13 @@ public class GameManager : MonoBehaviour
         {
             uiManager.ShowTextGameWon();
             levelProgression = 0;
-            print("game completed!");
+            levelLoadDeveloperMode = false;
+            godMode = false;
+            inTutorial = true;
         }
         else
         {
             uiManager.ShowTextLevelCompleted();
-            print("level " + (levelProgression - 1) + " completed");
         }
     }
     public void LevelFailed()
@@ -142,14 +174,16 @@ public class GameManager : MonoBehaviour
             uiManager.ShowTextLevelFailed();
             soundManager.LevelFailed();
             UnloadLevel();
-            print("lose");
         }
     }
     private void LoadTransitionToLevel()
     {
         if (energy < startEnergy)
         {
-            energy = startEnergy;
+            if (inTutorial)
+                energy = tutorialEnergy;
+            else
+                energy = startEnergy;
             healthBar.UpdateHealthbarOnObjectiveConclusion(true);
         }
         soundManager.LevelTransition();
@@ -168,6 +202,8 @@ public class GameManager : MonoBehaviour
                 levelObject.SetActive(false);
         }
         nodeBehavior.SpawnNodes();
+        uiManager.uiCurrentLevel.text = levelProgression.ToString();
+        uiManager.uiCurrentLevelObjective.text = ": " + LevelManager.levelObjectiveCurrent.ToString();
     }
     public AudioObject debugSound;
     public MusicMeter.MeterCondition testInterval;
@@ -221,7 +257,8 @@ public class GameManager : MonoBehaviour
         energy += amount;
         if (energy < 0)
         {
-            death = true;
+            if (!godMode)
+                death = true;
         }
         if (energy > maxEnergy)
         {

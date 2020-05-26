@@ -45,6 +45,9 @@ public class MusicMeter : MonoBehaviour
     private void Awake()
     {
     }
+
+    public float sampleControllerLerpTime;
+    float timeBetweenBeatDivs;
     void LateUpdate() 
     {
         remainingTimeUntilNextBeatDiv = timeBetweenBeatDivs - (Time.time - timeOfLastBeatDiv);
@@ -59,8 +62,12 @@ public class MusicMeter : MonoBehaviour
             StartCoroutine(WaitUntilNextBeatDiv(remainingTimeUntilNextBeatDiv));
             //OldBeatSystem();
         }
+    }
+    private void FixedUpdate()
+    {
         RunMethodsCheckingTimeRemainingUntilMeterCountReachesMeterTarget();
     }
+
     int nextDivisionIndex;
 
     IEnumerator WaitUntilNextBeatDiv(float time)
@@ -82,8 +89,6 @@ public class MusicMeter : MonoBehaviour
     public float webGLtimeOffsetPerSec;
     float webGLtimeOffsetPerDiv;
     float timeBetweenDivsWebGL;
-    public float sampleControllerLerpTime;
-    float timeBetweenBeatDivs;
     
     public void InitializeSampleController()
     {
@@ -332,9 +337,11 @@ public class MusicMeter : MonoBehaviour
         int divsRemaining = CountRemainingBeatDivisionsBetweenCurrentCountAndTargetMeter(target);
         //timeRemaining = remainingTimeUntilNextBeatDiv + (divsRemaining - 1) * secondsPerBeatDiv;
         timeRemaining = remainingTimeUntilNextBeatDiv + (divsRemaining - 1) * secondsPerBeatDiv;
-        if (timeRemaining < 0 && displayDebugs)
+        if (timeRemaining < 0)
         {
-            print(debugTag + ": counter has surpassed target:" + Time.time);
+            if (displayDebugs)
+                print(debugTag + ": counter has surpassed target:" + Time.time);
+            timeRemaining = 0;
         }
         
         return timeRemaining;

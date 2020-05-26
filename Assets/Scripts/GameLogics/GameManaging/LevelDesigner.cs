@@ -81,7 +81,17 @@ public class LevelDesigner : MonoBehaviour
         LevelManager.bpm = bpm;
 
         LevelManager.soundPrePlayed = new bool[soundTriggers.Length];
-        LoadSpawnSequence(0);
+        
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        if (gameManager.levelLoadDeveloperMode)
+        {
+            LevelManager.levelObjectiveCurrent = gameManager.objectiveQuickLoad;
+            LoadSpawnSequence(LevelManager.levelObjectiveCurrent);
+        }
+        else
+        {
+            LoadSpawnSequence(0);
+        }
         FindObjectOfType<LevelManager>().LoadLevelTransition();
     }
 
