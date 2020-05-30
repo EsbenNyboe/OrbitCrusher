@@ -92,7 +92,7 @@ public class MusicMeter : MonoBehaviour
     
     public void InitializeSampleController()
     {
-        timeOffset = Time.time;
+        //timeOffset = Time.time;
         int sampleControllerLength = sampleController.clip.samples;
         int sampleRate = AudioSettings.outputSampleRate;
         samplesPerDivision = Mathf.RoundToInt(sampleRate * 60f / bpm / divMax);
@@ -151,9 +151,9 @@ public class MusicMeter : MonoBehaviour
     }
     private int samplesPerDivision;
     private int divisionIndexLength;
-    private int timeSamplesOffset = -500;
+    //private int timeSamplesOffset = -500;
     private int sampleControllerDivisionIndex;
-    private float timeOffset;
+    //private float timeOffset;
     public static bool sampleControlledMeter;
     public static AudioSource sampleController;
     
@@ -406,7 +406,12 @@ public class MusicMeter : MonoBehaviour
     }
 
 
-
+    public void LoadNewMeterSettings(int newBpm, int newBeats, int newBars)
+    {
+        bpm = newBpm;
+        beatMax = newBeats;
+        barMax = newBars;
+    }
     public void ResetMeterCounts()
     {
         divCount = 0;
@@ -416,6 +421,14 @@ public class MusicMeter : MonoBehaviour
         //dspTimer.SubscribeToTick(dspTimer.ResetTimer, true);
         //StartBeatCounter();
         //print("meterReset");
+    }
+
+    public void InitializeMeter()
+    {
+        SetNewSecondsPerBeatDivWhenChangingTheBpm();
+        StopAllCoroutines();
+        //StartCoroutine(WaitUntilNextBeatDiv(remainingTimeUntilNextBeatDiv));
+        StartCoroutine(WaitUntilNextBeatDiv(secondsPerBeatDiv));
     }
 
 

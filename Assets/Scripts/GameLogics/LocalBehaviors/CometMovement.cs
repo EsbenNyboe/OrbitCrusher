@@ -21,12 +21,19 @@ public class CometMovement : MonoBehaviour
     Vector3 freeBirdStartDirection;
     public float levelConclusionCometSpeed;
 
+    public SoundManager soundManager;
+    public MeshRenderer cometOutline;
     void Awake()
     {
         cometBehavior = FindObjectOfType<CometBehavior>();
         freeBirdStartDirection = initialCometSpeed;
         freeBirdStartDirection.x *= RandomDirection() * Random.Range(0.6f, 1.2f);
         freeBirdStartDirection.y *= RandomDirection() * Random.Range(0.6f, 1.2f);
+    }
+    private void Start()
+    {
+        cometOutline.enabled = true;
+        //soundManager = FindObjectOfType<SoundManager>();
     }
 
     private float RandomDirection()
@@ -66,13 +73,25 @@ public class CometMovement : MonoBehaviour
         Vector3 pos = transform.localPosition;
         transform.localPosition = Vector3.Lerp(pos, pos + freeBirdStartDirection, speedFreeBird);
         if (pos.x > OuterEdges.xMax)
+        {
+            soundManager.CometWallHit();
             freeBirdStartDirection.x = -Mathf.Abs(freeBirdStartDirection.x);
+        }
         if (pos.x < OuterEdges.xMin)
+        {
+            soundManager.CometWallHit();
             freeBirdStartDirection.x = Mathf.Abs(freeBirdStartDirection.x);
+        }
         if (pos.y > OuterEdges.yMax)
+        {
+            soundManager.CometWallHit();
             freeBirdStartDirection.y = -Mathf.Abs(freeBirdStartDirection.y);
+        }
         if (pos.y < OuterEdges.yMin)
+        {
+            soundManager.CometWallHit();
             freeBirdStartDirection.y = Mathf.Abs(freeBirdStartDirection.y);
+        }
     }
 
     public void FakeUpdate()

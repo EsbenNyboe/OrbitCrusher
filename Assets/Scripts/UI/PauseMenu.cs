@@ -8,24 +8,25 @@ public class PauseMenu : MonoBehaviour
     public GameObject panel;
     public GameObject audioSettings;
     public GameObject menuIcon;
-    DisplayVolSliders displayVolSliders;
+    
     public static bool firstLoad = true;
     bool audioSettingsIsActive;
 
-    SoundManager soundManager;
-    UIManager uiManager;
-    TutorialUI tutorialUI;
+    public DisplayVolSliders displayVolSliders;
+    public SoundManager soundManager;
+    public UIManager uiManager;
+    public TutorialUI tutorialUI;
 
     // Start is called before the first frame update
     private void Awake()
     {
-        soundManager = FindObjectOfType<SoundManager>();
-        uiManager = FindObjectOfType<UIManager>();
-        tutorialUI = FindObjectOfType<TutorialUI>();
+        //soundManager = FindObjectOfType<SoundManager>();
+        //uiManager = FindObjectOfType<UIManager>();
+        //tutorialUI = FindObjectOfType<TutorialUI>();
     }
     void Start()
     {
-        displayVolSliders = FindObjectOfType<DisplayVolSliders>();
+        //displayVolSliders = FindObjectOfType<DisplayVolSliders>();
         displayVolSliders.ToggleSliderDisplay(menu);
         panel.SetActive(menu);
     }
@@ -74,5 +75,14 @@ public class PauseMenu : MonoBehaviour
     public void CloseApplication()
     {
         Application.Quit();
+    }
+
+    public void HoverUI()
+    {
+        soundManager.HoverUI();
+    }
+    public void ClickUI()
+    {
+        soundManager.ClickUI();
     }
 }

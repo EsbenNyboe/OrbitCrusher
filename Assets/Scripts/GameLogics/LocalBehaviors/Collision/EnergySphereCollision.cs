@@ -6,21 +6,22 @@ using UnityEngine;
 public class EnergySphereCollision : MonoBehaviour
 {
     EnergySphereBehavior energySphereBehavior;
-    ObjectiveManager objectiveManager;
-    CometMovement cometMovement;
-    NodeBehavior nodeManager;
-    SoundManager soundManager;
-    TutorialUI tutorialUI;
+
+    public ObjectiveManager objectiveManager;
+    public CometMovement cometMovement;
+    public NodeBehavior nodeManager;
+    public SoundManager soundManager;
+    public TutorialUI tutorialUI;
     bool nodeHit;
 
     private void Awake()
     {
         energySphereBehavior = GetComponentInParent<EnergySphereBehavior>();
-        objectiveManager = FindObjectOfType<ObjectiveManager>();
-        cometMovement = FindObjectOfType<CometMovement>();
-        nodeManager = FindObjectOfType<NodeBehavior>();
-        soundManager = FindObjectOfType<SoundManager>();
-        tutorialUI = FindObjectOfType<TutorialUI>();
+        //objectiveManager = FindObjectOfType<ObjectiveManager>();
+        //cometMovement = FindObjectOfType<CometMovement>();
+        //nodeManager = FindObjectOfType<NodeBehavior>();
+        //soundManager = FindObjectOfType<SoundManager>();
+        //tutorialUI = FindObjectOfType<TutorialUI>();
     }
     void OnCollisionEnter(Collision collision)
     {
@@ -34,8 +35,9 @@ public class EnergySphereCollision : MonoBehaviour
                 ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(comet);
                 if (GameManager.inTutorial)
                 {
-                    tutorialUI.ShowText4FirstCometHit();
+                    tutorialUI.ShowTextFirstCometHit();
                 }
+                soundManager.CometHitsOrb();
                 BadCollision();
             }
         }
@@ -49,18 +51,20 @@ public class EnergySphereCollision : MonoBehaviour
                 ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(node);
                 if (node == cometMovement.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]])
                 {
+                    soundManager.CorrectNodeHit();
                     GoodCollision();
                     if (GameManager.inTutorial)
                     {
-                        tutorialUI.ShowText2FirstCorrectHit();
+                        tutorialUI.ShowTextFirstCorrectHit();
                     }
                 }
                 else
                 {
+                    soundManager.IncorrectNodeHit();
                     BadCollision();
                     if (GameManager.inTutorial)
                     {
-                        tutorialUI.ShowText5FirstRedNodeHit();
+                        tutorialUI.ShowTextFirstRedNodeHit();
                     }
                 }
             }
@@ -101,7 +105,6 @@ public class EnergySphereCollision : MonoBehaviour
 
     private void GoodCollision()
     {
-        soundManager.CorrectHit();
         energySphereBehavior.CollisionParticleEffectGood();
         GetComponentInParent<EnergySphereDeath>().SphereCollision(true);
         objectiveManager.NewCollisionOnTarget(transform.parent.gameObject);
@@ -110,7 +113,6 @@ public class EnergySphereCollision : MonoBehaviour
 
     private void BadCollision()
     {
-        soundManager.IncorrectHit();
         energySphereBehavior.CollisionParticleEffectBad();
         GetComponentInParent<EnergySphereDeath>().SphereCollision(false);
         objectiveManager.NewCollisionOther(transform.parent.gameObject);

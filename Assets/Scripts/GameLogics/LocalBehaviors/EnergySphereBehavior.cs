@@ -51,12 +51,12 @@ public class EnergySphereBehavior : MonoBehaviour
     public bool isGhost;
     [HideInInspector]
     public bool isDead;
+    bool movedToBack;
 
-    SoundManager soundManager;
+    public SoundManager soundManager;
 
     private void Awake()
     {
-        soundManager = FindObjectOfType<SoundManager>();
         hasHitNode = false;
         initialSortingOrderA = particleTrailPrefabA.GetComponent<ParticleSystemRenderer>().sortingOrder;
         initialSortingOrderB = particleTrailPrefabB.GetComponent<ParticleSystemRenderer>().sortingOrder;
@@ -68,6 +68,10 @@ public class EnergySphereBehavior : MonoBehaviour
         //SetTrailColorA(psmainA);
         //SpawnParticle(particleTrailPrefabB, ref particleTrailB, ref psmainB);
         //SetTrailColorA(psmainB);
+    }
+    void Start()
+    {
+        //soundManager = FindObjectOfType<SoundManager>();
     }
     void Update()
     {
@@ -128,17 +132,16 @@ public class EnergySphereBehavior : MonoBehaviour
         particleSpawnB.GetComponent<ParticleSystem>().Play();
     }
 
-    void Start()
-    {
-        
-    }
-    bool movedToBack;
     
     private void OnMouseDown()
     {
+        if (isGhost)
+        {   
+            soundManager.OrbPickupDenied();
+        }
         if (!hasHitNode && !isGhost && !isDead && Time.timeScale == 1)
         {
-            soundManager.SpherePickedUp();
+            soundManager.OrbPickup();
             mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
             mOffset = gameObject.transform.position - GetMouseWorldPos();
             SetTrailColorB(psmainA);

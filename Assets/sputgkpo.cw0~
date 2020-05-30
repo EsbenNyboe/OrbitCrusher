@@ -1,0 +1,36 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BackgroundScript : MonoBehaviour
+{
+    Material material;
+    public Color colorRed;
+    public Color colorGreen;
+    [Range(0,1)]
+    public float healthScaling;
+    public static float healthAll;
+
+    float oldHealth;
+    [Tooltip("the animator sets this to 0-1")]
+    [Range(0,1)]
+    public float aColorComponent;
+    float aColorAtStart;
+
+    void Start()
+    {
+        material = GetComponent<MeshRenderer>().material;
+        aColorAtStart = material.color.a;
+    }
+
+    private void FixedUpdate()
+    {
+        if (healthScaling != oldHealth)
+            healthAll = healthScaling;
+        Color col;
+        col = Color.Lerp(colorRed, colorGreen, healthAll);
+        col = new Color(col.r, col.g, col.b, aColorComponent * aColorAtStart);
+        material.color = col;
+        oldHealth = healthScaling;
+    }
+}

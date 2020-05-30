@@ -305,8 +305,8 @@ public class AudioObject : MonoBehaviour
     {
         selectedFile = Random.Range(0, soundMultiples.Length);
         audioSource.clip = soundMultiples[selectedFile].soundFile;
-        audioSource.pitch = Random.Range(soundMultiples[selectedFile].pitch.minValue, soundMultiples[selectedFile].pitch.maxValue);
-        audioSource.volume = soundMultiples[selectedFile].volume;
+        audioSource.pitch = Random.Range(soundMultiples[selectedFile].pitch.minValue * initialPitch, soundMultiples[selectedFile].pitch.maxValue * initialPitch);
+        audioSource.volume = soundMultiples[selectedFile].volume * initialVolume;
         audioSource.Play();
     }
 }

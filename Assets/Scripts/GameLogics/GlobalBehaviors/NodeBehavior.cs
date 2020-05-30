@@ -33,6 +33,10 @@ public class NodeBehavior : MonoBehaviour
     float[] collSizingSpeed;
     bool[] spawning;
 
+    public Color colorGray, colorRed, colorYellow, colorGreen;
+
+    Animator[] nodeDriftMovement;
+
     public void SpawnNodes()
     {
         nodes = LevelManager.nodes;
@@ -48,6 +52,7 @@ public class NodeBehavior : MonoBehaviour
         nodeParticleStatic = new GameObject[nodes.Length];
         nodeParticleSpawnA = new GameObject[nodes.Length];
         nodeParticleSpawnB = new GameObject[nodes.Length];
+        nodeDriftMovement = new Animator[nodes.Length];
         for (int i = 0; i < nodes.Length; i++)
         {
             nodes[i].transform.localScale = new Vector3(0, 0, 0);
@@ -55,7 +60,6 @@ public class NodeBehavior : MonoBehaviour
             nodeParticleStatic[i] = Instantiate(nodeParticleStaticPrefab, nodes[i].transform);
             nodeParticleStatic[i].SetActive(true);
         }
-
     }
     public void AllAppear(bool appear)
     {
@@ -63,8 +67,19 @@ public class NodeBehavior : MonoBehaviour
         {
             nodeParticleStatic[i].SetActive(appear);
             nodes[i].GetComponent<MeshRenderer>().enabled = appear;
+            nodeDriftMovement[i] = nodes[i].GetComponentInParent<Animator>();
+            nodeDriftMovement[i].enabled = false;
+            if (appear)
+                StartCoroutine(PlayNodeDriftAnimation(i));
         }
     }
+    IEnumerator PlayNodeDriftAnimation(int i)
+    {
+        yield return new WaitForSeconds(i * 0.2f);
+        nodeDriftMovement[i].enabled = true;
+        //nodes[i].GetComponentInParent<Animator>().Play(0);
+    }
+    
     public void AllExplode()
     {
         for (int i = 0; i < nodes.Length; i++)
@@ -207,18 +222,26 @@ public class NodeBehavior : MonoBehaviour
         for (int i = 0; i < nodes.Length; i++)
         {
             Material nodeMat = LevelManager.nodes[i].GetComponent<MeshRenderer>().material;
-            nodeMat.color = Color.gray;
+            nodeMat.color = colorGray;
             ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
-            psmain.startColor = Color.red;
+            psmain.startColor = colorRed;
         }
     }
     public void HighlightNewTarget(int targetIndex)
     {
         Material nodeMat = LevelManager.nodes[targetIndex].GetComponent<MeshRenderer>().material;
-        nodeMat.color = Color.green;
+        nodeMat.color = colorYellow;
         ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
-        psmain.startColor = Color.green;
+        psmain.startColor = colorYellow;
 
         nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>().Play();
+    }
+
+    public void HighlightCompletedTarget(int targetIndex)
+    {
+        Material nodeMat = LevelManager.nodes[targetIndex].GetComponent<MeshRenderer>().material;
+        nodeMat.color = colorGreen;
+        ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
+        psmain.startColor = colorGreen;
     }
 }

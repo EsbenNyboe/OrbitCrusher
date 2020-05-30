@@ -1,13 +1,10 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     public bool godMode;
     public bool levelLoadDeveloperMode;
-    [Range(0, 5)]
-    public int levelQuickLoad;
     public static bool inTutorial;
     public GameObject [] levels;
     GameObject currentLevel;
@@ -15,39 +12,43 @@ public class GameManager : MonoBehaviour
     private int levelProgression;
     public int levelQuickLoadReal;
     public int objectiveQuickLoad;
-    public float firstLoadDelay;
     public static bool betweenLevels = true;
-    public static bool preTransition = true;
+    //public static bool preTransition = true;
     public int tutorialEnergy;
     public int startEnergy;
     public int maxEnergy;
     public static int energy;
     public MusicMeter.MeterCondition transitionTiming;
-    MusicMeter musicMeter;
-    SpawnManager spawnManager;
-    NodeBehavior nodeBehavior;
-    CometMovement cometMovement;
-    CometBehavior cometBehavior;
-    HealthBar healthBar;
-    SoundManager soundManager;
-    UIManager uiManager;
+    public MusicMeter.MeterCondition transitionTimingSimple;
+    public MusicMeter musicMeter;
+    public NodeBehavior nodeBehavior;
+    public CometMovement cometMovement;
+    public CometBehavior cometBehavior;
+    public HealthBar healthBar;
+    public SoundManager soundManager;
+    public UIManager uiManager;
     LevelDesigner levelSettings;
-    LevelManager levelManager;
+    public LevelManager levelManager;
+    public TutorialUI tutorialUI;
+    public LevelNumberDisplay levelNumberDisplay;
+    public BackgroundColorManager backgroundColorManager;
 
     public bool autoUnloadActiveLevels;
     private void Awake()
     {
         Application.targetFrameRate = 600;
-        levelManager = FindObjectOfType<LevelManager>();
-        musicMeter = FindObjectOfType<MusicMeter>();
-        spawnManager = FindObjectOfType<SpawnManager>();
-        nodeBehavior = FindObjectOfType<NodeBehavior>();
-        cometMovement = FindObjectOfType<CometMovement>();
-        cometBehavior = FindObjectOfType<CometBehavior>();
-        healthBar = FindObjectOfType<HealthBar>();
-        soundManager = FindObjectOfType<SoundManager>();
-        uiManager = FindObjectOfType<UIManager>();
-        
+        //levelManager = FindObjectOfType<LevelManager>();
+        //musicMeter = FindObjectOfType<MusicMeter>();
+        //nodeBehavior = FindObjectOfType<NodeBehavior>();
+        //cometMovement = FindObjectOfType<CometMovement>();
+        //cometBehavior = FindObjectOfType<CometBehavior>();
+        //healthBar = FindObjectOfType<HealthBar>();
+        //soundManager = FindObjectOfType<SoundManager>();
+        //uiManager = FindObjectOfType<UIManager>();
+        //tutorialUI = FindObjectOfType<TutorialUI>();
+        //levelNumberDisplay = FindObjectOfType<LevelNumberDisplay>();
+        //backgroundColorManager = FindObjectOfType<BackgroundColorManager>();
+
 
 
         if (levelLoadDeveloperMode)
@@ -57,6 +58,7 @@ public class GameManager : MonoBehaviour
         else
         {
             inTutorial = true;
+            energy = tutorialEnergy;
             if (autoUnloadActiveLevels)
             {
                 foreach (var levelObject in levels)
@@ -66,6 +68,13 @@ public class GameManager : MonoBehaviour
             }
             //firstLoad = FirstLoad();
             //StartCoroutine(firstLoad);
+        }
+    }
+    private void Start()
+    {
+        if (!levelManager.enableTransitionMusic)
+        {
+            transitionTiming = transitionTimingSimple;
         }
     }
 
@@ -103,56 +112,56 @@ public class GameManager : MonoBehaviour
     //    }
     //}
 
-    bool gameActive = true;
-    bool firstLevelLoad = true;
-    private void Update()
-    {
-        
-    }
-
     public void LevelStartTriggered()
     {
+        levelNumberDisplay.StartLevel();
+        backgroundColorManager.GradualColorOnLevelLoad(death);
         death = false;
-        preTransition = false;
+        //preTransition = false;
         LevelManager.levelCompleted = false;
         LoadTransitionToLevel();
+
     }
 
-    IEnumerator FirstLoad()
-    {
-        LoadGame(false);
-        yield return new WaitForSeconds(firstLoadDelay);
-        LoadGame(true);
-        if (levelQuickLoad >= levels.Length)
-            levelQuickLoad = 0;
-        levelProgression = levelQuickLoad;
+    //IEnumerator FirstLoad()
+    //{
+    //    LoadGame(false);
+    //    yield return new WaitForSeconds(firstLoadDelay);
+    //    LoadGame(true);
+    //    if (levelQuickLoad >= levels.Length)
+    //        levelQuickLoad = 0;
+    //    levelProgression = levelQuickLoad;
 
-        //LoadTransitionToNewLevel();
-    }
-    IEnumerator firstLoad;
+    //    //LoadTransitionToNewLevel();
+    //}
+    //IEnumerator firstLoad;
 
-    private void LoadGame(bool load)
-    {
-        musicMeter.enabled = load;
-        spawnManager.enabled = load;
-        if (!load)
-            foreach (var levelObject in levels)
-            {
-                levelObject.SetActive(load);
-            }
-    }
+    //private void LoadGame(bool load)
+    //{
+    //    musicMeter.enabled = load;
+    //    spawnManager.enabled = load;
+    //    if (!load)
+    //        foreach (var levelObject in levels)
+    //        {
+    //            levelObject.SetActive(load);
+    //        }
+    //}
 
     public void LevelCompleted()
     {
+        backgroundColorManager.LevelCompleted();
+        levelNumberDisplay.LevelCompleted(levelProgression);
+        healthBar.FadeOutHealthbar();
+        HoverGraphicText.allButtonsActive = false;
         objectiveQuickLoad = 0;
         if (inTutorial)
         {
             soundManager.TutorialCompleted();
             inTutorial = false;
-            HealthBar.tutorialFadeOut = true;
-            energy = 0;
-            healthBar.UpdateHealthbarOnObjectiveConclusion(false);
+            
         }
+        HealthBar.tutorialFadeOut = true;
+        energy = 0;
         soundManager.LevelCompleted();
         UnloadLevel();
         levelProgression++;
@@ -173,6 +182,11 @@ public class GameManager : MonoBehaviour
     {
         if (!godMode)
         {
+            backgroundColorManager.LevelFailed();
+            levelNumberDisplay.LevelFailed();
+            tutorialUI.LoadTipOnLevelFailed();
+            HoverGraphicText.allButtonsActive = false;
+            healthBar.FadeOutHealthbar();
             LevelManager.firstTimeHittingTarget = true;
             uiManager.ShowTextLevelFailed();
             soundManager.LevelFailed();
@@ -181,18 +195,24 @@ public class GameManager : MonoBehaviour
     }
     private void LoadTransitionToLevel()
     {
+        tutorialUI.HideTipsOnLevelLoaded();
         HealthBar.tutorialFadeOut = false;
-        if (energy < startEnergy)
+        healthBar.FadeInHealthbar();
+        if (inTutorial)
         {
-            if (inTutorial)
-                energy = tutorialEnergy;
-            else
-                energy = startEnergy;
+            energy = tutorialEnergy;
+            healthBar.UpdateHealthbarOnObjectiveConclusion(true);
+        }
+        else
+        {
+            energy = startEnergy;
             healthBar.UpdateHealthbarOnObjectiveConclusion(true);
         }
         soundManager.LevelTransition();
         ChooseLevel(levelProgression);
+        musicMeter.LoadNewMeterSettings(120, 8, 2);
         musicMeter.ResetMeterCounts();
+        //musicMeter.InitializeMeter();
         //musicMeter.SubscribeEvent(musicMeter.ResetMeterCounts, ref musicMeter.subscribeAnytime);
         musicMeter.SubscribeEvent(RunTransitionToLevel, ref musicMeter.subscribeAnytime);
         foreach (var levelObject in levels)
@@ -213,9 +233,10 @@ public class GameManager : MonoBehaviour
     public MusicMeter.MeterCondition testInterval;
     private void RunTransitionToLevel()
     {
+        levelManager.TransitionSounds();
         MeterLookahead meterLookahead = FindObjectOfType<MeterLookahead>();
-        if (meterLookahead.SoundLookaheadConditionSpecific(testInterval))
-            debugSound.TriggerAudioObject();
+        //if (meterLookahead.SoundLookaheadConditionSpecific(testInterval))
+        //    debugSound.TriggerAudioObject();
 
         //if (musicMeter.MeterConditionIntervals(testInterval))
         if (musicMeter.MeterConditionSpecificTarget(transitionTiming))
@@ -226,6 +247,7 @@ public class GameManager : MonoBehaviour
             cometMovement.LoadLevel();
             cometBehavior.LoadLevel();
             musicMeter.UnsubscribeEvent(RunTransitionToLevel, ref musicMeter.subscribeAnytime);
+            musicMeter.LoadNewMeterSettings(LevelManager.bpm, LevelManager.beatsPerBar, LevelManager.barsPerSection);
             musicMeter.ResetMeterCounts();
             //musicMeter.SubscribeEvent(musicMeter.ResetMeterCounts, ref musicMeter.subscribeAnytime);
         }
@@ -237,7 +259,7 @@ public class GameManager : MonoBehaviour
         nodeBehavior.AllExplode();
         MusicMeter.sampleControlledMeter = false;
         betweenLevels = true;
-        preTransition = true;
+        //preTransition = true;
         //levels[levelProgression].SetActive(false);
         levelManager.UnloadLevel();
         CometMovement.isMoving = false;

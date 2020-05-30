@@ -19,13 +19,15 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI uiCurrentLevel;
     public TextMeshProUGUI uiCurrentLevelObjective;
     public Color uiHoverColor;
-    GameManager gameManager;
-    TutorialUI tutorialUI;
+    public GameManager gameManager;
+    public TutorialUI tutorialUI;
+    public SoundManager soundManager;
 
     private void Awake()
     {
-        gameManager = FindObjectOfType<GameManager>();
-        tutorialUI = FindObjectOfType<TutorialUI>();
+        //gameManager = FindObjectOfType<GameManager>();
+        //soundManager = FindObjectOfType<SoundManager>();
+        //tutorialUI = FindObjectOfType<TutorialUI>();
         uiStart.SetActive(true);
         uiStart3D.SetActive(true);
         uiMenuIcon.SetActive(false);
@@ -37,6 +39,15 @@ public class UIManager : MonoBehaviour
         uiGameWon.SetActive(false);
 
         menuTitle.SetActive(false);
+    }
+
+    public void ClickUI()
+    {
+        soundManager.ClickUI();
+    }
+    public void HoverUI()
+    {
+        soundManager.HoverUI();
     }
 
     public void ShowTextGameWon()

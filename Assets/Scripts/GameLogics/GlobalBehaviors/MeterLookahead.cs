@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MeterLookahead : MonoBehaviour
 {
-    MusicMeter musicMeter;
+    public MusicMeter musicMeter;
     public static int lookaheadCurrent;
     public AnimationCurve lookaheadCurve;
     public int lookaheadMin;
@@ -14,7 +14,7 @@ public class MeterLookahead : MonoBehaviour
 
     private void Awake()
     {
-        musicMeter = FindObjectOfType<MusicMeter>();
+        //musicMeter = FindObjectOfType<MusicMeter>();
     }
     public bool SoundLookaheadConditionSpecific(MusicMeter.MeterCondition target)
     {

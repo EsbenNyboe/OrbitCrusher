@@ -6,8 +6,8 @@ public class CometBehavior : MonoBehaviour
 {
     //public GameObject cometLight;
     public GameObject cometParticleEffect;
-    MusicMeter musicMeter;
-    CometMovement cometMovement;
+    public MusicMeter musicMeter;
+    public CometMovement cometMovement;
     [HideInInspector]
     public MusicMeter.MeterCondition nodeHitTiming;
 
@@ -37,8 +37,8 @@ public class CometBehavior : MonoBehaviour
     void Awake()
     {
         cometParticleEffect.SetActive(true);
-        musicMeter = FindObjectOfType<MusicMeter>();
-        cometMovement = FindObjectOfType<CometMovement>();
+        //musicMeter = FindObjectOfType<MusicMeter>();
+        //cometMovement = FindObjectOfType<CometMovement>();
     }
     public void LoadLevelTransition()
     {

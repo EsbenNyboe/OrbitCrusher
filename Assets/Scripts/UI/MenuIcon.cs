@@ -5,19 +5,20 @@ using UnityEngine.UI;
 
 public class MenuIcon : MonoBehaviour
 {
-    PauseMenu pauseMenu;
+    public PauseMenu pauseMenu;
     SpriteRenderer spriteRenderer;
     Color colorNormal;
     public Color colorHover;
 
     void Awake()
     {
-        pauseMenu = FindObjectOfType<PauseMenu>();
+        //pauseMenu = FindObjectOfType<PauseMenu>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         colorNormal = spriteRenderer.color;
     }
     public void OnMouseEnter()
     {
+        pauseMenu.HoverUI();
         spriteRenderer.color = colorHover;
     }
     public void OnMouseExit()
@@ -26,6 +27,7 @@ public class MenuIcon : MonoBehaviour
     }
     public void OnMouseDown()
     {
+        pauseMenu.ClickUI();
         spriteRenderer.color = colorNormal;
         pauseMenu.ToggleMenu();
     }

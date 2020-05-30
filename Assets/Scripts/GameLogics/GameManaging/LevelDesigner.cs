@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LevelDesigner : MonoBehaviour 
+public class LevelDesigner : MonoBehaviour
 {
     public int beatsPerBar;
     public int barsPerSection;
@@ -16,6 +16,7 @@ public class LevelDesigner : MonoBehaviour
     public NodeSettings[] nodeSettings;
 
     public GameObject transitionNode;
+    public AudioObject[] transitionSounds; // 4/4 
 
     [System.Serializable]
     public class LevelObjectives
@@ -32,14 +33,23 @@ public class LevelDesigner : MonoBehaviour
     {
         public int repeatAtBeatInterval;
         public int repeatLifetime;
+        public int[] objectiveFilters;
         public AudioObject sound;
         public MusicMeter.MeterCondition soundTiming;
+        public bool stinger;
+        [HideInInspector]
+        public bool hasPlayed;
     }
     public SoundTriggers[] soundTriggers;
     //public SpawnZone[] defaultSpawnZones;
 
     MusicMeter musicMeter;
     CometBehavior cometBehavior;
+
+    private void Start()
+    {
+        
+    }
 
     public void LoadLevelSettingsNew()
     {
@@ -92,7 +102,10 @@ public class LevelDesigner : MonoBehaviour
         {
             LoadSpawnSequence(0);
         }
-        FindObjectOfType<LevelManager>().LoadLevelTransition();
+        musicMeter = FindObjectOfType<MusicMeter>();
+        LevelManager.transitionMusic = transitionSounds;
+        musicMeter.SubscribeEvent(FindObjectOfType<LevelManager>().LoadLevelTransition, ref musicMeter.subscribeAnytime);
+        //FindObjectOfType<LevelManager>().LoadLevelTransition();
     }
 
     public void LoadSpawnSequence(int currentObjective)

@@ -16,15 +16,18 @@ public class ObjectiveManager : MonoBehaviour
     int amountOnTarget;
     int amountOnOthers;
 
-    SpawnManager spawnManager;
-    GameManager gameManager;
-    HealthBar healthBar;
+    public SpawnManager spawnManager;
+    public GameManager gameManager;
+    public HealthBar healthBar;
+    public NodeBehavior nodeBehavior;
 
-    private void Awake()
+
+    private void Start()
     {
-        spawnManager = FindObjectOfType<SpawnManager>();
-        gameManager = FindObjectOfType<GameManager>();
-        healthBar = FindObjectOfType<HealthBar>();
+        //spawnManager = FindObjectOfType<SpawnManager>();
+        //gameManager = FindObjectOfType<GameManager>();
+        //healthBar = FindObjectOfType<HealthBar>();
+        //nodeBehavior = FindObjectOfType<NodeBehavior>();
     }
     public void ResetSphereArrays()
     {
@@ -43,6 +46,8 @@ public class ObjectiveManager : MonoBehaviour
     {
         amountOnTarget++;
         ExpandArrayWithOneNewGoAddition(collidedSphere, amountOnTarget, ref collidedSpheresOnTarget);
+        if (collidedSpheresOnTarget.Length == energySpheresSpawned.Length)
+            nodeBehavior.HighlightCompletedTarget(LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]);
         gameManager.UpdateEnergyHealth(1);
         healthBar.UpdateHealthbarOnCollision(true);
     }

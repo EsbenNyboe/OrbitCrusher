@@ -4,95 +4,115 @@ using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
+    public AudioObject orbSpawn, orbPickup, orbGlued, orbPickupDenied, orbDrag;
+    public AudioObject [] orbDragGlued;
+    public AudioObject levelCompleted, levelFailed, objectiveConcluded, objectiveCompleted, objectiveFailed;
+    public AudioObject correctHit, incorrectHit, incorrectHitComet;
+    public AudioObject healthChargeLower, healthChargeUpper, healthDrainLower, healthDrainUpper;
+    public AudioObject objectiveActivated, cometWallHit, uiClick, uiHover;
     public AudioObject musicBetweenLevels;
-    public AudioObject musicInTutorial;
-    public AudioObject debugSound;
-    public AudioObject levelCompleted;
-    public AudioObject levelFailed;
-    public AudioObject objectiveCompleted;
-    public AudioObject objectiveConcluded;
-    public AudioObject objectiveFailed;
-    public AudioObject objectiveActivated;
-    public AudioObject sphereSpawn;
-    public AudioObject spherePickup;
-    public AudioObject sphereGlued;
-    public AudioObject sphereDragA;
-    public AudioObject sphereDragB;
-    public AudioObject correctHit;
-    public AudioObject incorrectHit;
-    public AudioObject healthCharge;
-    public AudioObject healthDrain;
-
-
-    
+    public AudioObject musTutLoopA, musTutLoopB, musTutLoopC;
+    public float musTutLoopFadeIn;
+    public float musTutLoopFadeOut;
 
     [HideInInspector]
     public bool newSpawnSequence;
 
-    MusicMeter musicMeter;
-    MeterLookahead meterLookahead;
-    GameManager gameManager;
+    public GameManager gameManager;
+    public TutorialUI tutorialUI;
 
     private void Awake()
     {
-        musicMeter = FindObjectOfType<MusicMeter>();
-        meterLookahead = FindObjectOfType<MeterLookahead>();
-        gameManager = FindObjectOfType<GameManager>();
+        //gameManager = FindObjectOfType<GameManager>();
+        //tutorialUI = FindObjectOfType<TutorialUI>();
     }
 
     private void Start()
     {
         if (GameManager.inTutorial)
         {
-            musicInTutorial.VolumeChangeInParent(0f, 0f, true);
-            musicInTutorial.TriggerAudioObject();
-            musicInTutorial.VolumeChangeInParent(musicInTutorial.initialVolume, 3f, false);
+            musTutLoopA.VolumeChangeInParent(0f, 0f, true);
+            musTutLoopA.TriggerAudioObject();
+            musTutLoopB.VolumeChangeInParent(0f, 0f, true);
+            musTutLoopB.TriggerAudioObject();
+            musTutLoopC.VolumeChangeInParent(0f, 0f, true);
+            musTutLoopC.TriggerAudioObject();
         }
 
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
         musicBetweenLevels.TriggerAudioObject();
+        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, true);
 
-        sphereDragA.VolumeChangeInParent(0f, 0f, true);
-        sphereDragB.VolumeChangeInParent(0f, 0f, true);
-        sphereDragA.TriggerAudioObject();
-        sphereDragB.TriggerAudioObject();
+        orbDrag.VolumeChangeInParent(0f, 0f, true);
+        orbDrag.TriggerAudioObject();
+        for (int i = 0; i < orbDragGlued.Length; i++)
+        {
+            orbDragGlued[i].VolumeChangeInParent(0f, 0f, true);
+            orbDragGlued[i].TriggerAudioObject();
+        }
     }
     private void Update()
     {
-        sphereGluedTimer += Time.deltaTime;
+        orbGluedTimer += Time.deltaTime;
         hitTimer += Time.deltaTime;
+        cometWallHitTimer += Time.deltaTime;
     }
     public float sphereDragVolFade;
-    float sphereGluedTimer;
+    float orbGluedTimer;
+    int orbsGluedIndex;
     public void SphereGlued()
     {
-        if (sphereGluedTimer < Random.Range(0.05f, 0.1f))
+        if (orbsGluedIndex >= orbDragGlued.Length)
         {
-            sphereGlued.TriggerSoundWithDelay(Random.Range(0.02f, 0.1f));
+            orbsGluedIndex = orbDragGlued.Length - 1;
+        }
+        if (orbGluedTimer < Random.Range(0.01f, 0.05f))
+        {
+            orbGlued.TriggerSoundWithDelay(Random.Range(0.01f, 0.02f));
         }
         else
         {
-            sphereGlued.TriggerAudioObject();
+            orbGlued.TriggerAudioObject();
         }
-        sphereGluedTimer = 0;
-        sphereDragA.VolumeChangeInParent(sphereDragA.initialVolume, sphereDragVolFade, true);
-        sphereDragB.VolumeChangeInParent(0f, sphereDragVolFade, true);
+        orbGluedTimer = 0;
+
+        for (int i = 0; i < orbDragGlued.Length; i++)
+        {
+            if (i == orbsGluedIndex)
+                orbDragGlued[i].VolumeChangeInParent(orbDragGlued[i].initialVolume, sphereDragVolFade, false);
+            else
+                orbDragGlued[i].VolumeChangeInParent(0f, sphereDragVolFade, false);
+        }
+        orbDrag.VolumeChangeInParent(0, sphereDragVolFade, false);
+        orbsGluedIndex++;
     }
 
-    public void SpherePickedUp()
+    public void OrbPickup()
     {
-        spherePickup.TriggerAudioObject();
-        sphereDragB.VolumeChangeInParent(sphereDragB.initialVolume, sphereDragVolFade, true);
+        orbPickup.TriggerAudioObject();
+        orbDrag.VolumeChangeInParent(orbDrag.initialVolume, sphereDragVolFade, false);
+    }
+    public void OrbPickupDenied()
+    {
+        tutorialUI.ShowTextPickupDenied();
+        orbPickupDenied.TriggerAudioObject();
     }
     public void KillSphereSoundInstant()
     {
-        sphereDragA.VolumeChangeInParent(0, 0, true);
-        sphereDragB.VolumeChangeInParent(0, 0, true);
+        orbDrag.VolumeChangeInParent(0, 0, false);
+        for (int i = 0; i < orbDragGlued.Length; i++)
+        {
+            orbDragGlued[i].VolumeChangeInParent(0, 0, false);
+        }
     }
     public void SpherePickedUpNoMore()
     {
-        sphereDragA.VolumeChangeInParent(0f, sphereDragVolFade, true);
-        sphereDragB.VolumeChangeInParent(0f, sphereDragVolFade, true);
+        orbDrag.VolumeChangeInParent(0, sphereDragVolFade, false);
+        for (int i = 0; i < orbDragGlued.Length; i++)
+        {
+            orbDragGlued[i].VolumeChangeInParent(0, sphereDragVolFade, false);
+        }
+        orbsGluedIndex = 0;
     }
 
     public void SphereSpawn(int spawnIndex)
@@ -100,10 +120,10 @@ public class SoundManager : MonoBehaviour
         if (newSpawnSequence)
         {
             //sphereSpawn.TriggerSpecificSoundVariant(spawnIndex % sphereSpawn.voicePlayerNew.Length);
-            sphereSpawn.VolumeChangeInParent(sphereSpawn.initialVolume, 0.01f, true);
+            orbSpawn.VolumeChangeInParent(orbSpawn.initialVolume, 0.01f, true);
             spawnSequenceRepeatIndex = 0;
         }
-        sphereSpawn.TriggerAudioObject();
+        orbSpawn.TriggerAudioObject();
     }
     int spawnSequenceRepeatIndex;
     public void RepeatingSpawnSequence()
@@ -112,13 +132,13 @@ public class SoundManager : MonoBehaviour
         float decreaseFactorPerRepeat = 1 - spawnSequenceRepeatIndex * 0.13f;
         if (decreaseFactorPerRepeat < 0.4f)
             decreaseFactorPerRepeat = 0.4f;
-        float decreasedVolume = sphereSpawn.initialVolume * decreaseFactorPerRepeat;
-        sphereSpawn.VolumeChangeInParent(decreasedVolume, 0.01f, true);
+        float decreasedVolume = orbSpawn.initialVolume * decreaseFactorPerRepeat;
+        orbSpawn.VolumeChangeInParent(decreasedVolume, 0.01f, true);
     }
 
     public void LevelTransition()
     {
-        musicBetweenLevels.VolumeChangeInParent(0f, 2f, false);
+        musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
         levelCompleted.VolumeChangeInParent(0f, 2f, false);
         levelFailed.VolumeChangeInParent(0f, 2f, false);
     }
@@ -136,25 +156,28 @@ public class SoundManager : MonoBehaviour
     }
     public void ObjectiveCompleted()
     {
-        objectiveConcluded.TriggerAudioObject();
+        //objectiveConcluded.TriggerAudioObject();
         objectiveCompleted.TriggerAudioObject();
-        CorrectHit();
+        //CorrectHit();
     }
     public void ObjectiveFailed()
     {
-        print("objFail");
         //objectiveConcluded.TriggerAudioObject();
         objectiveFailed.TriggerAudioObject();
     }
 
     float hitTimer;
-    public void CorrectHit()
+    public void CorrectNodeHit()
     {
         HitTimer(correctHit);
     }
-    public void IncorrectHit()
+    public void IncorrectNodeHit()
     {
         HitTimer(incorrectHit);
+    }
+    public void CometHitsOrb()
+    {
+        HitTimer(incorrectHitComet);
     }
     private void HitTimer(AudioObject hitSound)
     {
@@ -171,35 +194,49 @@ public class SoundManager : MonoBehaviour
     public float healthFadeTime;
     public void HealthChargeInstant()
     {
-        healthCharge.TriggerAudioObject();
-        healthCharge.VolumeChangeInParent(healthCharge.initialVolume, 0, true);
+        healthChargeLower.TriggerAudioObject();
+        healthChargeLower.VolumeChangeInParent(healthChargeLower.initialVolume, 0, false);
+        healthChargeUpper.TriggerAudioObject();
+        healthChargeUpper.VolumeChangeInParent(healthChargeUpper.initialVolume, 0, false);
     }
     public void HealthCharge()
     {
-        
-        healthCharge.TriggerAudioObject();
-        healthCharge.VolumeChangeInParent(healthCharge.initialVolume, healthFadeTime, false);
+        healthChargeLower.TriggerAudioObject();
+        healthChargeLower.VolumeChangeInParent(healthChargeLower.initialVolume, healthFadeTime, false);
+        healthChargeUpper.TriggerAudioObject();
+        healthChargeUpper.VolumeChangeInParent(healthChargeUpper.initialVolume, healthFadeTime, false);
     }
     public void HealthChargeStop()
     {
-        healthCharge.VolumeChangeInParent(0f, healthFadeTime, false);
+        healthChargeLower.VolumeChangeInParent(0f, healthFadeTime, false);
+        healthChargeUpper.VolumeChangeInParent(0f, healthFadeTime, false);
     }
     public void HealthDrainInstant()
     {
-        healthDrain.PitchChangeInParent(healthDrain.initialPitch, 0, true);
-        healthDrain.TriggerAudioObject();
-        healthDrain.VolumeChangeInParent(healthDrain.initialVolume, 0, true);
+        healthDrainLower.PitchChangeInParent(healthDrainLower.initialPitch, 0, false);
+        healthDrainLower.TriggerAudioObject();
+        healthDrainLower.VolumeChangeInParent(healthDrainLower.initialVolume, 0, false);
+
+        healthDrainUpper.PitchChangeInParent(healthDrainUpper.initialPitch, 0, false);
+        healthDrainUpper.TriggerAudioObject();
+        healthDrainUpper.VolumeChangeInParent(healthDrainUpper.initialVolume, 0, false);
     }
     public void HealthDrain()
     {
-        float pitchCorrelator = CalcPitchCorrelation(1.0f, 0.7f);
+        float pitchCorrelatorLower = CalcPitchCorrelation(0.85f, 1.0f);
 
-        healthDrain.PitchChangeInParent(healthDrain.initialPitch * pitchCorrelator, 0f, true);
-        healthDrain.TriggerAudioObject();
-        healthDrain.VolumeChangeInParent(healthDrain.initialVolume, healthFadeTime, false);
+        healthDrainLower.PitchChangeInParent(healthDrainLower.initialPitch * pitchCorrelatorLower, 0f, false);
+        healthDrainLower.TriggerAudioObject();
+        healthDrainLower.VolumeChangeInParent(healthDrainLower.initialVolume, healthFadeTime, false);
+
+        float pitchCorrelatorUpper = CalcPitchCorrelation(0.7f, 1.0f);
+
+        healthDrainUpper.PitchChangeInParent(healthDrainUpper.initialPitch * pitchCorrelatorUpper, 0f, false);
+        healthDrainUpper.TriggerAudioObject();
+        healthDrainUpper.VolumeChangeInParent(healthDrainUpper.initialVolume, healthFadeTime, false);
     }
 
-    private float CalcPitchCorrelation(float pitchMax, float pitchMin)
+    private float CalcPitchCorrelation(float pitchMin, float pitchMax)
     {
         int max = gameManager.maxEnergy;
         int energy = GameManager.energy;
@@ -215,7 +252,8 @@ public class SoundManager : MonoBehaviour
 
     public void HealthDrainStop()
     {
-        healthDrain.VolumeChangeInParent(0f, healthFadeTime, false);
+        healthDrainLower.VolumeChangeInParent(0f, healthFadeTime, false);
+        healthDrainUpper.VolumeChangeInParent(0f, healthFadeTime, false);
     }
     public void PauseAll()
     {
@@ -231,8 +269,59 @@ public class SoundManager : MonoBehaviour
         AudioListener.pause = false;
     }
 
+
+
+    float cometWallHitTimer;
+    public void CometWallHit()
+    {
+        if (cometWallHitTimer > 0.2f)
+        {
+            cometWallHitTimer = 0;
+            cometWallHit.TriggerAudioObject();
+        }
+    }
+
+    public void ClickUI()
+    {
+        uiClick.TriggerAudioObject();
+    }
+    public void HoverUI()
+    {
+        uiHover.TriggerAudioObject();
+    }
+
+
     public void TutorialCompleted()
     {
-        musicInTutorial.VolumeChangeInParent(0f, 1f, true);
+        musTutLoopA.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+        musTutLoopB.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+        musTutLoopC.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+        StartCoroutine(StopTutMusic());
+    }
+    IEnumerator StopTutMusic()
+    {
+        yield return new WaitForSeconds(musTutLoopFadeOut * 2);
+        musTutLoopA.StopAudioAllVoices();
+        musTutLoopB.StopAudioAllVoices();
+        musTutLoopC.StopAudioAllVoices();
+    }
+    public void TutorialMusicLoops(int nodeIndex)
+    {
+        switch (nodeIndex)
+        {
+            case 0:
+                musTutLoopA.VolumeChangeInParent(musTutLoopA.initialVolume, musTutLoopFadeIn, true);
+                musTutLoopC.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+                break;
+            case 1:
+                musTutLoopB.VolumeChangeInParent(musTutLoopB.initialVolume, musTutLoopFadeIn, true);
+                musTutLoopA.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+                break;
+            case 2:
+                musTutLoopC.VolumeChangeInParent(musTutLoopC.initialVolume, musTutLoopFadeIn, true);
+                musTutLoopB.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+                break;
+        }
     }
 }
+

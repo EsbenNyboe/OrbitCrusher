@@ -13,9 +13,9 @@ public class SpawnManager : MonoBehaviour
     public float spawnFreqRandomness;
     public bool manualSpawn;
 
-    MusicMeter musicMeter;
-    ObjectiveManager objectiveManager;
-    SoundManager soundManager;
+    public MusicMeter musicMeter;
+    public ObjectiveManager objectiveManager;
+    public SoundManager soundManager;
     public static bool ghostSpawns;
     public static bool hasFinishedSpawning;
     private GameObject[] spawnedSpheres;
@@ -24,9 +24,9 @@ public class SpawnManager : MonoBehaviour
 
     private void Awake()
     {
-        musicMeter = FindObjectOfType<MusicMeter>();
-        objectiveManager = FindObjectOfType<ObjectiveManager>();
-        soundManager = FindObjectOfType<SoundManager>();
+        //musicMeter = FindObjectOfType<MusicMeter>();
+        //objectiveManager = FindObjectOfType<ObjectiveManager>();
+        //soundManager = FindObjectOfType<SoundManager>();
     }
     public void StartNewSpawnSequence()
     {
@@ -35,7 +35,7 @@ public class SpawnManager : MonoBehaviour
         
         for (int i = 0; i < spawnZones.Length; i++)
         {
-            spawnZones[i].LoadSpawnZone();
+            spawnZones[i].LoadSpawnZone(objectiveManager);
         }
         SpawnAllGhostsAtOnce();
     }
@@ -75,7 +75,7 @@ public class SpawnManager : MonoBehaviour
                 soundManager.SphereSpawn(i);
                 if (GameManager.inTutorial && !TutorialUI.textShown1)
                 {
-                    FindObjectOfType<TutorialUI>().ShowText1FirstSpawn();
+                    FindObjectOfType<TutorialUI>().ShowTextFirstSpawn();
                 }
             }
         }

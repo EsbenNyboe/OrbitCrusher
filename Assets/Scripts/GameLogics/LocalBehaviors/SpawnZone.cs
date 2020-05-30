@@ -12,16 +12,18 @@ public class SpawnZone : MonoBehaviour
     float yMin;
     float yMax;
     public static int counter;
-    ObjectiveManager energySphereManager;
+    ObjectiveManager objectiveManager;
 
     private void Awake()
     {
-        energySphereManager = FindObjectOfType<ObjectiveManager>();
-        transform.parent = energySphereManager.gameObject.transform;
+        //objectiveManager = FindObjectOfType<ObjectiveManager>();
+        
     }
-    public void LoadSpawnZone()
+    public void LoadSpawnZone(ObjectiveManager objMan)
     {
-        spawn = energySphereManager.energySpherePrefab;
+        objectiveManager = objMan;
+        transform.parent = objectiveManager.gameObject.transform;
+        spawn = objectiveManager.energySpherePrefab;
         Vector3 zonePos = transform.position;
         Vector3 zoneScale = transform.localScale;
         Vector3 spawnScale = spawn.transform.localScale;

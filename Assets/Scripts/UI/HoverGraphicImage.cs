@@ -20,6 +20,7 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public void OnPointerEnter(PointerEventData eventData)
     {
         image.color = colorHover;
+        uiManager.HoverUI();
     }
     public void OnPointerExit(PointerEventData eventData)
     {
@@ -28,5 +29,6 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public void ImageClicked()
     {
         image.color = colorNormal;
+        uiManager.ClickUI();
     }
 }
