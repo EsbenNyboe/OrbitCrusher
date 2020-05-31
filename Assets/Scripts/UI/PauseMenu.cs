@@ -8,6 +8,7 @@ public class PauseMenu : MonoBehaviour
     public GameObject panel;
     public GameObject audioSettings;
     public GameObject menuIcon;
+    public GameObject tutorialText;
     
     public static bool firstLoad = true;
     bool audioSettingsIsActive;
@@ -30,20 +31,25 @@ public class PauseMenu : MonoBehaviour
         displayVolSliders.ToggleSliderDisplay(menu);
         panel.SetActive(menu);
     }
+    public static bool tutorialPause;
     public void ToggleMenu()
     {
         if (panel.activeInHierarchy)
         {
             uiManager.ToggleIngameUI(true);
             menuIcon.SetActive(true);
+            tutorialText.SetActive(true);
             if (!GameManager.inTutorial)
             {
-                soundManager.UnpauseAll();
                 Time.timeScale = 1;
+                soundManager.UnpauseAll();
+                soundManager.MenuMix(false);
             }
             else
             {
                 tutorialUI.ToggleWhenMenu(true);
+                if (!tutorialPause)
+                    Time.timeScale = 1;
             }
             menu = false;
             displayVolSliders.ToggleSliderDisplay(false);
@@ -56,14 +62,18 @@ public class PauseMenu : MonoBehaviour
         {
             uiManager.ToggleIngameUI(false);
             menuIcon.SetActive(false);
+            tutorialText.SetActive(false);
             if (!GameManager.inTutorial)
             {
                 soundManager.PauseAll();
+                soundManager.MenuMix(true);
                 Time.timeScale = 0;
             }
             else
             {
                 tutorialUI.ToggleWhenMenu(false);
+                if (!tutorialPause)
+                    Time.timeScale = 0;
             }
             menu = true;
             if (audioSettingsIsActive)

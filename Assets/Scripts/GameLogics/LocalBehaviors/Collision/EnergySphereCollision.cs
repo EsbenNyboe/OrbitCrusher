@@ -29,7 +29,7 @@ public class EnergySphereCollision : MonoBehaviour
         {
             if (!nodeHit && !energySphereBehavior.isGhost)
             {
-                Debug.Log("<color=blue> cometHit </color>");
+                //Debug.Log("<color=blue> cometHit </color>");
                 GameObject comet = collision.gameObject;
                 MakeSpherePosSnapToCollObjectPos(comet);
                 ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(comet);
@@ -46,12 +46,13 @@ public class EnergySphereCollision : MonoBehaviour
             if (!nodeHit)
             {
                 GameObject node = collision.gameObject;
-                nodeManager.CollisionNodeEnergySphere(collision.gameObject);
+                //nodeManager.CollisionNodeEnergySphere(collision.gameObject);
                 MakeSpherePosSnapToCollObjectPos(node);
                 ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(node);
                 if (node == cometMovement.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]])
                 {
                     soundManager.CorrectNodeHit();
+                    nodeManager.CollisionNodeEnergySphereColor(collision.gameObject, true);
                     GoodCollision();
                     if (GameManager.inTutorial)
                     {
@@ -61,6 +62,7 @@ public class EnergySphereCollision : MonoBehaviour
                 else
                 {
                     soundManager.IncorrectNodeHit();
+                    nodeManager.CollisionNodeEnergySphereColor(collision.gameObject, false);
                     BadCollision();
                     if (GameManager.inTutorial)
                     {
@@ -78,6 +80,18 @@ public class EnergySphereCollision : MonoBehaviour
         {
             if (energySphereBehavior.isBeingDragged)
                 collision.gameObject.GetComponent<EnergySphereBehavior>().GlueUnclickedObjectToClickedObject(transform.parent.gameObject);
+        }
+    }
+    //void OnCollisionStay(Collision collision)
+    //{
+        
+    //}
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("EnergySphere") && collision.gameObject.name != transform.parent.gameObject.name)
+        {
+            if (energySphereBehavior.isBeingDragged)
+                collision.gameObject.GetComponent<EnergySphereBehavior>().ClickedObjectLeftTheCollider();
         }
     }
 

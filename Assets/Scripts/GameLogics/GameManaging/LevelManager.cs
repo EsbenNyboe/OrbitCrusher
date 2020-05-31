@@ -49,6 +49,7 @@ public class LevelManager : MonoBehaviour
     public static AudioObject[] transitionMusic; // 4/4
 
     public float failFadeOutTime;
+    public float completedFadeOutTime;
     public static bool levelCompleted;
 
     private void Awake()
@@ -122,9 +123,19 @@ public class LevelManager : MonoBehaviour
     public void UnloadLevel()
     {
         transitionBegun = false;
-        for (int i = 0; i < sounds.Length; i++)
+        if (GameManager.death)
         {
-            sounds[i].VolumeChangeInParent(0, failFadeOutTime, true);
+            for (int i = 0; i < sounds.Length; i++)
+            {
+                sounds[i].VolumeChangeInParent(0, failFadeOutTime, true);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < sounds.Length; i++)
+            {
+                sounds[i].VolumeChangeInParent(0, completedFadeOutTime, true);
+            }
         }
         musicMeter.UnsubscribeEvent(CheckIfNodeIsHitByComet, ref nodeHitSubscription);
     }
@@ -170,6 +181,7 @@ public class LevelManager : MonoBehaviour
             {
                 if (firstTimeHittingTarget)
                 {
+                    firstTimeHittingTarget = false;
                     if (GameManager.inTutorial)
                     {
                         tutorialUI.ShowTextThreeAligned(levelObjectiveCurrent);
@@ -178,7 +190,7 @@ public class LevelManager : MonoBehaviour
                     nodeBehavior.HighlightNewTarget(cometDestination);
                     objectiveManager.ResetSphereArrays();
                     spawnManager.StartNewSpawnSequence();
-                    firstTimeHittingTarget = false;
+                    nodeBehavior.CollisionNodeCometColor(cometDestination, true, true, false);
                 }
                 else
                 {
@@ -186,7 +198,7 @@ public class LevelManager : MonoBehaviour
                     {
                         
                         ObjectiveCompleted();
-                        
+                        nodeBehavior.CollisionNodeCometColor(cometDestination, true, false, true);
                     }
                     else
                     {
@@ -199,6 +211,7 @@ public class LevelManager : MonoBehaviour
                             soundManager.ObjectiveFailed();
                         }
                         ObjectiveFailed();
+                        nodeBehavior.CollisionNodeCometColor(cometDestination, true, false, false);
                         soundManager.RepeatingSpawnSequence();
                     }
                 }
@@ -207,8 +220,12 @@ public class LevelManager : MonoBehaviour
             {
                 ObjectiveFailed();
             }
-            cometBehavior.PlayLight();
-            nodeBehavior.CollisionNodeComet(cometDestination);
+            else
+            {
+                nodeBehavior.CollisionNodeCometColor(cometDestination, false, false, false);
+            }
+            //cometBehavior.PlayLight();
+            //nodeBehavior.CollisionNodeComet(cometDestination);
             cometDestination++;
             if (cometDestination >= nodes.Length)
                 cometDestination = 0;

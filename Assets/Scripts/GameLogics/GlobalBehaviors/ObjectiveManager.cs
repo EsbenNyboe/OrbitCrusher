@@ -20,6 +20,7 @@ public class ObjectiveManager : MonoBehaviour
     public GameManager gameManager;
     public HealthBar healthBar;
     public NodeBehavior nodeBehavior;
+    public TutorialUI tutorialUI;
 
 
     private void Start()
@@ -48,6 +49,8 @@ public class ObjectiveManager : MonoBehaviour
         ExpandArrayWithOneNewGoAddition(collidedSphere, amountOnTarget, ref collidedSpheresOnTarget);
         if (collidedSpheresOnTarget.Length == energySpheresSpawned.Length)
             nodeBehavior.HighlightCompletedTarget(LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]);
+        else
+            tutorialUI.ShowTextCorrectHitButStillMoreOrbsToGo();
         gameManager.UpdateEnergyHealth(1);
         healthBar.UpdateHealthbarOnCollision(true);
     }

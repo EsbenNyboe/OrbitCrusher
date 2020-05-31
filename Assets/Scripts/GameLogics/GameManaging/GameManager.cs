@@ -171,7 +171,8 @@ public class GameManager : MonoBehaviour
             levelProgression = 0;
             levelLoadDeveloperMode = false;
             godMode = false;
-            inTutorial = true;
+            soundManager.StartTutMusic();
+            //inTutorial = true;
         }
         else
         {
@@ -182,6 +183,7 @@ public class GameManager : MonoBehaviour
     {
         if (!godMode)
         {
+            cometMovement.LevelFailed();
             backgroundColorManager.LevelFailed();
             levelNumberDisplay.LevelFailed();
             tutorialUI.LoadTipOnLevelFailed();
@@ -209,6 +211,10 @@ public class GameManager : MonoBehaviour
             healthBar.UpdateHealthbarOnObjectiveConclusion(true);
         }
         soundManager.LevelTransition();
+        if (levelProgression == 0)
+        {
+            inTutorial = true;
+        }
         ChooseLevel(levelProgression);
         musicMeter.LoadNewMeterSettings(120, 8, 2);
         musicMeter.ResetMeterCounts();
@@ -298,4 +304,17 @@ public class GameManager : MonoBehaviour
         //healthBar.UpdateHealthBarControlValue(energy);
         //print("<color=red> energy: </color>" + energy);
     }
+
+    public bool timeScaleAction;
+    public float timeScale;
+
+    private void Update()
+    {
+        if (timeScaleAction)
+        {
+            Time.timeScale = timeScale;
+        }
+    }
+
+
 }

@@ -60,7 +60,8 @@ public class AudioObject : MonoBehaviour
         RandomNoRepeat
     }
 
-    private int selectedFile = -1;
+    [HideInInspector]
+    public int selectedFile = -1;
     private int prevFileSelection = -1;
     private int currentVoice = -1;
     private GameObject[] voice;

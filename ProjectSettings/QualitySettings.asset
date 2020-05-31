@@ -43,6 +43,7 @@ QualitySettings:
     customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms:
     - Standalone
+    - WebGL
   - serializedVersion: 2
     name: Low
     pixelLightCount: 0
@@ -116,6 +117,7 @@ QualitySettings:
     customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms:
     - Standalone
+    - WebGL
   - serializedVersion: 2
     name: High
     pixelLightCount: 2
@@ -153,6 +155,7 @@ QualitySettings:
     customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms:
     - Standalone
+    - WebGL
   - serializedVersion: 2
     name: Very High
     pixelLightCount: 3
@@ -190,6 +193,7 @@ QualitySettings:
     customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms:
     - Standalone
+    - WebGL
   - serializedVersion: 2
     name: Ultra
     pixelLightCount: 4
@@ -227,6 +231,7 @@ QualitySettings:
     customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms:
     - Standalone
+    - WebGL
   m_PerPlatformDefaultQuality:
     Android: 2
     Lumin: 5

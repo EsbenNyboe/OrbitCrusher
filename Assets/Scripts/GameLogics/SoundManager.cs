@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SoundManager : MonoBehaviour
 {
-    public AudioObject orbSpawn, orbPickup, orbGlued, orbPickupDenied, orbDrag;
+    public AudioObject orbSpawn, orbPickup, orbGlued, orbGluedAlt, orbPickupDenied, orbDrag;
     public AudioObject [] orbDragGlued;
     public AudioObject levelCompleted, levelFailed, objectiveConcluded, objectiveCompleted, objectiveFailed;
     public AudioObject correctHit, incorrectHit, incorrectHitComet;
@@ -31,14 +31,8 @@ public class SoundManager : MonoBehaviour
     {
         if (GameManager.inTutorial)
         {
-            musTutLoopA.VolumeChangeInParent(0f, 0f, true);
-            musTutLoopA.TriggerAudioObject();
-            musTutLoopB.VolumeChangeInParent(0f, 0f, true);
-            musTutLoopB.TriggerAudioObject();
-            musTutLoopC.VolumeChangeInParent(0f, 0f, true);
-            musTutLoopC.TriggerAudioObject();
+            StartTutMusic();
         }
-
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
         musicBetweenLevels.TriggerAudioObject();
         musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, true);
@@ -51,6 +45,17 @@ public class SoundManager : MonoBehaviour
             orbDragGlued[i].TriggerAudioObject();
         }
     }
+
+    public void StartTutMusic()
+    {
+        musTutLoopA.VolumeChangeInParent(0f, 0f, true);
+        musTutLoopA.TriggerAudioObject();
+        musTutLoopB.VolumeChangeInParent(0f, 0f, true);
+        musTutLoopB.TriggerAudioObject();
+        musTutLoopC.VolumeChangeInParent(0f, 0f, true);
+        musTutLoopC.TriggerAudioObject();
+    }
+
     private void Update()
     {
         orbGluedTimer += Time.deltaTime;
@@ -60,19 +65,41 @@ public class SoundManager : MonoBehaviour
     public float sphereDragVolFade;
     float orbGluedTimer;
     int orbsGluedIndex;
+
+    public void MenuMix(bool menu)
+    {
+        if (menu)
+        {
+            if (musicBetweenLevelsAllowed)
+            {
+                musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume * 0.25f, 0, false);
+            }
+        }
+        else
+        {
+            if (musicBetweenLevelsAllowed)
+            {
+                musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 0, false);
+            }
+        }
+    }
     public void SphereGlued()
     {
         if (orbsGluedIndex >= orbDragGlued.Length)
         {
             orbsGluedIndex = orbDragGlued.Length - 1;
         }
+        //orbGlued.selectedFile = orbsGluedIndex;
         if (orbGluedTimer < Random.Range(0.01f, 0.05f))
         {
-            orbGlued.TriggerSoundWithDelay(Random.Range(0.01f, 0.02f));
+            float r = Random.Range(0.01f, 0.02f);
+            orbGlued.TriggerSoundWithDelay(r);
+            orbGluedAlt.TriggerSoundWithDelay(r);
         }
         else
         {
             orbGlued.TriggerAudioObject();
+            orbGluedAlt.TriggerAudioObject();
         }
         orbGluedTimer = 0;
 
@@ -136,23 +163,31 @@ public class SoundManager : MonoBehaviour
         orbSpawn.VolumeChangeInParent(decreasedVolume, 0.01f, true);
     }
 
+    bool musicBetweenLevelsAllowed;
     public void LevelTransition()
     {
-        musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
         levelCompleted.VolumeChangeInParent(0f, 2f, false);
         levelFailed.VolumeChangeInParent(0f, 2f, false);
+        musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
+        musicBetweenLevelsAllowed = false;
     }
     public void LevelCompleted()
     {
         levelCompleted.VolumeChangeInParent(levelCompleted.initialVolume, 0f, false);
         levelCompleted.TriggerAudioObject();
+        if (!musicBetweenLevels.IsPlaying())
+            musicBetweenLevels.TriggerAudioObject();
         musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, false);
+        musicBetweenLevelsAllowed = true;
     }
     public void LevelFailed()
     {
         levelFailed.VolumeChangeInParent(levelFailed.initialVolume, 0f, false);
         levelFailed.TriggerAudioObject();
+        if (!musicBetweenLevels.IsPlaying())
+            musicBetweenLevels.TriggerAudioObject();
         musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, false);
+        musicBetweenLevelsAllowed = true;
     }
     public void ObjectiveCompleted()
     {

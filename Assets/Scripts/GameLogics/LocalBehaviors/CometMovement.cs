@@ -52,13 +52,17 @@ public class CometMovement : MonoBehaviour
     {
         nodes = LevelManager.nodes;
         currentDestination = 0;
-        transNodePos = LevelManager.transitionNode.transform.position;
         LevelManager.transitionNode.transform.parent = null;
+        transNodePos = LevelManager.transitionNode.transform.position;
         inTransition = true;
     }
     public void LoadLevel()
     {
         inTransition = false;
+    }
+    public void LevelFailed()
+    {
+        LevelManager.transitionNode.transform.localPosition = transNodePos;
     }
     private void FixedUpdate()
     {
@@ -109,7 +113,6 @@ public class CometMovement : MonoBehaviour
     public float transitionSpeedFactor;
     private void MoveCometToTheTransition()
     {
-        
         Vector3 levelNodePos = nodes[0].transform.position;
         Vector3 transNodeProgress = Vector3.Lerp(transNodePos, levelNodePos, cometBehavior.timeProgressAdapted);
         LevelManager.transitionNode.transform.localPosition = transNodeProgress;
@@ -118,6 +121,11 @@ public class CometMovement : MonoBehaviour
         transform.localPosition = Vector3.Lerp(pos, transNodeProgress, cometTransitionMovement);
 
         freeBirdStartDirection = Vector3.Lerp(freeBirdStartDirection, new Vector3(0, 0, 0), cometTransitionMovement * transitionSpeedFactor);
+    }
+    public static float Distance(Vector3 a, Vector3 b)
+    {
+        Vector3 vector = new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+        return Mathf.Sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
     }
 
     private void MoveCometToTheBeat()

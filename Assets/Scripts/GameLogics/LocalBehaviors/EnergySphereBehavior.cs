@@ -75,6 +75,7 @@ public class EnergySphereBehavior : MonoBehaviour
     }
     void Update()
     {
+        
         if (isDead && !movedToBack)
         {
             GetComponent<SphereCollider>().enabled = false;
@@ -83,13 +84,15 @@ public class EnergySphereBehavior : MonoBehaviour
         }
         if (isDead && isBeingDragged)
         {
-            soundManager.SpherePickedUpNoMore();
+            SpherePickedUpNoMore();
             isBeingDragged = false;
             playerIsDraggingAnEnergySphere = false;
             //psLight.loop = false;
         }
         if (!isDead)
         {
+            
+
             if (hasHitNode)
             {
                 isGlued = false;
@@ -112,6 +115,23 @@ public class EnergySphereBehavior : MonoBehaviour
                 SetTrailColorA(psmainB);
                 isGlued = false;
             }
+            if (ghostEagerToBeGlued)
+            {
+                if (isGhost && !playerIsDraggingAnEnergySphere)
+                {
+                    ghostEagerToBeGlued = false;
+                    sphereBeingDragged = null;
+                }
+                else if (!isGhost && playerIsDraggingAnEnergySphere)
+                {
+                    ghostEagerToBeGlued = false;
+                    if (sphereBeingDragged != null)
+                    {
+                        GlueUnclickedObjectToClickedObject(sphereBeingDragged);
+                    }
+                }
+            }
+
             SetParticleDelay();
             SnapPositionOffsetToMousePosition();
             mPosLast = mPos;
@@ -194,7 +214,7 @@ public class EnergySphereBehavior : MonoBehaviour
     {
         if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
         {
-            soundManager.SpherePickedUpNoMore();
+            SpherePickedUpNoMore();
             SetTrailColorA(psmainA);
             SetTrailColorA(psmainB);
             isBeingDragged = false;
@@ -202,6 +222,13 @@ public class EnergySphereBehavior : MonoBehaviour
             //psLight.loop = false;
         }
     }
+
+    private void SpherePickedUpNoMore()
+    {
+        sphereBeingDragged = null;
+        soundManager.SpherePickedUpNoMore();
+    }
+
     private void SpawnParticle(GameObject prefab, ref GameObject go, ref ParticleSystem.MainModule psmain)
     {
         go = Instantiate(prefab, transform);
@@ -263,9 +290,21 @@ public class EnergySphereBehavior : MonoBehaviour
                 mOffset = mOffset * snapSoftness;
         }
     }
+
+    private bool ghostEagerToBeGlued;
+    public void ClickedObjectLeftTheCollider()
+    {
+        ghostEagerToBeGlued = false;
+    }
+    private GameObject sphereBeingDragged;
     public void GlueUnclickedObjectToClickedObject(GameObject clickedObject)
     {
-        if (!isDead && !isGlued)
+        if (isGhost)
+        {
+            ghostEagerToBeGlued = true;
+            sphereBeingDragged = clickedObject;
+        }
+        if (!isDead && !isGlued && !isGhost)
         {
             soundManager.SphereGlued();
             isGlued = true;

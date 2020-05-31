@@ -10,6 +10,7 @@ public class TutorialUI : MonoBehaviour
     public GameObject text2;
     public GameObject text3;
     public GameObject text4;
+    public GameObject text5B;
     public GameObject text5;
     public GameObject text6;
     public GameObject text7;
@@ -26,7 +27,8 @@ public class TutorialUI : MonoBehaviour
     public static bool textShown1;
     bool textShown2;
     bool textShown3;
-    bool textShown4;    
+    bool textShown4;
+    bool textShown5B;
     bool textShown5;
     bool textShown6;
     bool textShown7;
@@ -72,6 +74,7 @@ public class TutorialUI : MonoBehaviour
         StopAllCoroutines();
         numberOfActiveTextboxes = 0;
         Time.timeScale = 1;
+        PauseMenu.tutorialPause = false;
         panel.SetActive(false);
         UnloadTutorial();
         LevelManager.levelObjectiveCurrent = 10;
@@ -91,6 +94,7 @@ public class TutorialUI : MonoBehaviour
         {
             soundManager.KillSphereSoundInstant();
             Time.timeScale = 0;
+            PauseMenu.tutorialPause = true;
         }
     }
     IEnumerator TimeStopDelayed(float time)
@@ -105,16 +109,20 @@ public class TutorialUI : MonoBehaviour
     {
         numberOfActiveTextboxes--;
         if (numberOfActiveTextboxes == 0)
+        {
             Time.timeScale = 1;
+            PauseMenu.tutorialPause = false;
+        }
     }
     public void ResetTutorial()
     {
         numberOfActiveTextboxes = 0;
-        textShown1 = textShown2 = textShown3 = textShown4 = textShown5 = textShown6 = textShown7 = textShown8 = false;
+        textShown1 = textShown2 = textShown3 = textShown4 = textShown5B = textShown5 = textShown6 = textShown7 = textShown8 = false;
         text1.SetActive(false);
         text2.SetActive(false);
         text3.SetActive(false);
         text4.SetActive(false);
+        text5B.SetActive(false);
         text5.SetActive(false);
         text6.SetActive(false);
         text7.SetActive(false);
@@ -133,6 +141,7 @@ public class TutorialUI : MonoBehaviour
     {
         if (!textShown1 && !tutorialSkip)
         {
+            panel.SetActive(true);
             text1.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstSpawnDelay));
         }
@@ -147,6 +156,19 @@ public class TutorialUI : MonoBehaviour
         }
         textShown2 = true;
     }
+    public void ShowTextCorrectHitButStillMoreOrbsToGo()
+    {
+        if (GameManager.inTutorial)
+        {
+            if (!textShown5B && !tutorialSkip)
+            {
+                text5B.SetActive(true);
+                StartCoroutine(TimeStopDelayed(firstCorrectHitDelay));
+            }
+            textShown5B = true;
+        }
+    }
+
     public void ShowTextFirstHealthbarCharge()
     {
         if (textShown1 && textShown2 && !tutorialSkip)

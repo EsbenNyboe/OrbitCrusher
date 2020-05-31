@@ -37,7 +37,4 @@ public class LevelNumberDisplay : MonoBehaviour
     {
         levelNumbers[mostRecentLevelCompleted].GetComponent<Animator>().enabled = true;
     }
-
-
-    
 }

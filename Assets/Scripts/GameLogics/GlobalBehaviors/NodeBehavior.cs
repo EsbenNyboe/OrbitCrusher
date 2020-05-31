@@ -34,6 +34,7 @@ public class NodeBehavior : MonoBehaviour
     bool[] spawning;
 
     public Color colorGray, colorRed, colorYellow, colorGreen;
+    public Color particleRed, particleYellow, particleGreen, particleNeutral;
 
     Animator[] nodeDriftMovement;
 
@@ -193,30 +194,87 @@ public class NodeBehavior : MonoBehaviour
         }
     }
 
-    public void CollisionNodeComet(int nodeIndex)
+    public void CollisionNodeCometColor(int nodeIndex, bool target, bool first, bool objCompleted)
     {
+        ParticleSystem psComet = nodeParticleCometColl[nodeIndex].GetComponent<ParticleSystem>();
+        ParticleSystem.MainModule psmComet = psComet.main;
+        
+        if (target)
+        {
+            if (first)
+            {
+                psmComet.startColor = particleYellow;
+            }
+            else if (objCompleted)
+            {
+                psmComet.startColor = particleGreen;
+            }
+            else
+            {
+                psmComet.startColor = particleRed;
+            }
+        }
+        else
+        {
+            psmComet.startColor = particleNeutral;
+        }
+
         nodeColl[nodeIndex] = true;
         pleaseNormalizeNode[nodeIndex] = false;
         collSizingSpeed[nodeIndex] = collGrowSpeed;
-        nodeParticleCometColl[nodeIndex].GetComponent<ParticleSystem>().Play();
+        psComet.Play();
         //nodeParticleEnergySphereColl[nodeIndex].GetComponent<ParticleSystem>().Play();
         particleSizing[nodeIndex] = true;
     }
-    public void CollisionNodeEnergySphere(GameObject node)
+    //public void CollisionNodeComet(int nodeIndex)
+    //{
+    //    nodeColl[nodeIndex] = true;
+    //    pleaseNormalizeNode[nodeIndex] = false;
+    //    collSizingSpeed[nodeIndex] = collGrowSpeed;
+    //    nodeParticleCometColl[nodeIndex].GetComponent<ParticleSystem>().Play();
+    //    //nodeParticleEnergySphereColl[nodeIndex].GetComponent<ParticleSystem>().Play();
+    //    particleSizing[nodeIndex] = true;
+    //}
+
+
+    public void CollisionNodeEnergySphereColor(GameObject node, bool correct)
     {
         for (int i = 0; i < nodes.Length; i++)
         {
             if (nodes[i] == node)
             {
+                ParticleSystem ps = nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>();
+                ParticleSystem.MainModule psm = ps.main;
+                if (correct)
+                    psm.startColor = particleGreen;
+                else
+                    psm.startColor = particleRed;
+                
                 nodeColl[i] = true;
                 pleaseNormalizeNode[i] = false;
                 collSizingSpeed[i] = collGrowSpeed;
                 //nodeParticleCometColl[i].GetComponent<ParticleSystem>().Play();
-                nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>().Play();
+                ps.Play();
                 particleSizing[i] = true;
             }
         }
+        
     }
+    //public void CollisionNodeEnergySphere(GameObject node)
+    //{
+    //    for (int i = 0; i < nodes.Length; i++)
+    //    {
+    //        if (nodes[i] == node)
+    //        {
+    //            nodeColl[i] = true;
+    //            pleaseNormalizeNode[i] = false;
+    //            collSizingSpeed[i] = collGrowSpeed;
+    //            //nodeParticleCometColl[i].GetComponent<ParticleSystem>().Play();
+    //            nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>().Play();
+    //            particleSizing[i] = true;
+    //        }
+    //    }
+    //}
     public void RemoveTargetHighlighting(int targetIndex)
     {
         for (int i = 0; i < nodes.Length; i++)
@@ -234,7 +292,11 @@ public class NodeBehavior : MonoBehaviour
         ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
         psmain.startColor = colorYellow;
 
-        nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>().Play();
+        ParticleSystem ps = nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>();
+        ParticleSystem.MainModule psm = ps.main;
+        psm.startColor = particleYellow;
+        ps.Play();
+        //nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>().Play();
     }
 
     public void HighlightCompletedTarget(int targetIndex)

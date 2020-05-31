@@ -140,7 +140,7 @@ public class MusicMeter : MonoBehaviour
             }
             timeDriftAverage /= 5;
         }
-        AnimationCurvePrint.value = timeDriftAverage;
+        //AnimationCurvePrint.value = timeDriftAverage;
 
         float newWaitTime;
         //newWaitTime = secondsPerBeatDiv - timeDriftAverage;
