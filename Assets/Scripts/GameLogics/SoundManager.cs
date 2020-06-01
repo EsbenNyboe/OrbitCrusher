@@ -156,9 +156,10 @@ public class SoundManager : MonoBehaviour
     public void RepeatingSpawnSequence()
     {
         spawnSequenceRepeatIndex++;
-        float decreaseFactorPerRepeat = 1 - spawnSequenceRepeatIndex * 0.13f;
-        if (decreaseFactorPerRepeat < 0.4f)
-            decreaseFactorPerRepeat = 0.4f;
+
+        float decreaseFactorPerRepeat = 1 - spawnSequenceRepeatIndex * 0.11f;
+        if (decreaseFactorPerRepeat < 0.6f)
+            decreaseFactorPerRepeat = 0.6f;
         float decreasedVolume = orbSpawn.initialVolume * decreaseFactorPerRepeat;
         orbSpawn.VolumeChangeInParent(decreasedVolume, 0.01f, true);
     }
