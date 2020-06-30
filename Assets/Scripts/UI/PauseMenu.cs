@@ -31,54 +31,64 @@ public class PauseMenu : MonoBehaviour
         displayVolSliders.ToggleSliderDisplay(menu);
         panel.SetActive(menu);
     }
-    public static bool tutorialPause;
     public void ToggleMenu()
     {
         if (panel.activeInHierarchy)
         {
-            uiManager.ToggleIngameUI(true);
-            menuIcon.SetActive(true);
-            tutorialText.SetActive(true);
-            if (!GameManager.inTutorial)
-            {
-                Time.timeScale = 1;
-                soundManager.UnpauseAll();
-                soundManager.MenuMix(false);
-            }
-            else
-            {
-                tutorialUI.ToggleWhenMenu(true);
-                if (!tutorialPause)
-                    Time.timeScale = 1;
-            }
-            menu = false;
-            displayVolSliders.ToggleSliderDisplay(false);
-            if (audioSettings.activeInHierarchy)
-                audioSettingsIsActive = true;
-            else
-                audioSettingsIsActive = false;
+            ExitMenu();
         }
         else
         {
-            uiManager.ToggleIngameUI(false);
-            menuIcon.SetActive(false);
-            tutorialText.SetActive(false);
-            if (!GameManager.inTutorial)
-            {
-                soundManager.PauseAll();
-                soundManager.MenuMix(true);
-                Time.timeScale = 0;
-            }
-            else
-            {
-                tutorialUI.ToggleWhenMenu(false);
-                if (!tutorialPause)
-                    Time.timeScale = 0;
-            }
-            menu = true;
-            if (audioSettingsIsActive)
-                displayVolSliders.ToggleSliderDisplay(true);
+            EnterMenu();
         }
+    }
+
+    public void EnterMenu()
+    {
+        tutorialUI.DisplayTipsOnMenuToggle(false);
+        uiManager.ToggleIngameUI(false);
+        menuIcon.SetActive(false);
+        tutorialText.SetActive(false);
+        if (!GameManager.inTutorial)
+        {
+            soundManager.PauseAll();
+            soundManager.MenuMix(true);
+            Time.timeScale = 0;
+        }
+        else
+        {
+            tutorialUI.ToggleWhenMenu(false);
+        }
+        menu = true;
+        if (audioSettingsIsActive)
+            displayVolSliders.ToggleSliderDisplay(true);
+
+        panel.SetActive(menu);
+    }
+
+    private void ExitMenu()
+    {
+        tutorialUI.DisplayTipsOnMenuToggle(true);
+        uiManager.ToggleIngameUI(true);
+        menuIcon.SetActive(true);
+        tutorialText.SetActive(true);
+        if (!GameManager.inTutorial)
+        {
+            Time.timeScale = 1;
+            soundManager.UnpauseAll();
+            soundManager.MenuMix(false);
+        }
+        else
+        {
+            tutorialUI.ToggleWhenMenu(true);
+        }
+        menu = false;
+        displayVolSliders.ToggleSliderDisplay(false);
+        if (audioSettings.activeInHierarchy)
+            audioSettingsIsActive = true;
+        else
+            audioSettingsIsActive = false;
+
         panel.SetActive(menu);
     }
 

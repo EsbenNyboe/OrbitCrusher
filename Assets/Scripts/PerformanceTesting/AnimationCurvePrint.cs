@@ -5,7 +5,9 @@ using UnityEngine;
 public class AnimationCurvePrint : MonoBehaviour
 {
     public AnimationCurve valueCurve = new AnimationCurve();
-//    public AnimationCurve accelerationCurve = new AnimationCurve();
+    public static float value;
+
+    //    public AnimationCurve accelerationCurve = new AnimationCurve();
     [HideInInspector]
     public float valueSpeed;
     [HideInInspector]
@@ -15,15 +17,18 @@ public class AnimationCurvePrint : MonoBehaviour
     float lerpedSpeed;
     float oldSpeed;
 
+
+
     float derpTimer;
     void Update()
     {
+        
         //GraphDisplay_SphereMovementSpeed();
 
         GraphDisplay_TimeUntilTarget();
     }
 
-    public static float value;
+    
     private void GraphDisplay_TimeUntilTarget()
     {
         valueCurve.AddKey(Time.realtimeSinceStartup, value);

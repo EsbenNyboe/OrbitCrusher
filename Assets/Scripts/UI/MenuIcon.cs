@@ -7,7 +7,9 @@ public class MenuIcon : MonoBehaviour
 {
     public PauseMenu pauseMenu;
     SpriteRenderer spriteRenderer;
-    Color colorNormal;
+    [HideInInspector]
+    public Color colorNormal;
+    [HideInInspector]
     public Color colorHover;
 
     void Awake()

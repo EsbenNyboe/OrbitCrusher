@@ -7,8 +7,8 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
 {
     UIManager uiManager;
     Image image;
-    Color colorNormal;
-    Color colorHover;
+    public static Color colorNormal;
+    public static Color colorHover;
 
     void Awake()
     {

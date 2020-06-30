@@ -3,62 +3,77 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public bool autoPauseEnabled;
     public bool godMode;
     public bool levelLoadDeveloperMode;
-    public static bool inTutorial;
-    public GameObject [] levels;
-    GameObject currentLevel;
+    public bool levelLoadUseSaveSystem;
+    public int levelToLoad;
+    public int objectiveToLoad;
+    public bool autoUnloadActiveLevels;
+    public bool frameRateDeveloperMode;
+    public int targetFrameRate;
 
-    private int levelProgression;
-    public int levelQuickLoadReal;
-    public int objectiveQuickLoad;
-    public static bool betweenLevels = true;
-    //public static bool preTransition = true;
-    public int tutorialEnergy;
-    public int startEnergy;
-    public int maxEnergy;
-    public static int energy;
-    public MusicMeter.MeterCondition transitionTiming;
-    public MusicMeter.MeterCondition transitionTimingSimple;
     public MusicMeter musicMeter;
     public NodeBehavior nodeBehavior;
-    public CometMovement cometMovement;
-    public CometBehavior cometBehavior;
+    public CometBehavior cometMovement;
+    public CometManager cometManager;
     public HealthBar healthBar;
     public SoundManager soundManager;
     public UIManager uiManager;
-    LevelDesigner levelSettings;
+    private LevelDesigner levelSettings;
     public LevelManager levelManager;
     public TutorialUI tutorialUI;
     public LevelNumberDisplay levelNumberDisplay;
     public BackgroundColorManager backgroundColorManager;
+    ScreenShake screenShake;
 
-    public bool autoUnloadActiveLevels;
+    public GameObject[] levels;
+    public int tutorialEnergy;
+    public int startEnergy;
+    public int maxEnergy;
+    public int transitionStartPoint;
+    public MusicMeter.MeterCondition transitionTiming;
+
+    public bool enableFullHpMusic;
+
+    private GameObject currentLevel;
+    public static int energy;
+    public static int levelProgression;
+    public static bool fullEnergy;
+    public static bool inTutorial;
+
+
+    public static bool betweenLevels = true;
+    public static bool death;
+    public static bool gameCompleted;
+    public static bool levelCompleted;
+
     private void Awake()
     {
-        Application.targetFrameRate = 600;
-        //levelManager = FindObjectOfType<LevelManager>();
-        //musicMeter = FindObjectOfType<MusicMeter>();
-        //nodeBehavior = FindObjectOfType<NodeBehavior>();
-        //cometMovement = FindObjectOfType<CometMovement>();
-        //cometBehavior = FindObjectOfType<CometBehavior>();
-        //healthBar = FindObjectOfType<HealthBar>();
-        //soundManager = FindObjectOfType<SoundManager>();
-        //uiManager = FindObjectOfType<UIManager>();
-        //tutorialUI = FindObjectOfType<TutorialUI>();
-        //levelNumberDisplay = FindObjectOfType<LevelNumberDisplay>();
-        //backgroundColorManager = FindObjectOfType<BackgroundColorManager>();
+        Input.simulateMouseWithTouches = true;
+        Application.targetFrameRate = targetFrameRate;
 
+        player.LoadPlayer();
+        if (levelLoadUseSaveSystem)
+            levelToLoad = player.lvl;
 
-
+        screenShake = GetComponentInChildren<ScreenShake>();
+    }
+    private void Start()
+    {
+        
+        
         if (levelLoadDeveloperMode)
         {
             LoadQuickloadLevelSelection();
         }
         else
         {
-            inTutorial = true;
-            energy = tutorialEnergy;
+            if (levelToLoad == 0)
+            {
+                inTutorial = true;
+                energy = tutorialEnergy;
+            }
             if (autoUnloadActiveLevels)
             {
                 foreach (var levelObject in levels)
@@ -66,25 +81,27 @@ public class GameManager : MonoBehaviour
                     levelObject.SetActive(false);
                 }
             }
-            //firstLoad = FirstLoad();
-            //StartCoroutine(firstLoad);
+            levelProgression = levelToLoad;
         }
     }
-    private void Start()
+    private void Update()
     {
-        if (!levelManager.enableTransitionMusic)
+        if (frameRateDeveloperMode)
         {
-            transitionTiming = transitionTimingSimple;
+            Application.targetFrameRate = targetFrameRate;
         }
+        energyDisplay = energy;
+        CheckIfEnergyFull();
     }
+    public int energyDisplay;
 
     private void LoadQuickloadLevelSelection()
     {
-        if (levelQuickLoadReal == 0)
+        if (levelToLoad == 0)
             inTutorial = true;
         for (int i = 0; i < levels.Length; i++)
         {
-            if (i == levelQuickLoadReal)
+            if (i == levelToLoad)
             {
                 levelProgression = i;
                 levels[i].SetActive(true);
@@ -100,101 +117,24 @@ public class GameManager : MonoBehaviour
         uiManager.StartGame();
     }
 
-    //private void LoadTheLevelThatsAlreadyActiveInTheScene()
-    //{
-    //    for (int i = 0; i < levels.Length; i++)
-    //    {
-    //        if (levels[i].activeSelf)
-    //        {
-    //            levelProgression = i;
-    //            levels[i].SetActive(false);
-    //        }
-    //    }
-    //}
-
-    public void LevelStartTriggered()
+    public void LevelStartTriggered(bool newLevel)
     {
+        loadNewLevel = newLevel;
         levelNumberDisplay.StartLevel();
+        if (levelToLoad > 0)
+        {
+            //levelNumberDisplay.LevelNumberMakeGreen(levelToLoad);
+        }
         backgroundColorManager.GradualColorOnLevelLoad(death);
         death = false;
-        //preTransition = false;
-        LevelManager.levelCompleted = false;
+        gameCompleted = false;
+        levelCompleted = false;
         LoadTransitionToLevel();
 
     }
 
-    //IEnumerator FirstLoad()
-    //{
-    //    LoadGame(false);
-    //    yield return new WaitForSeconds(firstLoadDelay);
-    //    LoadGame(true);
-    //    if (levelQuickLoad >= levels.Length)
-    //        levelQuickLoad = 0;
-    //    levelProgression = levelQuickLoad;
 
-    //    //LoadTransitionToNewLevel();
-    //}
-    //IEnumerator firstLoad;
 
-    //private void LoadGame(bool load)
-    //{
-    //    musicMeter.enabled = load;
-    //    spawnManager.enabled = load;
-    //    if (!load)
-    //        foreach (var levelObject in levels)
-    //        {
-    //            levelObject.SetActive(load);
-    //        }
-    //}
-
-    public void LevelCompleted()
-    {
-        backgroundColorManager.LevelCompleted();
-        levelNumberDisplay.LevelCompleted(levelProgression);
-        healthBar.FadeOutHealthbar();
-        HoverGraphicText.allButtonsActive = false;
-        objectiveQuickLoad = 0;
-        if (inTutorial)
-        {
-            soundManager.TutorialCompleted();
-            inTutorial = false;
-            
-        }
-        HealthBar.tutorialFadeOut = true;
-        energy = 0;
-        soundManager.LevelCompleted();
-        UnloadLevel();
-        levelProgression++;
-        if (levelProgression >= levels.Length)
-        {
-            uiManager.ShowTextGameWon();
-            levelProgression = 0;
-            levelLoadDeveloperMode = false;
-            godMode = false;
-            soundManager.StartTutMusic();
-            //inTutorial = true;
-        }
-        else
-        {
-            uiManager.ShowTextLevelCompleted();
-        }
-    }
-    public void LevelFailed()
-    {
-        if (!godMode)
-        {
-            cometMovement.LevelFailed();
-            backgroundColorManager.LevelFailed();
-            levelNumberDisplay.LevelFailed();
-            tutorialUI.LoadTipOnLevelFailed();
-            HoverGraphicText.allButtonsActive = false;
-            healthBar.FadeOutHealthbar();
-            LevelManager.firstTimeHittingTarget = true;
-            uiManager.ShowTextLevelFailed();
-            soundManager.LevelFailed();
-            UnloadLevel();
-        }
-    }
     private void LoadTransitionToLevel()
     {
         tutorialUI.HideTipsOnLevelLoaded();
@@ -216,11 +156,8 @@ public class GameManager : MonoBehaviour
             inTutorial = true;
         }
         ChooseLevel(levelProgression);
-        musicMeter.LoadNewMeterSettings(120, 8, 2);
-        musicMeter.ResetMeterCounts();
-        //musicMeter.InitializeMeter();
-        //musicMeter.SubscribeEvent(musicMeter.ResetMeterCounts, ref musicMeter.subscribeAnytime);
-        musicMeter.SubscribeEvent(RunTransitionToLevel, ref musicMeter.subscribeAnytime);
+        
+
         foreach (var levelObject in levels)
         {
             if (levelObject == currentLevel)
@@ -231,63 +168,57 @@ public class GameManager : MonoBehaviour
             else
                 levelObject.SetActive(false);
         }
-        nodeBehavior.SpawnNodes();
+
+        musicMeter.LoadNewMeterSettings(120, 8, 2);
+        MusicMeter.beatCount = transitionStartPoint;
+        if (inTutorial)
+            MusicMeter.beatCount = 6;
+        musicMeter.ActivateMusicMeter();
+
+        musicMeter.SubscribeEvent(levelManager.LoadLevelTransition, ref musicMeter.subscribeAnytime);
+        musicMeter.SubscribeEvent(RunTransitionToLevel, ref musicMeter.subscribeAnytime);
+        nodeBehavior.SpawnNodes(loadNewLevel);
         uiManager.uiCurrentLevel.text = levelProgression.ToString();
         uiManager.uiCurrentLevelObjective.text = ": " + LevelManager.levelObjectiveCurrent.ToString();
+        cometColor.Color_InOrbit();
     }
-    public AudioObject debugSound;
-    public MusicMeter.MeterCondition testInterval;
+    private void ChooseLevel(int levelNumber)
+    {
+        currentLevel = levels[levelNumber];
+        levelSettings = currentLevel.GetComponent<LevelDesigner>();
+    }
     private void RunTransitionToLevel()
     {
         levelManager.TransitionSounds();
-        MeterLookahead meterLookahead = FindObjectOfType<MeterLookahead>();
-        //if (meterLookahead.SoundLookaheadConditionSpecific(testInterval))
-        //    debugSound.TriggerAudioObject();
 
-        //if (musicMeter.MeterConditionIntervals(testInterval))
         if (musicMeter.MeterConditionSpecificTarget(transitionTiming))
         {
             betweenLevels = false;
             levelManager.LoadLevel();
             nodeBehavior.LoadLevel();
             cometMovement.LoadLevel();
-            cometBehavior.LoadLevel();
+            cometManager.LoadLevel();
             musicMeter.UnsubscribeEvent(RunTransitionToLevel, ref musicMeter.subscribeAnytime);
             musicMeter.LoadNewMeterSettings(LevelManager.bpm, LevelManager.beatsPerBar, LevelManager.barsPerSection);
-            musicMeter.ResetMeterCounts();
-            //musicMeter.SubscribeEvent(musicMeter.ResetMeterCounts, ref musicMeter.subscribeAnytime);
         }
     }
+    public CometColor cometColor;
 
-    private void UnloadLevel()
-    {
-        nodeBehavior.AllAppear(false);
-        nodeBehavior.AllExplode();
-        MusicMeter.sampleControlledMeter = false;
-        betweenLevels = true;
-        //preTransition = true;
-        //levels[levelProgression].SetActive(false);
-        levelManager.UnloadLevel();
-        CometMovement.isMoving = false;
-    }
+    public static bool loadNewLevel;
+    
 
-    private void ChooseLevel(int levelNumber)
+    public static int energyPool;
+    public void UpdateEnergyHealth(int amount, bool updatePool)
     {
-        currentLevel = levels[levelNumber];
-        levelSettings = currentLevel.GetComponent<LevelDesigner>();
-    }
-
-    public static bool death;
-    public static bool fullEnergy;
-    public void UpdateEnergyHealth(int amount)
-    {
-        if (energy >= maxEnergy)
+        if (updatePool)
+        //if (amount != -1)
         {
-            fullEnergy = true;
+            if (amount > 0)
+                amount += energyPool;
+            energyPool = 0;
         }
-
         energy += amount;
-        if (energy < 0)
+        if (energy < 1)
         {
             if (!godMode)
                 death = true;
@@ -296,25 +227,87 @@ public class GameManager : MonoBehaviour
         {
             energy = maxEnergy;
         }
+    }
 
-        if (energy < maxEnergy)
+    private void CheckIfEnergyFull()
+    {
+        if (!fullEnergy && energy >= maxEnergy)
+        {
+            fullEnergy = true; 
+        }
+        else if (fullEnergy && energy < maxEnergy)
         {
             fullEnergy = false;
         }
-        //healthBar.UpdateHealthBarControlValue(energy);
-        //print("<color=red> energy: </color>" + energy);
     }
 
-    public bool timeScaleAction;
-    public float timeScale;
-
-    private void Update()
+    public Player player;
+    public void LevelCompleted()
     {
-        if (timeScaleAction)
+        screenShake.ScreenShakeLevelCompleted();
+        levelCompleted = true;
+        backgroundColorManager.LevelCompleted();
+        levelNumberDisplay.LevelCompleted();
+        healthBar.FadeOutHealthbar();
+        HoverGraphicText.allButtonsActive = false;
+        objectiveToLoad = 0;
+        if (inTutorial)
         {
-            Time.timeScale = timeScale;
+            soundManager.TutorialCompleted();
+            inTutorial = false;
+
+        }
+        HealthBar.tutorialFadeOut = true;
+        energy = 0;
+        UnloadLevel();
+        levelProgression++;
+        player.lvl = levelProgression;
+        player.SavePlayer();
+        if (levelProgression >= levels.Length)
+        {
+            gameCompleted = true;
+            uiManager.ShowTextGameWon();
+            levelProgression = 0;
+            levelLoadDeveloperMode = false;
+            godMode = false;
+            soundManager.StartTutMusic();
+        }
+        else
+        {
+            uiManager.ShowTextLevelCompleted();
         }
     }
+    
+    public void LevelFailed()
+    {
+        if (!godMode)
+        {
+            screenShake.ScreenShakeLevelFailed();
+            cometMovement.LevelFailed();
+            backgroundColorManager.LevelFailed();
+            levelNumberDisplay.LevelFailed();
+            tutorialUI.LoadTipOnLevelFailed();
+            HoverGraphicText.allButtonsActive = false;
+            healthBar.FadeOutHealthbar();
+            LevelManager.firstTimeHittingTarget = true;
+            uiManager.ShowTextLevelFailed();
+            UnloadLevel();
+        }
+    }
+    private void UnloadLevel()
+    {
+        nodeBehavior.AllAppear(false);
+        nodeBehavior.AllExplode();
+        betweenLevels = true;
+        levelManager.UnloadLevel();
+        CometBehavior.isMoving = false;
+        musicMeter.StopMusicMeter();
+        SoundDsp.dspTimeAtSectionStart = 0;
+        cometColor.Color_OutOfOrbit();
+    }
 
-
+    public void ToggleGodMode()
+    {
+        godMode = !godMode;
+    }
 }

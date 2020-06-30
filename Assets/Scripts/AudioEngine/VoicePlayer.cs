@@ -77,6 +77,14 @@ public class VoicePlayer : MonoBehaviour
         parent.soundMultiples[selectedFile].volume = volume;
     }
 
+    public void PlayAudioScheduled(int selectedFile, double scheduledTime)
+    {
+        audioSource.outputAudioMixerGroup = parent.output;
+        audioSource.clip = parent.soundMultiples[selectedFile].soundFile;
+        SetPitchAndVolume(selectedFile);
+        //audioSource.PlayDelayed(delayTime);
+        audioSource.PlayScheduled(scheduledTime);
+    }
     public void PlayAudio(int selectedFile)
     {
         audioSource.outputAudioMixerGroup = parent.output;

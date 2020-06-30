@@ -47,7 +47,7 @@ public class SourceScript : MonoBehaviour
                     source.clip = clip1;
                     source.Play();
                     clip1Play = false;
-                    print("smartass play" + Time.time);
+                    //print("smartass play" + Time.time);
                 }
             }
             else
@@ -55,10 +55,10 @@ public class SourceScript : MonoBehaviour
                 source.clip = clip1;
                 source.Play();
                 clip1Play = false;
-                print("play" + Time.time);
+                //print("play" + Time.time);
             }
         }
-        print(source.timeSamples);
+        //print(source.timeSamples);
     }
 
     private void AudioSourceTest(ref bool play, AudioClip clip, MusicMeter.MeterCondition[] condition)

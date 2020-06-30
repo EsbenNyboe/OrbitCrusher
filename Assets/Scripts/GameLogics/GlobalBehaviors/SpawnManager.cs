@@ -16,34 +16,50 @@ public class SpawnManager : MonoBehaviour
     public MusicMeter musicMeter;
     public ObjectiveManager objectiveManager;
     public SoundManager soundManager;
+    public MeterLookahead meterLookahead;
     public static bool ghostSpawns;
     public static bool hasFinishedSpawning;
     private GameObject[] spawnedSpheres;
     int spawnBeatCounter;
     int spawnProgressCounter;
 
-    private void Awake()
+    bool spawningSubscribed;
+
+    public void StartNewSpawnSequence(bool lookahead)
     {
-        //musicMeter = FindObjectOfType<MusicMeter>();
-        //objectiveManager = FindObjectOfType<ObjectiveManager>();
-        //soundManager = FindObjectOfType<SoundManager>();
-    }
-    public void StartNewSpawnSequence()
-    {
-        soundManager.newSpawnSequence = true;
-        spawnZones = LevelManager.spawnZones;
-        
-        for (int i = 0; i < spawnZones.Length; i++)
+        if (lookahead)
         {
-            spawnZones[i].LoadSpawnZone(objectiveManager);
+            soundManager.newSpawnSequence = true;
+            //print("newSeq");
+            SubscribeSpawningToMeter();
         }
-        SpawnAllGhostsAtOnce();
+        else
+        {
+            spawnZones = LevelManager.spawnZones;
+            for (int i = 0; i < spawnZones.Length; i++)
+            {
+                spawnZones[i].LoadSpawnZone(objectiveManager);
+            }
+            SpawnAllGhostsAtOnce();
+        }
     }
-    public void ReloadSpawnSequence()
+    public void ReloadSpawnSequence(bool lookahead)
     {
-        soundManager.newSpawnSequence = false;
-        SpawnAllGhostsAtOnce();
+        if (lookahead)
+        {
+            soundManager.newSpawnSequence = false;
+            SubscribeSpawningToMeter();
+        }
+        else
+        {
+            SpawnAllGhostsAtOnce();
+        }
     }
+    public void InterruptAndStopSpawnSequence()
+    {
+
+    }
+
     private void SpawnAllGhostsAtOnce()
     {
         hasFinishedSpawning = false;
@@ -52,18 +68,27 @@ public class SpawnManager : MonoBehaviour
         {
             spawnedSpheres[i] = spawnZones[i].SpawnEnergySphere();
             //spawnedSpheres[i].GetComponent<EnergySphereBehavior>().BecomeGhost();
-            objectiveManager.AddToSpawned(spawnedSpheres[i], i);
+            objectiveManager.AddGoToArrayOfSpawns(spawnedSpheres[i], i);
         }
-        SubscribeSpawningToMeter();
+        if (!spawningSubscribed)
+        {
+            SubscribeSpawningToMeterDelayed();
+        }
+        spawningSubscribed = false;
     }
     private void SubscribeSpawningToMeter()
     {
+        spawningSubscribed = true;
         spawnProgressCounter = LevelManager.spawnZones.Length;
         spawnBeatCounter = 0;
         musicMeter.SubscribeEvent(SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
     }
+    private void SubscribeSpawningToMeterDelayed() // when there hasn't been time enough to trigger lookahead-subscription
+    {
+        // this tries to catch up with the lookahead-sound timing... is this necessary?
+    }
 
-    private void SpawnRealSpheresAtTheRelativeTimings()
+    public void SpawnRealSpheresAtTheRelativeTimings()
     {
         spawnBeatCounter++;
         for (int i = 0; i < LevelManager.spawnZones.Length; i++)
@@ -71,18 +96,26 @@ public class SpawnManager : MonoBehaviour
             if (spawnBeatCounter == LevelManager.spawnTimings[i])
             {
                 spawnProgressCounter--;
-                spawnedSpheres[i].GetComponent<EnergySphereBehavior>().BecomeAlive();
-                soundManager.SphereSpawn(i);
-                if (GameManager.inTutorial && !TutorialUI.textShown1)
-                {
-                    FindObjectOfType<TutorialUI>().ShowTextFirstSpawn();
-                }
+                
+                soundManager.OrbSpawn(i);
+
+                StartCoroutine(LookaheadDelayBecomeAlive(i));
             }
         }
         if (spawnProgressCounter <= 0)
         {
-            musicMeter.UnsubscribeEvent(SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
-            hasFinishedSpawning = true;
+            musicMeter.UnsubscribeEvent(SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime); // unsubscribe when levelFail/objCompl too
+            hasFinishedSpawning = true; 
+        }
+    }
+    IEnumerator LookaheadDelayBecomeAlive(int i)
+    {
+        yield return new WaitForSeconds(meterLookahead.lookaheadFactor * musicMeter.secondsPerBeatDiv);
+        //yield return new WaitForSeconds(meterLookahead.lookaheadFactor * musicMeter.secondsPerBeatDiv - MusicMeter.threshHitDelay);
+        spawnedSpheres[i].GetComponent<EnergySphereBehavior>().BecomeAlive();
+        if (GameManager.inTutorial && !TutorialUI.textShown1)
+        {
+            FindObjectOfType<TutorialUI>().ShowTextFirstSpawn();
         }
     }
 }

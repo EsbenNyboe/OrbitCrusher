@@ -25,6 +25,13 @@ public class BackgroundColorManager : MonoBehaviour
 
     public GameManager gameManager;
 
+    public void ApplyColors(Color bgA, Color bgB, Color bgC)
+    {
+        colorRed = bgA;
+        colorYellow = bgB;
+        colorGreen = bgC;
+    }
+
     private void Start()
     {
         colorLerpFactorInitial = colorLerpFactor;
@@ -57,12 +64,15 @@ public class BackgroundColorManager : MonoBehaviour
         bg1.ColorChange(colorRed, colorYellow, colorGreen, colorStateLerp);
         bg2.ColorChange(colorRed, colorYellow, colorGreen, colorStateLerp);
     }
-    float colorBetweenLvls;
+    float colorBetweenLvls = 1;
+    float colorInLvl;
     public void GradualColorOnLevelLoad(bool death)
     {
         if (!death)
             colorLerpFactor = colorLerpFactorOnLevelLoad;
     }
+
+
     public void LevelCompleted()
     {
         colorBetweenLvls = 1;

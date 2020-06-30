@@ -37,7 +37,7 @@ public class DspTimer : MonoBehaviour
     void Awake()
     {
         AudioConfiguration config = AudioSettings.GetConfiguration();
-        print(config.sampleRate);
+        //print(config.sampleRate);
         dspTimeOffset = AudioSettings.dspTime;
         musicMeter = FindObjectOfType<MusicMeter>();
         musicMeter.bpm = 120;
@@ -205,7 +205,7 @@ public class DspTimer : MonoBehaviour
                 driftInSamples = driftInSamples - tickPeriodInTimeSamples;
             }
             float driftInSeconds = (float)driftInSamples / sampleRate;
-            print(driftInSeconds);
+            //print(driftInSeconds);
         }
     }
     int timeSamplesPeriod;
@@ -221,7 +221,7 @@ public class DspTimer : MonoBehaviour
         if (!notFirst)
         {
             notFirst = true;
-            musicMeter.ResetMeterCounts();
+            //musicMeter.ResetMeterCounts();
             ResetTimer();
         }
         for (int i = 0; i < testCondition1.Length; i++)
@@ -282,7 +282,7 @@ public class DspTimer : MonoBehaviour
     {
         if (dspTrigger)
         {
-            musicMeter.RaiseEventsOnTick();
+            //musicMeter.RaiseEventsOnTick();
             dspTrigger = false;
         }
     }

@@ -18,9 +18,16 @@ public class EnergySphereDeath : MonoBehaviour
     {
         energySphereBehavior.isDead = true;
         // necessary to check which has hit a node?
-        energySphereBehavior.StopParticles();
+        StartCoroutine(ScheduledStop(0.2f));
         scheduledDestroy = ScheduledDestroy(collisionDeathDelay);
         StartCoroutine(scheduledDestroy);
+    }
+    IEnumerator ScheduledStop(float t)
+    {
+        energySphereBehavior.SpherePickedUpNoMore();
+        yield return new WaitForSeconds(t);
+        energySphereBehavior.isDead = true;
+        energySphereBehavior.StopParticles();
     }
     IEnumerator ScheduledDestroy(float t)
     {
@@ -29,16 +36,15 @@ public class EnergySphereDeath : MonoBehaviour
     }
     public void SphereCollision(bool target)
     {
-        energySphereBehavior.isDead = true;
         if (target)
         {
-            energySphereBehavior.StopParticles();
+            StartCoroutine(ScheduledStop(0.2f));
         }
         else
         {
             GameObject newParticle = Instantiate(particleExplode, transform.position, transform.rotation, particleParent.transform);
             newParticle.SetActive(true);
-            energySphereBehavior.StopParticles();
+            StartCoroutine(ScheduledStop(0.2f));
         }
     }
 }

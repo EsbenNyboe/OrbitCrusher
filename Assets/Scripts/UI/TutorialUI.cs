@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TutorialUI : MonoBehaviour
 {
@@ -17,13 +19,14 @@ public class TutorialUI : MonoBehaviour
     public GameObject text8;
 
     public GameObject showTip;
+    public TextMeshProUGUI showTipT;
     public GameObject tips;
     public GameObject tipUnclickables;
     public GameObject tipCometDanger;
     public GameObject tipPointExplanation;
     bool pointExplanationShown;
 
-    bool timeStopQueued;
+    public static bool timeStopQueued;
     public static bool textShown1;
     bool textShown2;
     bool textShown3;
@@ -46,45 +49,73 @@ public class TutorialUI : MonoBehaviour
 
     public LevelManager levelManager;
     public SoundManager soundManager;
+    public SoundDsp soundDsp;
 
     public static int numberOfActiveTextboxes;
 
+    bool tipLoaded;
+    bool tipShown;
+
     private void Awake()
     {
+        textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
         panel.SetActive(false);
-        levelManager = FindObjectOfType<LevelManager>();
-        soundManager = FindObjectOfType<SoundManager>();
+        showTip.SetActive(true);
+        showTipT.enabled = false;
+        //showTipT.enabled = true;
     }
+
     public void LoadTutorial()
     {
         if (GameManager.inTutorial)
         {
             ResetTutorial();
             panel.SetActive(true);
+            textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
         }
     }
     public void UnloadTutorial()
     {
         panel.SetActive(false);
+        textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
     }
     public static bool tutorialSkip;
     public void SkipTutorial()
     {
+        textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
         tutorialSkip = true;
         StopAllCoroutines();
         numberOfActiveTextboxes = 0;
         Time.timeScale = 1;
-        PauseMenu.tutorialPause = false;
+        tutorialPause = false;
         panel.SetActive(false);
         UnloadTutorial();
         LevelManager.levelObjectiveCurrent = 10;
         levelManager.ObjectiveCompleted();
+        //soundManager.LevelCompleted(false);
+        soundManager.FadeInMusicBetweenLevels();
+        soundManager.levelCompleted.TriggerAudioObject();
     }
+    bool tutorialPause;
     public void ToggleWhenMenu(bool notInMenu)
     {
         if (GameManager.inTutorial)
         {
             panel.SetActive(notInMenu);
+            textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = notInMenu;
+            if (!tutorialPause)
+            {
+                if (notInMenu)
+                {
+                    soundDsp.RescheduleQueuedMusic();
+                    Time.timeScale = 1;
+                }
+                else
+                {
+                    soundDsp.StopAndQueueMusicForRescheduling();
+                    Time.timeScale = 0;
+                }
+            }
         }
     }
 
@@ -92,26 +123,31 @@ public class TutorialUI : MonoBehaviour
     {
         if (!tutorialSkip)
         {
-            soundManager.KillSphereSoundInstant();
+            soundDsp.StopAndQueueMusicForRescheduling();
+            //soundManager.KillOrbSoundInstant();
+            tutorialPause = true;
             Time.timeScale = 0;
-            PauseMenu.tutorialPause = true;
         }
     }
     IEnumerator TimeStopDelayed(float time)
     {
+        soundManager.StopHealthSoundsWhenPausing();
         numberOfActiveTextboxes++;
         timeStopQueued = true;
         yield return new WaitForSeconds(time);
+        //soundManager.StopAndQueueTutorialMusicForReschedule();
         TimeStopInstant();
         timeStopQueued = false;
     }
-    public void TimeNormal()
+    public void TimeNormal()     // called from the canvas
     {
         numberOfActiveTextboxes--;
         if (numberOfActiveTextboxes == 0)
         {
+            tutorialPause = false;
             Time.timeScale = 1;
-            PauseMenu.tutorialPause = false;
+            //soundManager.RescheduleQueuedMusic();
+            soundDsp.RescheduleQueuedMusic();
         }
     }
     public void ResetTutorial()
@@ -131,7 +167,6 @@ public class TutorialUI : MonoBehaviour
         tipCometDanger.SetActive(false);
         tipPointExplanation.SetActive(false);
         tips.SetActive(false);
-        showTip.SetActive(false);
         textSkipTutorial.SetActive(true);
     }
 
@@ -147,6 +182,17 @@ public class TutorialUI : MonoBehaviour
         }
         textShown1 = true;
     }
+    bool text1Done;
+    public Button text1Button;
+    public void ClickOrbAfterFirstSpawn()
+    {
+        if (!text1Done && textShown1)
+        {
+            text1Done = true;
+            text1Button.onClick.Invoke();
+        }
+    }
+
     public void ShowTextFirstCorrectHit()
     {
         if (!textShown2 && !tutorialSkip)
@@ -268,15 +314,18 @@ public class TutorialUI : MonoBehaviour
             }
         }
         if (tipLoaded)
-            showTip.SetActive(true);
+        {
+            showTipT.enabled = true;
+            showTip.GetComponent<Animator>().SetBool("betweenLevels", true);
+        }
     }
-    bool tipLoaded;
-    bool tipShown;
+    
     public void ShowTipsWhenDesired()
     {
         tipShown = true;
         tips.SetActive(true);
-        showTip.SetActive(false);
+        //showTip.SetActive(false);
+        showTip.GetComponent<Animator>().SetBool("betweenLevels", false);
     }
     public void HideTipsOnLevelLoaded()
     {
@@ -288,6 +337,14 @@ public class TutorialUI : MonoBehaviour
             tipShown = false;
             tipLoaded = false;
         }
-        showTip.SetActive(false);
+        //showTip.SetActive(false);
+        if (showTip.activeInHierarchy)
+            showTip.GetComponent<Animator>().SetBool("betweenLevels", false);
+    }
+    public void DisplayTipsOnMenuToggle(bool notInMenu)
+    {
+        if (tipShown)
+            tips.SetActive(notInMenu);
+        showTipT.enabled = notInMenu;
     }
 }

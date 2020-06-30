@@ -3,37 +3,32 @@ using UnityEngine;
 
 public class MusicMeter : MonoBehaviour
 {
-    public int bpm; // read
-    public static int bpmMin = 50;
-    public static int bpmMax = 200;
-
-    public int divMax; // this is the only unchangeable meter setting
+    public int bpm;
+    [HideInInspector]
+    public float secondsPerBeatDiv;
+    public int divMax;
     [HideInInspector]
     public int beatMax;
     [HideInInspector]
     public int barMax;
 
-    private int bpmPreviousFrame;
-    [HideInInspector]
-    public float secondsPerBeatDiv; 
-    
-    public static int divCount;
+    private int divCount;
     public static int beatCount;
-    private int barCount;
-    private int sectionCount;
+    public static int barCount;
+    public static int sectionCount;
     public string meterDisplay;
+
+    public static float remainingTimeUntilNextBeatDiv;
 
     public delegate void EventHandler();
     public event EventHandler NextBeatDivision;
     public event EventHandler CheckTimeRemaining;
 
-    float timeOfLastBeatDiv;
-    public static float remainingTimeUntilNextBeatDiv;
-    float timeUntilNextBar;
-
     [System.Serializable]
     public class MeterCondition
     {
+        [HideInInspector]
+        public string data;
         public int division;
         public int beat;
         public int bar;
@@ -42,25 +37,23 @@ public class MusicMeter : MonoBehaviour
     [HideInInspector]
     public bool subscribeAnytime; // use this when you're not worried about a method having multiple simultanous subscriptions 
 
-    private void Awake()
+    bool beatMachineActive;
+    float timeCurr;
+    float timeTarget;
+    public static float counterTime;
+    float counterDrift;
+    float threshHitDelay;
+    [Range(0, 1)]
+    public float lookaheadPercent;
+    public static float dspNudgeRest;
+    public static float dspNudgeTotal;
+
+
+    private void LateUpdate()
     {
-    }
-
-    public float sampleControllerLerpTime;
-    float timeBetweenBeatDivs;
-    void LateUpdate() 
-    {
-        remainingTimeUntilNextBeatDiv = timeBetweenBeatDivs - (Time.time - timeOfLastBeatDiv);
-
-        bpm = Mathf.Clamp(bpm, bpmMin, bpmMax);
-
-        
-        if (bpmPreviousFrame != bpm)
+        if (beatMachineActive)
         {
-            SetNewSecondsPerBeatDivWhenChangingTheBpm();
-            StopAllCoroutines();
-            StartCoroutine(WaitUntilNextBeatDiv(remainingTimeUntilNextBeatDiv));
-            //OldBeatSystem();
+            UpdateBeatMachine();
         }
     }
     private void FixedUpdate()
@@ -68,126 +61,57 @@ public class MusicMeter : MonoBehaviour
         RunMethodsCheckingTimeRemainingUntilMeterCountReachesMeterTarget();
     }
 
-    int nextDivisionIndex;
-
-    IEnumerator WaitUntilNextBeatDiv(float time)
+    #region The Conductor: Scheduling Beat Events and Counting Beats
+    private void UpdateBeatMachine()
     {
-        yield return new WaitForSeconds(time);
-        CallBeatEventsAndCoroutine();
-    }
-    private void CallBeatEventsAndCoroutine()
-    {
-        BeatDivision();
-        if (sampleControlledMeter)
+        remainingTimeUntilNextBeatDiv -= Time.deltaTime;
+        timeCurr += Time.deltaTime;
+        float lookaheadWindowMin = secondsPerBeatDiv * lookaheadPercent;
+        float lookaheadWindowMax = secondsPerBeatDiv * (1 - lookaheadPercent);
+        bool lookaheadThresholdMet = timeCurr + lookaheadWindowMin > timeTarget && timeCurr - timeTarget < lookaheadWindowMax;
+        bool thresholdMet = timeCurr > timeTarget;
+
+        if (lookaheadThresholdMet || thresholdMet) // this allows a third divTime lookahead
         {
-            timeBetweenBeatDivs = Mathf.Lerp(timeBetweenBeatDivs, NewWaitTimeFromSampleControllerProgress(), sampleControllerLerpTime);
-            //timeBetweenDivsWebGL = timeBetweenBeatDivs + webGLtimeOffsetPerDiv;
-            //timeBetweenDivsWebGL = Mathf.Lerp(timeBetweenDivsWebGL, NewWaitTimeFromSampleControllerProgress(), sampleControllerLerpTime);
-        }
-        StartCoroutine(WaitUntilNextBeatDiv(timeBetweenBeatDivs));
-    }
-    public float webGLtimeOffsetPerSec;
-    float webGLtimeOffsetPerDiv;
-    float timeBetweenDivsWebGL;
-    
-    public void InitializeSampleController()
-    {
-        //timeOffset = Time.time;
-        int sampleControllerLength = sampleController.clip.samples;
-        int sampleRate = AudioSettings.outputSampleRate;
-        samplesPerDivision = Mathf.RoundToInt(sampleRate * 60f / bpm / divMax);
-        divisionIndexLength = sampleControllerLength / samplesPerDivision;
-        sampleControllerDivisionIndex = 0;
-        webGLtimeOffsetPerDiv = webGLtimeOffsetPerSec * 60f / bpm / divMax;
-        //print("offset:" + webGLtimeOffsetPerDiv);
-    }
-    
-
-
-    float timeDriftAverage;
-    float[] timeDriftAvgSum;
-    int timeDriftAverageIndex;
-    private float NewWaitTimeFromSampleControllerProgress()
-    {
-        if (sampleControllerDivisionIndex > divisionIndexLength)
-            sampleControllerDivisionIndex = 0;
-
-        int controllerProgressSamples = sampleController.timeSamples;
-        int sampleTargetForThisDivision = sampleControllerDivisionIndex * samplesPerDivision;
-        sampleControllerDivisionIndex++;
-        int samplesDrifted = controllerProgressSamples - sampleTargetForThisDivision;
-        // drift: this is the number of samples, the sound is off relative to the coroutine's beat division timing
-        int sampleRate = AudioSettings.outputSampleRate;
-        float timeDrifted = (float)samplesDrifted / sampleRate;
-
-
-        if (timeDriftAvgSum == null)
-        {
-            timeDriftAvgSum = new float[5];
-        }
-        timeDriftAvgSum[timeDriftAverageIndex] = timeDrifted;
-        timeDriftAverageIndex++;
-        if (timeDriftAverageIndex >= 5)
-        {
-            timeDriftAverageIndex = 0;
-        }
-        if (timeDriftAvgSum[4] != 0)
-        {
-            timeDriftAverage = 0;
-            for (int i = 0; i < timeDriftAvgSum.Length; i++)
+            threshHitDelay = timeCurr - timeTarget;
+            
+            if (threshHitDelay > secondsPerBeatDiv) // stress-mode: when framerate is lower than bpm (16/sec)
             {
-                timeDriftAverage += timeDriftAvgSum[i];
+                int i = 0;
+                while (timeCurr - timeTarget > secondsPerBeatDiv)
+                {
+                    i++;
+                    // run all necessary methods for when the framerate can't keep up with the bpm frequency
+                    counterTime += (float)1 / 16;
+                    timeTarget += secondsPerBeatDiv;
+                    BeatEvent();
+                }
             }
-            timeDriftAverage /= 5;
+            BeatEvent();
+            
+            timeTarget += secondsPerBeatDiv;
+
+            if (dspNudgeRest > 0)
+            {
+                float nudgeFactor = 0.001f;
+                counterTime += nudgeFactor;
+                dspNudgeRest -= nudgeFactor;
+                dspNudgeTotal += nudgeFactor;
+            }
+
+            counterTime += (float)1 / 16;
+            counterTime += 0.0001f; // magic number: correction drift from musicStartOffset over longer periods of time
+            counterDrift = timeCurr - counterTime;
+            timeTarget -= counterDrift; // makes sure the next target hit interpolates with dsp time ("dsp")
+            remainingTimeUntilNextBeatDiv = timeTarget - timeCurr;
+            //print(dspNudgeTotal);
         }
-        //AnimationCurvePrint.value = timeDriftAverage;
-
-        float newWaitTime;
-        //newWaitTime = secondsPerBeatDiv - timeDriftAverage;
-        //print("drift:" + timeDriftAverage);
-        //print(newWaitTime);
-        newWaitTime = secondsPerBeatDiv - timeDrifted;
-        return newWaitTime;
-    }
-    private int samplesPerDivision;
-    private int divisionIndexLength;
-    //private int timeSamplesOffset = -500;
-    private int sampleControllerDivisionIndex;
-    //private float timeOffset;
-    public static bool sampleControlledMeter;
-    public static AudioSource sampleController;
-    
-
-
-    public void OldBeatSystem()
+    }    
+    private void BeatEvent()
     {
-        CancelInvoke();
-        InvokeRepeating("BeatDivision", remainingTimeUntilNextBeatDiv, secondsPerBeatDiv);
-    }
-
-    private void BeatDivision()
-    {
-        timeOfLastBeatDiv = Time.time;
         CountBeats();
         RaiseTheEvent();
     }
-    public void RaiseEventsOnTick()
-    {
-        //timeOfLastBeatDiv = (float)DspTimer.dspTimeNormalized;
-        //CountBeats();
-        //RaiseTheEvent();
-        //print("mm:" + DspTimer.dspTimeNormalized);
-    }
-
-    private void SetNewSecondsPerBeatDivWhenChangingTheBpm()
-    {
-        bpmPreviousFrame = bpm;
-        float secondsPerMinute = 60f;
-        float secondsPerBeat = secondsPerMinute / bpm;
-        secondsPerBeatDiv = secondsPerBeat / divMax;
-        timeBetweenBeatDivs = secondsPerBeatDiv;
-    }
-    
     private void RaiseTheEvent()
     {
         if (NextBeatDivision != null)
@@ -212,8 +136,10 @@ public class MusicMeter : MonoBehaviour
             }
         }
         meterDisplay = divCount + "." + beatCount + "." + barCount + "." + sectionCount;
-        //print(meterDisplay + " " + Mathf.RoundToInt(1000*Time.time)/1000f);
-    }    
+    }
+    #endregion
+
+    #region Meter Subscription
     public void SubscribeEvent(EventHandler eventHandlingMethod, ref bool isSubscribed)
     {
         if (!isSubscribed)
@@ -226,42 +152,9 @@ public class MusicMeter : MonoBehaviour
         NextBeatDivision -= eventHandlingMethod;
         isSubscribed = false;
     }
-    public bool MeterConditionIntervals(MeterCondition interval) // check if meter matches the general interval condition
-    {
-        int div = interval.division;
-        int beat = interval.beat;
-        int bar = interval.bar;
-        int sect = interval.section;
+    #endregion
 
-        if (div > divMax)
-            print("meter error: division interval bigger than division counter max");
-        if (beat > beatMax)
-            print("meter error: beat interval bigger than beat counter max");
-        if (bar > barMax)
-            print("meter error: bar interval bigger than bar counter max");
-
-        //if (sect > 1 && sectionCount % sect != 1)
-        //    return false;
-
-        if (bar > 1 && barCount % bar != 1)
-            return false;
-        if (beat > 1 && beatCount % beat != 1)
-            return false;
-        if (div > 1 && divCount % div != 1)
-            return false;
-        return true;
-    }
-
-    //public int testCount;
-    //public int testInterval;
-    //public int testMax;
-    //public int testOutput;
-    //private void Update()
-    //{
-    //    testOutput = testCount % testInterval;
-
-    //}
-
+    #region Checking If And When Meter Conditions Are Met
     public bool MeterConditionSpecificTarget(MeterCondition target) // checks if meter counts matches the specific meter condition
     {
         int div = target.division;
@@ -292,12 +185,7 @@ public class MusicMeter : MonoBehaviour
         else
             return false;
     }
-
-
-
-
-
-
+    
     // the rest of the code below handles requests for checking if and when a meter condition is hit (in seconds)
     void RunMethodsCheckingTimeRemainingUntilMeterCountReachesMeterTarget()
     {
@@ -305,23 +193,6 @@ public class MusicMeter : MonoBehaviour
             CheckTimeRemaining();
     }
 
-    // when float is included in a subscription, it runs the calculation every frame until target is reached or is deemed unreachable
-    public float CheckTimeRemaining_WhenSubscribed(EventHandler eventMethod, MeterCondition target, string debugID, float timeRemaining, bool displayDebug)
-    { 
-        if (!MeterConditionSpecificTarget(target))
-        {
-            timeRemaining = CheckTimeRemainingUntilMeterTarget(target, debugID, timeRemaining, displayDebug);
-            if (timeRemaining < 0)
-                SubscribeToTimeChecker(eventMethod, false); // unsubscribe / stop checking if target has been surpassed by counter
-        }
-        else
-        {
-            if (displayDebug)
-                print(debugID + ": target reached:" + Time.time);
-            SubscribeToTimeChecker(eventMethod, false); // unsubscribe / stop checking if target is hit by counter
-        }
-        return timeRemaining;
-    }
     public void SubscribeToTimeChecker(EventHandler eventHandlingMethod, bool subscribe)
     {
         if (subscribe)
@@ -329,14 +200,17 @@ public class MusicMeter : MonoBehaviour
         else
             CheckTimeRemaining -= eventHandlingMethod;
     }
-    // "manual time check" (the method below) can also be called externally as an alternative to "subscription time check" (above) 
-    // pro: the manual time check can be called anytime. con: the manual time check doesn't have as reliable precision as a subscription has
-    // therefore: use manual time check when in need of a single time check, where frame-perfect precision isn't required
+    float timeRemainingPrevFrame;
     public float CheckTimeRemainingUntilMeterTarget(MeterCondition target, string debugTag, float timeRemaining, bool displayDebugs)
     {
         int divsRemaining = CountRemainingBeatDivisionsBetweenCurrentCountAndTargetMeter(target);
-        //timeRemaining = remainingTimeUntilNextBeatDiv + (divsRemaining - 1) * secondsPerBeatDiv;
         timeRemaining = remainingTimeUntilNextBeatDiv + (divsRemaining - 1) * secondsPerBeatDiv;
+        AnimationCurvePrint.value = timeRemaining;
+        //if (timeRemaining > timeRemainingPrevFrame)
+        //    print("remainingX:" + remainingTimeUntilNextBeatDiv);
+        //else
+        //    print("remaining.:" + remainingTimeUntilNextBeatDiv);
+        timeRemainingPrevFrame = timeRemaining;
         if (timeRemaining < 0)
         {
             if (displayDebugs)
@@ -346,8 +220,20 @@ public class MusicMeter : MonoBehaviour
         
         return timeRemaining;
     }
-
-    
+    public int CountBeatDivisionsBetweenSectionStartAndCurrentMeter()
+    {
+        MeterCondition sectionStart = new MeterCondition();
+        sectionStart.division = sectionStart.beat = sectionStart.bar = 1;
+        int divs = CountRemainingUnits(divCount, sectionStart.division, divMax);
+        int beats = CountRemainingUnits(beatCount, sectionStart.beat, beatMax);
+        int bars = CountRemainingUnits(barCount, sectionStart.bar, barMax);
+        bars = CountRemainingUnitsContainedInHigherLevel(barCount, 0, sectionStart.bar, barMax, bars, 0);
+        bars = SetRemainingUnitsToZeroWhenGettingCloseToTarget(divCount, beatCount, sectionStart.division, sectionStart.beat, barMax, bars, 0);
+        beats = CountRemainingUnitsContainedInHigherLevel(beatCount, barCount, sectionStart.beat, beatMax, beats, bars);
+        beats = SetRemainingUnitsToZeroWhenGettingCloseToTarget(0, divCount, 0, sectionStart.division, beatMax, beats, bars);
+        divs = CountRemainingUnitsContainedInHigherLevel(divCount, beatCount, sectionStart.division, divMax, divs, beats);
+        return divs;
+    }
 
     public int CountRemainingBeatDivisionsBetweenCurrentCountAndTargetMeter(MeterCondition t)
     {
@@ -404,85 +290,46 @@ public class MusicMeter : MonoBehaviour
         }
         return rem;
     }
+    #endregion
 
-
+    #region MusicMeter State Changes
     public void LoadNewMeterSettings(int newBpm, int newBeats, int newBars)
     {
         bpm = newBpm;
         beatMax = newBeats;
         barMax = newBars;
+        LoadBpm();
+        ResetMeterCounts();
     }
-    public void ResetMeterCounts()
+    public void ActivateMusicMeter()
+    {
+        ResetTimers();
+        beatMachineActive = true;
+    }
+    public void StopMusicMeter()
+    {
+        ResetMeterCounts();
+        beatMachineActive = false;
+    }
+
+    private void LoadBpm()
+    {
+        float secondsPerMinute = 60f;
+        float secondsPerBeat = secondsPerMinute / bpm;
+        secondsPerBeatDiv = secondsPerBeat / divMax;
+    }
+    private void ResetMeterCounts()
     {
         divCount = 0;
         beatCount = 0;
         barCount = 0;
         sectionCount = 0;
-        //dspTimer.SubscribeToTick(dspTimer.ResetTimer, true);
-        //StartBeatCounter();
-        //print("meterReset");
     }
-
-    public void InitializeMeter()
+    private void ResetTimers()
     {
-        SetNewSecondsPerBeatDivWhenChangingTheBpm();
-        StopAllCoroutines();
-        //StartCoroutine(WaitUntilNextBeatDiv(remainingTimeUntilNextBeatDiv));
-        StartCoroutine(WaitUntilNextBeatDiv(secondsPerBeatDiv));
+        counterTime = 0;
+        timeCurr = 0;
+        timeTarget = secondsPerBeatDiv;
     }
-
-
-    //public MeterCondition NextMeterConditionForTargetInterval(MeterCondition interval, int lookahead)
-    //{
-    //    int intervalDiv = interval.division;
-    //    int intervalBeat = interval.beat;
-    //    int intervalBar = interval.bar;
-    //    int intervalSect = interval.section;
-    //    MeterCondition nextTarget = new MeterCondition();
-    //    NextSpecificTargetForThisIntervalUnit(intervalDiv, ref intervalBeat, ref nextTarget.division, divCount, divMax, lookahead);
-    //    nextTarget.beat = beatCount + intervalBeat;
-    //    if (nextTarget.beat > beatMax)
-    //    {
-    //        nextTarget.beat = 1;
-    //        nextTarget.bar += 1;
-    //    }
-    //    nextTarget.bar += barCount;
-    //    if (nextTarget.bar > barMax)
-    //    {
-    //        nextTarget.bar = 1;
-    //        nextTarget.section += 1;
-    //    }
-    //    nextTarget.section += sectionCount;
-    //    // screw the others, this is fine. for beat, bar and section intervals - use the meterconditionspecific!
-
-    //    //NextSpecificTargetForThisIntervalUnit(intervalBeat, ref intervalBar, ref nextTarget.beat, beatCount, beatMax);
-    //    //NextSpecificTargetForThisIntervalUnit(intervalBar, ref intervalSect, ref nextTarget.bar, barCount, barMax);
-    //    //if (intervalSect > 1)
-    //    //    nextTarget.section = sectionCount + sectionCount % intervalSect;
-    //    return nextTarget;
-    //}
-
-    //private void NextSpecificTargetForThisIntervalUnit(int interval, ref int intervalNext, ref int nextTarget, int count, int max, int lookahead)
-    //{
-    //    if (interval > 1)
-    //    {
-    //        nextTarget = 1 + count - count % interval + interval;
-    //        if (count % interval == 0)
-    //        {
-    //            nextTarget -= interval;
-    //        }
-    //        if (nextTarget > max)
-    //        {
-    //            nextTarget = nextTarget % interval;
-    //            intervalNext++;
-    //        }
-    //        nextTarget += lookahead;
-    //    }
-    //}
-
-    //public int CountRemainingBeatDivisionsBetweenCurrentCountAndTargetInterval(MeterCondition t)
-    //{
-    //    int divRem = 0;
-    //    return divRem;
-    //}
+    #endregion
 }

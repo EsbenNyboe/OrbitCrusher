@@ -1,11 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ObjectiveManager : MonoBehaviour
 {
-    // split in two: EnergySphereBehavior & ObjectiveManager
-
     public GameObject energySpherePrefab;
     [HideInInspector]
     public GameObject[] energySpheresSpawned;
@@ -13,8 +9,9 @@ public class ObjectiveManager : MonoBehaviour
     public GameObject[] collidedSpheresOnTarget;
     [HideInInspector]
     public GameObject[] collidedSpheresOnTraps;
-    int amountOnTarget;
-    int amountOnOthers;
+    public static int amountOnTarget;
+    public static int amountOnTraps;
+    public static int amountSpawned;
 
     public SpawnManager spawnManager;
     public GameManager gameManager;
@@ -22,24 +19,29 @@ public class ObjectiveManager : MonoBehaviour
     public NodeBehavior nodeBehavior;
     public TutorialUI tutorialUI;
 
-
-    private void Start()
-    {
-        //spawnManager = FindObjectOfType<SpawnManager>();
-        //gameManager = FindObjectOfType<GameManager>();
-        //healthBar = FindObjectOfType<HealthBar>();
-        //nodeBehavior = FindObjectOfType<NodeBehavior>();
-    }
     public void ResetSphereArrays()
     {
         collidedSpheresOnTarget = new GameObject[0];
         collidedSpheresOnTraps = new GameObject[0];
         amountOnTarget = 0;
-        amountOnOthers = 0;
+        amountOnTraps = 0;
         energySpheresSpawned = new GameObject[LevelManager.spawnZones.Length];
+        amountSpawned = LevelManager.spawnZones.Length;
     }
-
-    public void AddToSpawned(GameObject go, int index)
+    public void RemoveEnergySpheres()
+    {
+        for (int i = 0; i < energySpheresSpawned.Length; i++)
+        {
+            if (energySpheresSpawned[i] != null)
+            {
+                energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().CollisionParticleEffectBad();
+                energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().KillTheLights();
+                energySpheresSpawned[i].GetComponent<EnergySphereDeath>().StopRemainingParticlesThenDestroy();
+                energySpheresSpawned[i].GetComponentInChildren<EnergySphereCollision>().DisableCollider();
+            }
+        }
+    }
+    public void AddGoToArrayOfSpawns(GameObject go, int index)
     {
         energySpheresSpawned[index] = go;
     }
@@ -51,14 +53,15 @@ public class ObjectiveManager : MonoBehaviour
             nodeBehavior.HighlightCompletedTarget(LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]);
         else
             tutorialUI.ShowTextCorrectHitButStillMoreOrbsToGo();
-        gameManager.UpdateEnergyHealth(1);
+        //gameManager.UpdateEnergyHealth(0);
+        GameManager.energyPool++;
         healthBar.UpdateHealthbarOnCollision(true);
     }
-    public void NewCollisionOther(GameObject collidedSphere)
+    public void NewCollisionOnTrap(GameObject collidedSphere)
     {
-        amountOnOthers++;
-        ExpandArrayWithOneNewGoAddition(collidedSphere, amountOnOthers, ref collidedSpheresOnTraps);
-        gameManager.UpdateEnergyHealth(-1);
+        amountOnTraps++;
+        ExpandArrayWithOneNewGoAddition(collidedSphere, amountOnTraps, ref collidedSpheresOnTraps);
+        gameManager.UpdateEnergyHealth(-1, false);
         healthBar.UpdateHealthbarOnCollision(false);
     }
     private void ExpandArrayWithOneNewGoAddition(GameObject go, int amount, ref GameObject[] array) // fix
@@ -79,18 +82,5 @@ public class ObjectiveManager : MonoBehaviour
             return true;
         }
         return false;
-    }
-    public void RemoveEnergySpheres()
-    {
-        for (int i = 0; i < energySpheresSpawned.Length; i++)
-        {
-            if (energySpheresSpawned[i] != null)
-            {
-                energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().CollisionParticleEffectBad();
-                energySpheresSpawned[i].GetComponent<EnergySphereBehavior>().KillTheLights();
-                energySpheresSpawned[i].GetComponent<EnergySphereDeath>().StopRemainingParticlesThenDestroy();
-                energySpheresSpawned[i].GetComponentInChildren<EnergySphereCollision>().DisableCollider();
-            }
-        }
     }
 }

@@ -234,6 +234,19 @@ public class AudioObject : MonoBehaviour
         ChooseSequence();
         voicePlayerNew[currentVoice].PlayAudio(selectedFile);
     }
+    public void TriggerAudioObjectScheduled(double scheduledTime)
+    {
+        if (scheduledTime < AudioSettings.dspTime)
+            scheduledTime = AudioSettings.dspTime;
+        PrepareVoicing();
+        if (kill == Kill.Last)
+        {
+            if (voicePlayerNew[currentVoice].IsPlaying())
+                return;
+        }
+        ChooseSequence();
+        voicePlayerNew[currentVoice].PlayAudioScheduled(selectedFile, scheduledTime);
+    }
     public void StopAudioAllVoices()
     {
         for (int i = 0; i < voiceMax; i++)
@@ -269,7 +282,10 @@ public class AudioObject : MonoBehaviour
                 SetRelativeFadeTiming(1, 0, ref fadeVolDestinationTime, volume, fadeVolDestinationValue);
         }
         if (fadingTime == 0)
+        {
             volume = fadeVolDestinationValue;
+            SetVolumeAndPitch();
+        }
     }
     public void PitchChangeInParent(float pitchDestination, float fadingTime, bool absoluteTime)
     {

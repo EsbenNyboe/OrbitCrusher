@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class LevelNumberDisplay : MonoBehaviour
 {
     public GameObject[] levelNumbers;
-    int mostRecentLevelCompleted;
     Animator fadeInAndOut;
 
     private void Start()
@@ -14,14 +14,15 @@ public class LevelNumberDisplay : MonoBehaviour
         //fadeInAndOut.runtimeAnimatorController.animationClips[0].legacy = true;
         //fadeInAndOut.runtimeAnimatorController.animationClips[1].legacy = true;
     }
-    public void LevelCompleted(int level)
+    public void LevelCompleted()
     {
-        mostRecentLevelCompleted = level;
         DisplayLevelNumbers();
+        LevelNumberMakeGreen(true);
     }
     public void LevelFailed()
     {
         DisplayLevelNumbers();
+        LevelNumberMakeGreen(false);
     }
     public void StartLevel()
     {
@@ -33,8 +34,31 @@ public class LevelNumberDisplay : MonoBehaviour
         fadeInAndOut.SetBool("isBetweenLevels", true);
     }
 
-    public void LevelNumberMakeGreen()
+    public void LevelNumberMakeGreen(bool win)
     {
-        levelNumbers[mostRecentLevelCompleted].GetComponent<Animator>().enabled = true;
+        
+        for (int i = 0; i < GameManager.levelProgression + 1; i++)
+        {
+            
+            if (i == GameManager.levelProgression)
+            {
+                if (win)
+                {
+                    if (levelNumbers.Length > i)
+                    {
+                        levelNumbers[i].GetComponent<Animator>().enabled = true;
+                        levelNumbers[i].GetComponent<Animator>().SetBool("CompletedNow", true);
+                    }
+                }
+            }
+            else
+            {
+                if (levelNumbers.Length > i)
+                {
+                    levelNumbers[i].GetComponent<Animator>().enabled = true;
+                    levelNumbers[i].GetComponent<Animator>().SetBool("CompletedNow", false);
+                }
+            }
+        }
     }
 }

@@ -14,27 +14,38 @@ public class LevelManager : MonoBehaviour
     public static MusicMeter.MeterCondition[] cometTimings;
     public static int cometDestination; // is this the right place for this?
     public static AudioObject[] sounds;
-    public static AudioObject sampleLengthReference;
+    public static AudioObject sampleLengthReference; // not used (but don't delete)
     public static MusicMeter.MeterCondition[] soundTimings;
-    public static SpawnZone[] spawnSequence;
 
     public static bool nodeHitSubscription;
-    public static bool soundPlayerSubscription;
 
     public static int[] targetNodes;
     public static SpawnZone[] spawnZones;
     public static int [] spawnTimings;
 
     public static LevelDesigner.SoundTriggers[] soundTriggers;
-    //public static SpawnZone[] defaultSpawnZones;
-
-    public static bool[] soundPrePlayed;
+    public static LevelDesigner.FullHPMusic[] fullHPMusic;
+    public static int fullHPsecSectionLength;
+    public static AudioObject[] lastObjQuickFadeOut;
 
     public static bool firstTimeHittingTarget = true;
+    
+    public static AudioObject[] transitionMusic; // 4/4 // not used (but don't delete)
+
+    public float failFadeOutTime;
+    public float completedFadeOutTime;
+    public static bool levelCompleted;
+
+    int[] repeatIndex;
+    bool[] repeatActive;
+
+    bool scheduledLvlFail;
+    bool scheduledObjFail;
+    bool scheduledWin;
 
     public MusicMeter musicMeter;
-    public CometMovement cometMovement;
-    public CometBehavior cometBehavior;
+    public CometBehavior cometMovement;
+    public CometManager cometManager;
     public ObjectiveManager objectiveManager;
     public NodeBehavior nodeBehavior;
     public MeterLookahead meterLookahead;
@@ -42,87 +53,219 @@ public class LevelManager : MonoBehaviour
     public GameManager gameManager;
     public HealthBar healthBar;
     public SoundManager soundManager;
+    public SoundDsp soundDsp;
     public TutorialUI tutorialUI;
     public UIManager uiManager;
+    ScreenShake screenShake;
 
-    public bool enableTransitionMusic;
-    public static AudioObject[] transitionMusic; // 4/4
+    bool objectiveActive;
 
-    public float failFadeOutTime;
-    public float completedFadeOutTime;
-    public static bool levelCompleted;
+
+    bool plausibleWin;
+    bool plausibleFail;
+    bool certainWin;
+    bool certainFail;
+    
+    bool certainWinLvl;
+    bool certainWinObj;
+
+    bool certainFailLvlNextNode;
+    
+    bool soundWinObj;
+    bool soundWinLvl;
+    bool soundFailObj;
+    bool soundFailLvl;
+
+    public int moduloA;
+    public int moduloB;
+    public int moduloC;
 
     private void Awake()
     {
-        //tutorialUI = FindObjectOfType<TutorialUI>();
-        //gameManager = FindObjectOfType<GameManager>();
-        //cometMovement = FindObjectOfType<CometMovement>();
-        //objectiveManager = FindObjectOfType<ObjectiveManager>();
-        //musicMeter = FindObjectOfType<MusicMeter>();
-        //cometBehavior = FindObjectOfType<CometBehavior>();
-        //nodeBehavior = FindObjectOfType<NodeBehavior>();
-        //meterLookahead = FindObjectOfType<MeterLookahead>();
-        //spawnManager = FindObjectOfType<SpawnManager>();
-        //healthBar = FindObjectOfType<HealthBar>();
-        //soundManager = FindObjectOfType<SoundManager>();
-        //uiManager = FindObjectOfType<UIManager>();
+        screenShake = GetComponentInChildren<ScreenShake>();
     }
-    public void LoadLevelTransition()
+    private void Update()
     {
-        //LoadNewMusicMeter();
-        cometBehavior.nodeHitTiming = gameManager.transitionTiming;
-        cometBehavior.LoadLevelTransition();
-        cometMovement.LoadLevelTransition();
-        musicMeter.UnsubscribeEvent(LoadLevelTransition, ref musicMeter.subscribeAnytime);
-        musicMeter.SubscribeEvent(FirstSoundOnLevelStart, ref musicMeter.subscribeAnytime);
-    }
-    public float transitionDelay;
-    bool transitionBegun;
-    public void TransitionSounds()
-    {
-        if (enableTransitionMusic)
+        if (objectiveActive)
         {
-            if (!transitionBegun)
+            CheckTheGameStateDichotomies_PlausibleOrCertain_FailOrWin_ObjOrLvl();
+        }
+        moduloC = moduloA % moduloB;
+    }
+
+    #region Game State Sound Handling
+    private void CheckTheGameStateDichotomies_PlausibleOrCertain_FailOrWin_ObjOrLvl()
+    {
+        if (!certainWin && !certainFail)
+        {
+            plausibleFail = true;
+            plausibleWin = ObjectiveManager.amountOnTraps == 0;
+        }
+        if (plausibleWin && !certainWin && objectiveManager.HasAllEnergySpheresHitTheTargetNode())
+        {
+            certainWin = true;
+            plausibleWin = plausibleFail = false;
+        }
+        if (plausibleFail && !certainFail && ObjectiveManager.amountOnTraps > 0)
+        {
+            certainFail = true;
+            plausibleWin = plausibleFail = false;
+        }
+
+        if (certainWin)
+        {
+            if (!certainWinLvl && !certainWinObj)
             {
-                for (int i = 0; i < transitionMusic.Length; i++)
+                if (levelObjectiveCurrent + 1 >= targetNodes.Length)
                 {
-                    StartCoroutine(transitionMusic[i].TriggerSoundWithDelay(transitionDelay));
-                    //transitionMusic[i].TriggerAudioObject();
+                    certainWinLvl = true;
+                    StopFailSoundLvl("lvl.win");
+                    StopFailSoundObj("lvl.win");
+                    soundManager.ActivateGameStateSound(soundManager.levelCompleted);
+                    soundManager.LevelCompletedPreFadeOut(lastObjQuickFadeOut);
                 }
-                transitionBegun = true;
+                else
+                {
+                    certainWinObj = true;
+                    StopFailSoundLvl("obj.win");
+                    StopFailSoundObj("obj.win");
+                    soundManager.ActivateGameStateSound(soundManager.objectiveCompleted);
+                }
+            }
+        }
+        if (certainFail && !certainFailLvlNextNode)
+        {
+            StopWinSounds("obj.fail");
+
+            if (GameManager.energy < 1)
+            {
+                soundManager.ActivateGameStateSound(soundManager.levelFailed);
+                certainFailLvlNextNode = true;
+                StopFailSoundObj("lvl.fail");
+            }
+            else
+            {
+                soundManager.ActivateGameStateSound(soundManager.objectiveFailed); // problematic
+            }
+        }
+    }
+    private void ResetGameStateDichotomies()
+    {
+        plausibleWin = certainWin = plausibleFail = certainFail = certainFailLvlNextNode = certainWinLvl = certainWinObj = false;
+        soundFailLvl = soundFailObj = soundWinLvl = soundWinObj = false;
+    }
+
+    private void StopWinSounds(string eventDescription)
+    {
+        if (soundWinObj)
+        {
+            soundWinObj = false;
+            //print(eventDescription + ": stop obj.win" + Time.time);
+            soundManager.StopGameStateSound(soundManager.objectiveCompleted);
+        }
+        else if (soundWinLvl)
+        {
+            soundWinLvl = false;
+            //print(eventDescription + ": stop lvl.win" + Time.time);
+            soundManager.StopGameStateSound(soundManager.levelCompleted);
+        }
+    }
+    private void StopFailSoundObj(string eventDescription)
+    {
+        if (soundFailObj)
+        {
+            soundFailObj = false;
+            //print(eventDescription + ": stop obj.fail" + Time.time);
+            soundManager.StopGameStateSound(soundManager.objectiveFailed);
+        }
+    }
+    private void StopFailSoundLvl(string eventDescription)
+    {
+        if (soundFailLvl)
+        {
+            soundFailLvl = false;
+            //print(eventDescription + ": stop lvl.fail" + Time.time);
+            soundManager.StopGameStateSound(soundManager.levelFailed);
+        }
+    }    
+    
+    private void ScheduleSoundsForNextNode()
+    {
+        if (!soundFailLvl)
+        {
+            if (certainFail || plausibleFail)
+            {
+                if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() < 1)
+                {
+                    soundFailLvl = true;
+                    //print("schedule lvl fail for next node" + Time.time);
+                    soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, certainFailLvlNextNode);
+                }
             }
         }
     }
 
-    private void LoadNewMusicMeter()
+    private void ScheduleSoundsForNextTarget()
     {
-        OverwriteOldMeterUnit(ref musicMeter.beatMax, beatsPerBar);
-        OverwriteOldMeterUnit(ref musicMeter.barMax, barsPerSection);
-        OverwriteOldMeterUnit(ref musicMeter.bpm, bpm);
-    }
-
-    private void OverwriteOldMeterUnit(ref int musicMeterUnit, int newUnit)
-    {
-        if (newUnit != 0)
+        if (objectiveActive)
         {
-            musicMeterUnit = newUnit;
+            if (plausibleWin || certainWin)
+            {
+                if (levelObjectiveCurrent + 1 >= targetNodes.Length)
+                {
+                    if (!soundWinLvl)
+                    {
+                        soundWinLvl = true;
+                        //print("schedule lvl win for next target" + Time.time);
+                        soundManager.ScheduleGameStateSound(soundManager.levelCompleted, true, certainWinLvl);
+                    }
+                }
+                else if (!soundWinObj)
+                {
+                    soundWinObj = true;
+                    //print("schedule obj win for next target" + Time.time);
+                    soundManager.ScheduleGameStateSound(soundManager.objectiveCompleted, true, certainWinObj);
+                }
+            }
+            if (plausibleFail || certainFail)
+            {
+                if (!soundFailObj && !GameManager.death)
+                {
+                    soundFailObj = true;
+                    //print("schedule obj fail for next target" + Time.time);
+                    soundManager.ScheduleGameStateSound(soundManager.objectiveFailed, true, certainFail);
+                }
+            }
         }
     }
-    public void LoadLevel()
+    #endregion
+
+    #region Game State Events
+    public void LoadLevelTransition()
     {
-        repeatIndex = new int[sounds.Length];
-        repeatActive = new bool[sounds.Length];
+        cometManager.nodeHitTiming = gameManager.transitionTiming;
+        cometManager.LoadLevelTransition();
+        cometMovement.LoadLevelTransition();
+        musicMeter.UnsubscribeEvent(LoadLevelTransition, ref musicMeter.subscribeAnytime);
         for (int i = 0; i < sounds.Length; i++)
         {
             sounds[i].StopAudioAllVoices();
             sounds[i].VolumeChangeInParent(sounds[i].initialVolume, 0, true);
         }
-        cometBehavior.nodeHitTiming = cometTimings[cometDestination];
+    }
+    public void TransitionSounds()
+    {
+        repeatIndex = new int[sounds.Length];
+        repeatActive = new bool[sounds.Length];
+        CheckForMusicTriggers(true);
+    }
+    public void LoadLevel()
+    {
+        cometManager.nodeHitTiming = cometTimings[cometDestination];
         musicMeter.SubscribeEvent(CheckIfNodeIsHitByComet, ref nodeHitSubscription);
     }
     public void UnloadLevel()
     {
-        transitionBegun = false;
         if (GameManager.death)
         {
             for (int i = 0; i < sounds.Length; i++)
@@ -140,43 +283,135 @@ public class LevelManager : MonoBehaviour
         musicMeter.UnsubscribeEvent(CheckIfNodeIsHitByComet, ref nodeHitSubscription);
     }
 
-
-    void CheckIfNodeIsHitByComet()
+    private void ObjectiveActivated()
     {
-        //if (meterLookahead.SoundLookaheadConditionSpecific(cometTimings[cometDestination]))
-        //{
-        if (musicMeter.MeterConditionSpecificTarget(cometTimings[cometDestination]))
+        objectiveActive = true;
+        nodeBehavior.HighlightNewTarget(cometDestination);
+        objectiveManager.ResetSphereArrays();
+        spawnManager.StartNewSpawnSequence(false);
+        nodeBehavior.CollisionNodeCometColor(cometDestination, true, true, false);
+        if (lastObjective)
         {
-            //soundManager.SoundCometHitsNode();
-            if (cometDestination == targetNodes[levelObjectiveCurrent])
+            cometColor.Color_Enraged();
+        }
+    }
+    private void ObjectiveFailed()
+    {
+        screenShake.ScreenShakeObjectiveFailed();
+        int sphereYetToBeAccountedFor = CountRemainingSpheresNotYetIncludedInScoreAccounting();
+        objectiveManager.RemoveEnergySpheres();
+        objectiveManager.ResetSphereArrays();
+        gameManager.UpdateEnergyHealth(sphereYetToBeAccountedFor, true);
+        StopWinSounds("targethit");
+        if (GameManager.death)
+        {
+            lastObjective = false;
+            objectiveActive = false;
+            //soundManager.ActivateGameStateSound(soundManager.levelFailed);
+            StopFailSoundObj("targethit");
+            musicMeter.UnsubscribeEvent(spawnManager.SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
+            gameManager.LevelFailed();
+            soundManager.FadeInMusicBetweenLevels();
+            for (int i = 0; i < soundTriggers.Length; i++)
             {
-                if (objectiveManager.HasAllEnergySpheresHitTheTargetNode())
-                {
-                    //if (levelObjectiveCurrent + 1 >= targetNodes.Length)
-                    //{
-                    //    //levelCompleted = true;
-                    //    soundManager.LevelCompleted();
-                    //}
-                    //else
-                    //    soundManager.SoundObjectiveCompleted();
-                }
-                else
-                {
-                    
-                }
+                soundTriggers[i].hasPlayed = false;
             }
         }
-        if (!levelCompleted)
-            CheckIfSoundShouldPlay();
+        else
+        {
+            soundManager.ActivateGameStateSound(soundManager.objectiveFailed);
+            StopFailSoundLvl("targethit");
+            spawnManager.ReloadSpawnSequence(false);
+            if (sphereYetToBeAccountedFor < 0)
+                healthBar.UpdateHealthbarOnObjectiveConclusion(false);
+        }
+
+        ResetGameStateDichotomies();
+    }
+
+    bool lastObjective;
+    public void ObjectiveCompleted()
+    {
+        screenShake.ScreenShakeObjectiveCompleted();
+        objectiveActive = false;
+        musicMeter.UnsubscribeEvent(spawnManager.SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
+        objectiveManager.RemoveEnergySpheres();
+        objectiveManager.ResetSphereArrays();
+        firstTimeHittingTarget = true;
+
+        gameManager.UpdateEnergyHealth(1, true);
 
 
-        // need to smash these together at some point 
+        levelObjectiveCurrent++;
+        if (levelObjectiveCurrent == targetNodes.Length - 1)
+        {
+            lastObjective = true;
+        }
+        //if (levelObjectiveCurrent + 1 >= targetNodes.Length)
+        //{
+        //    if (MusicMeter.barCount % musicMeter.barMax == 1)
+        //    {
+        //        MusicMeter.barCount++;
+        //    }
+        //}
+
+        if (levelObjectiveCurrent >= targetNodes.Length)
+        {
+            soundManager.ActivateGameStateSound(soundManager.levelCompleted);
+            levelObjectiveCurrent = 0;
+            lastObjective = false;
+            gameManager.LevelCompleted();
+        }
+        else
+        {
+            soundManager.ActivateGameStateSound(soundManager.objectiveCompleted);
+            healthBar.UpdateHealthbarOnObjectiveConclusion(true);
+            uiManager.uiCurrentLevelObjective.text = ": " + levelObjectiveCurrent.ToString();
+            levelDesigner.LoadSpawnSequence(levelObjectiveCurrent);
+            nodeBehavior.RemoveTargetHighlighting(targetNodes[levelObjectiveCurrent]);
+        }
+        nodeBehavior.TargetExplode(cometDestination);
+        if (GameManager.inTutorial)
+        {
+            tutorialUI.ShowTextFirstHealthbarCharge();
+        }
+
+        ResetGameStateDichotomies();
+    }
+    #endregion
+
+    private void CheckIfNodeIsHitByComet()
+    {
+        if (!GameManager.levelCompleted) // this is never set to true
+        {
+            CheckForMusicTriggers(false);
+            CheckForLastMinuteStateChangesForLookaheadMusic();
+        }
+        CheckCometTimingForGameStateChanges();
+        CheckCometTimingForLookaheadMusic(); // used to be on top
+    }
+    private int CountRemainingSpheresNotYetIncludedInScoreAccounting()
+    {
+        int failsAccountedFor = ObjectiveManager.amountOnTraps;
+        int noncollidedSpawns = objectiveManager.energySpheresSpawned.Length - objectiveManager.collidedSpheresOnTarget.Length;
+        int sphereYetToBeAccountedFor = failsAccountedFor - noncollidedSpawns;
+        return sphereYetToBeAccountedFor;
+    }
+    public CometColor cometColor;
+    private void CheckCometTimingForGameStateChanges()
+    {
         if (musicMeter.MeterConditionSpecificTarget(cometTimings[cometDestination]))
         {
+            scheduledLvlFail = scheduledObjFail = scheduledWin = false;
             if (GameManager.inTutorial)
             {
                 soundManager.TutorialMusicLoops(cometDestination);
             }
+
+            if (cometDestination == 0)
+            {
+            }
+            
             if (cometDestination == targetNodes[levelObjectiveCurrent])
             {
                 if (firstTimeHittingTarget)
@@ -186,33 +421,29 @@ public class LevelManager : MonoBehaviour
                     {
                         tutorialUI.ShowTextThreeAligned(levelObjectiveCurrent);
                     }
-                    soundManager.ObjectiveActivated();
-                    nodeBehavior.HighlightNewTarget(cometDestination);
-                    objectiveManager.ResetSphereArrays();
-                    spawnManager.StartNewSpawnSequence();
-                    nodeBehavior.CollisionNodeCometColor(cometDestination, true, true, false);
+                    ObjectiveActivated();
                 }
                 else
                 {
                     if (objectiveManager.HasAllEnergySpheresHitTheTargetNode())
                     {
-                        
+                        StopFailSoundLvl("targethit");
+                        StopFailSoundObj("targethit");
                         ObjectiveCompleted();
                         nodeBehavior.CollisionNodeCometColor(cometDestination, true, false, true);
                     }
                     else
                     {
+                        if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() < 1)
+                        {
+                            //soundManager.ActivateGameStateSound(soundManager.levelFailed);
+                        }
+                        ObjectiveFailed();
+                        nodeBehavior.CollisionNodeCometColor(cometDestination, true, false, false);
                         if (GameManager.inTutorial && CountRemainingSpheresNotYetIncludedInScoreAccounting() < 0)
                         {
                             tutorialUI.ShowTextFirstObjectiveFailed();
                         }
-                        if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() > 0)
-                        {
-                            soundManager.ObjectiveFailed();
-                        }
-                        ObjectiveFailed();
-                        nodeBehavior.CollisionNodeCometColor(cometDestination, true, false, false);
-                        soundManager.RepeatingSpawnSequence();
                     }
                 }
             }
@@ -222,125 +453,189 @@ public class LevelManager : MonoBehaviour
             }
             else
             {
+                if (!certainFailLvlNextNode && !firstTimeHittingTarget)
+                {
+                    StopFailSoundLvl("nodehit");
+                }
                 nodeBehavior.CollisionNodeCometColor(cometDestination, false, false, false);
             }
-            //cometBehavior.PlayLight();
-            //nodeBehavior.CollisionNodeComet(cometDestination);
             cometDestination++;
             if (cometDestination >= nodes.Length)
                 cometDestination = 0;
-            cometMovement.ChangeDirection(cometDestination);
-            cometBehavior.nodeHitTiming = cometTimings[cometDestination];
+            cometManager.ChangeDirectionWhenHittingNode();
+            cometMovement.ChangeDirectionToNextDestination(cometDestination);
+            cometManager.nodeHitTiming = cometTimings[cometDestination];
         }
     }
 
-
-    private void ObjectiveFailed() // need sound: if death: player death
+    private void CheckCometTimingForLookaheadMusic()
     {
-        //int successes = objectiveManager.collidedSpheresOnTarget.Length;
-        int sphereYetToBeAccountedFor = CountRemainingSpheresNotYetIncludedInScoreAccounting();
-        objectiveManager.RemoveEnergySpheres();
-        objectiveManager.ResetSphereArrays();
-        gameManager.UpdateEnergyHealth(sphereYetToBeAccountedFor);
         if (GameManager.death)
         {
-            gameManager.LevelFailed();
+            soundManager.FadeInMusicBetweenLevels();
         }
-        else
-        {
-            spawnManager.ReloadSpawnSequence();
-            if (sphereYetToBeAccountedFor < 0)
-                healthBar.UpdateHealthbarOnObjectiveConclusion(false);
-        }
-    }
 
-    private int CountRemainingSpheresNotYetIncludedInScoreAccounting()
-    {
-        int failsAccountedFor = objectiveManager.collidedSpheresOnTraps.Length;
-        int noncollidedSpawns = objectiveManager.energySpheresSpawned.Length;
-        int sphereYetToBeAccountedFor = failsAccountedFor - noncollidedSpawns;
-        return sphereYetToBeAccountedFor;
-    }
+        if (meterLookahead.SoundLookaheadRelativeToCondition(cometTimings[cometDestination]))
+        {
+            ScheduleSoundsForNextNode();
 
-    public void ObjectiveCompleted()
-    {
-        if (GameManager.inTutorial)
-        {
-            tutorialUI.ShowTextFirstHealthbarCharge();
-        }
-        objectiveManager.RemoveEnergySpheres();
-        objectiveManager.ResetSphereArrays();
-        firstTimeHittingTarget = true;
-
-        gameManager.UpdateEnergyHealth(1);
-        levelObjectiveCurrent++;
-        if (levelObjectiveCurrent >= targetNodes.Length)
-        {
-            levelObjectiveCurrent = 0;
-            gameManager.LevelCompleted();
-        }
-        else
-        {
-            healthBar.UpdateHealthbarOnObjectiveConclusion(true);
-            uiManager.uiCurrentLevelObjective.text = ": " + levelObjectiveCurrent.ToString();
-            soundManager.ObjectiveCompleted();
-            levelDesigner.LoadSpawnSequence(levelObjectiveCurrent);
-            nodeBehavior.RemoveTargetHighlighting(targetNodes[levelObjectiveCurrent]);
-            //spawnManager.StartNewSpawnSequence();
-        }
-        nodeBehavior.TargetExplode(cometDestination);
-    }
-
-    void FirstSoundOnLevelStart()
-    {
-        MusicMeter.MeterCondition levelStart = new MusicMeter.MeterCondition();
-        levelStart.division = 1;
-        if (meterLookahead.SoundLookaheadConditionSpecific(levelStart))
-        {
-            //soundFirst.TriggerAudioObject();
-            musicMeter.UnsubscribeEvent(FirstSoundOnLevelStart, ref musicMeter.subscribeAnytime);
-        }
-    }
-
-    int[] repeatIndex;
-    bool[] repeatActive;
-    void CheckIfSoundShouldPlay() // find a way to load this before game events at any time
-    {
-        if (!GameManager.inTutorial)
-        {
-            MusicMeter.MeterCondition sampleRef = new MusicMeter.MeterCondition();
-            sampleRef.division = sampleRef.beat = sampleRef.bar = 1;
-            sampleRef.section = 0;
-            if (musicMeter.MeterConditionSpecificTarget(sampleRef))
+            if (cometDestination == 0)
             {
-                sampleLengthReference.TriggerAudioObject();
-                MusicMeter.sampleController = sampleLengthReference.voicePlayerNew[0].audioSource;
-                MusicMeter.sampleControlledMeter = true;
-                musicMeter.InitializeSampleController();
+                //soundManager.SetDspReferenceSectionStart();
+            }
+            if (cometDestination == targetNodes[levelObjectiveCurrent])
+            {
+                ScheduleSoundsForNextTarget();
+                if (firstTimeHittingTarget)
+                {
+                    soundManager.ObjectiveActivatedPlaySound();
+                    spawnManager.StartNewSpawnSequence(true);
+                    if (lastObjective)
+                    {
+                        for (int i = 0; i < soundTriggers.Length; i++)
+                        {
+                            bool playOnLastObjective = false;
+                            for (int e = 0; e < soundTriggers[i].objectiveFilters.Length; e++)
+                            {
+                                if (soundTriggers[i].objectiveFilters[e] == targetNodes.Length - 1)
+                                    playOnLastObjective = true;
+                            }
+                            if (!playOnLastObjective && !GameManager.inTutorial)
+                            {
+                                sounds[i].VolumeChangeInParent(0, 1, false);
+                            }
+                        }
+                    }
+                    //if (levelObjectiveCurrent + 1 >= targetNodes.Length)
+                    //{
+                    //    for (int i = 0; i < soundTriggers.Length; i++)
+                    //    {
+                    //        if (!soundTriggers[i].stinger) // not ideal: replace with "last objective"-bool or something
+                    //            soundTriggers[i].sound.VolumeChangeInParent(0, 1, true);
+                    //    }
+                    //}
+                }
+                else
+                {
+                    if (objectiveManager.HasAllEnergySpheresHitTheTargetNode())
+                    {
+                        if (levelObjectiveCurrent + 1 >= targetNodes.Length)
+                        {
+                            soundManager.FadeInMusicBetweenLevels();
+                        }
+                        else
+                        {
+                        }
+                    }
+                    else
+                    {
+                        // alternative: reload spawn sequence every time - then stop the sequence & sounds, if lvlFail or clutchWin
+                        spawnManager.ReloadSpawnSequence(true);
+
+                        if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() > 0)
+                        {
+                            soundManager.ActivateGameStateSound(soundManager.objectiveFailed);
+                            scheduledObjFail = true;
+                        }
+                        else if (!gameManager.godMode)
+                        {
+                            soundManager.FadeInMusicBetweenLevels();
+                            scheduledLvlFail = true;
+                            soundManager.ActivateGameStateSound(soundManager.levelFailed);
+                        }
+                        soundManager.RepeatingSpawnSequence();
+                    }
+                }
             }
         }
+    }
 
+    
+
+    private void CheckForLastMinuteStateChangesForLookaheadMusic()
+    {
+        if (scheduledLvlFail && !scheduledObjFail)
+        {
+            if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() > 0)
+            {
+                scheduledObjFail = true;
+                soundManager.musicBetweenLevels.VolumeChangeInParent(0, 1f, false);
+            }
+        }
+        if (scheduledObjFail)
+        {
+            if (ObjectiveManager.amountOnTraps == 0)
+            {
+                if (ObjectiveManager.amountOnTarget == ObjectiveManager.amountSpawned)
+                {
+                    scheduledObjFail = false;
+                    scheduledWin = true;
+                }
+            }
+            if (scheduledWin)
+            {
+                scheduledWin = false;
+                if (levelObjectiveCurrent + 1 >= targetNodes.Length)
+                    soundManager.FadeInMusicBetweenLevels();
+            }
+            else if (scheduledLvlFail)
+            {
+                scheduledLvlFail = false;
+            }
+        }
+    }
+
+    public static int fullHPstartSection;
+    bool fullHPtriggered;
+    bool scheduleFullHPStartTrigger;
+    void CheckForMusicTriggers(bool inTransition) // find a way to load this before game events at any time
+    {
+        MusicMeter.MeterCondition sampleRef = new MusicMeter.MeterCondition();
+        sampleRef.division = sampleRef.beat = sampleRef.bar = 1;
+        sampleRef.section = 0;
+
+        if (meterLookahead.SoundLookaheadRelativeToCondition(sampleRef))
+        {
+            soundDsp.InitializeDspReference(sampleLengthReference);
+            //soundManager.InitializeDspReference(sampleLengthReference);
+        }
+
+        if (gameManager.enableFullHpMusic)
+            FullHpMusic();
 
         for (int i = 0; i < soundTriggers.Length; i++)
         {
             bool objectiveFilter = false;
-            if (soundTriggers[i].objectiveFilters.Length > 0)
+
+
+            if (!GameManager.inTutorial)
             {
-                objectiveFilter = true;
-                for (int of = 0; of < soundTriggers[i].objectiveFilters.Length; of++)
+                if (soundTriggers[i].objectiveFilters.Length > 0)
                 {
-                    if (soundTriggers[i].objectiveFilters[of] == levelObjectiveCurrent)
+                    objectiveFilter = true;
+                    for (int of = 0; of < soundTriggers[i].objectiveFilters.Length; of++)
                     {
-                        objectiveFilter = false;
+                        int objectiveCurrentAfterTargetHit = levelObjectiveCurrent;
+                        //if (certainWin)
+                        //    objectiveCurrentAfterTargetHit ++;
+                        if (soundTriggers[i].objectiveFilters[of] == objectiveCurrentAfterTargetHit)
+                        {
+                            objectiveFilter = false;
+                        }
                     }
                 }
+                else if (lastObjective)
+                {
+                    objectiveFilter = true;
+                }
             }
+
             if (!objectiveFilter)
             {
-                MusicRepeater(i);
+                if (!inTransition)
+                    MusicRepeater(i);
 
-                //if (meterLookahead.SoundLookaheadConditionSpecific(soundTimings[i]))
-                if (musicMeter.MeterConditionSpecificTarget(soundTimings[i]))
+                if (meterLookahead.SoundLookaheadRelativeToCondition(soundTimings[i]))
                 {
                     if (soundTriggers[i].repeatAtBeatInterval > 0 && !repeatActive[i])
                     {
@@ -351,22 +646,99 @@ public class LevelManager : MonoBehaviour
                     {
                         if (!soundTriggers[i].hasPlayed)
                         {
-                            sounds[i].TriggerAudioObject();
+                            soundDsp.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
+                            //soundManager.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
+
                             soundTriggers[i].hasPlayed = true;
                         }
                     }
                     else
-                        sounds[i].TriggerAudioObject();                    
+                    {
+                        soundDsp.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
+                        //soundManager.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
+                    }
                 }
+            }
+        }
+    }
+
+    private void FullHpMusic()
+    {
+        if (!lastObjective && !GameManager.betweenLevels && !GameManager.inTutorial)
+        {
+            bool fullEnergyPredicted = GameManager.energy + GameManager.energyPool >= gameManager.maxEnergy;
+            bool allSpheresHaveHit = objectiveManager.collidedSpheresOnTarget.Length == objectiveManager.energySpheresSpawned.Length;
+            bool aboutToBeFullEnergy = fullEnergyPredicted && allSpheresHaveHit;
+
+            if (GameManager.fullEnergy || aboutToBeFullEnergy)
+            {
+                if (!fullHPtriggered)
+                {
+                    int startSectionContext = MusicMeter.sectionCount % fullHPsecSectionLength;
+                    int startBarContext = MusicMeter.barCount % musicMeter.barMax;
+                    if (startBarContext == 0)
+                        startBarContext = musicMeter.barMax;
+
+                    fullHPstartSection = MusicMeter.sectionCount;
+                    fullHPstartSection += startSectionContext - fullHPsecSectionLength;
+
+                    if (startSectionContext == 0 && startBarContext < musicMeter.barMax / 2)
+                    {
+                        fullHPstartSection += fullHPsecSectionLength;
+                    }
+                    //if (startSectionContext == 0)
+                    //    startSectionContext = 2;
+
+                    //startSectionContext += 1; // choose the next section to start playing
+
+
+                    //if (MusicMeter.sectionCount % 4 == 0)
+                    //{
+                    //    fullHPstartSection -= 4;
+                    //}
+                    print("section:" + fullHPstartSection + "context:" + startSectionContext);
+                    fullHPtriggered = true;
+                }
+                for (int i = 0; i < fullHPMusic.Length; i++)
+                {
+                    for (int s = 0; s < fullHPMusic[i].soundTimings.Length; s++)
+                    {
+
+                        MusicMeter.MeterCondition relativeCondition = new MusicMeter.MeterCondition();
+                        relativeCondition.division = relativeCondition.beat = 1;
+                        relativeCondition.bar = fullHPMusic[i].soundTimings[s].bar;
+                        relativeCondition.section = fullHPMusic[i].soundTimings[s].section;
+
+                        bool anySection = relativeCondition.section == 0;
+                        if (!anySection)
+                            relativeCondition.section += fullHPstartSection;
+
+                        if (anySection || relativeCondition.section >= MusicMeter.sectionCount)
+                        {
+                            if (meterLookahead.SoundLookaheadRelativeToCondition(relativeCondition))
+                            {
+                                //print(fullHPMusic[i].sound.name + " : " + musicMeter.CountRemainingBeatDivisionsBetweenCurrentCountAndTargetMeter(relativeCondition));
+                                soundDsp.MusicScheduledPlayRelativeToDspReferenceNotFirstBeat(fullHPMusic[i].sound);
+                                //print(fullHPMusic[i].sound.name + " : " + relativeCondition.bar + " secStart:"+fullHPstartSection + "mm:"+MusicMeter.sectionCount);
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                fullHPtriggered = false;
             }
         }
     }
 
     private void MusicRepeater(int i)
     {
+        MusicMeter.MeterCondition nxtBeat = new MusicMeter.MeterCondition();
+        nxtBeat.division = 1;
         if (repeatActive[i])
         {
-            if (MusicMeter.divCount == 1)
+            if (meterLookahead.SoundLookaheadRelativeToCondition(nxtBeat))
             {
                 repeatIndex[i]++;
                 if ((float)repeatIndex[i] / soundTriggers[i].repeatAtBeatInterval > soundTriggers[i].repeatLifetime)
@@ -375,7 +747,8 @@ public class LevelManager : MonoBehaviour
                 }
                 else if (repeatIndex[i] % soundTriggers[i].repeatAtBeatInterval == 0)
                 {
-                    sounds[i].TriggerAudioObject();
+                    soundDsp.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
+                    //soundManager.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
                 }
             }
         }

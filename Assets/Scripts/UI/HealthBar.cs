@@ -25,9 +25,8 @@ public class HealthBar : MonoBehaviour
     Material material;
     Material shadowMaterial;
     SpriteRenderer frameSprite;
-    public Color redColor, yellowColor, greenColor;
-    public Color shadowRedColor, shadowYellowColor, shadowGreenColor;
-    public Color fadeOutColor;
+    [HideInInspector]
+    public Color cLow, cMedium, cHigh, cDrain, cCharge;
     public AnimationCurve energyCorrelation;
     public AnimationCurve colorCurve;
     [Range(0, 1)]
@@ -51,6 +50,15 @@ public class HealthBar : MonoBehaviour
     bool drainDone;
 
     public AnimationCurve gradualSizingCurve;
+
+    public void ApplyColors(Color low, Color medium, Color high, Color drain, Color charge)
+    {
+        cLow = new Color(low.r, low.g, low.b, 0);
+        cMedium = new Color(medium.r, medium.g, medium.b, 0);
+        cHigh = new Color(high.r, high.g, high.b, 0);
+        cDrain = new Color(drain.r, drain.g, drain.b, 0);
+        cCharge = new Color(charge.r, charge.g, charge.b, 0);
+    }
 
     private void Awake()
     {
@@ -76,7 +84,7 @@ public class HealthBar : MonoBehaviour
         {
             if (BackgroundColorManager.colorTransTesterHealthbarSync != 0)
                 curveController = BackgroundColorManager.colorTransTesterHealthbarSync;
-            material.color = SetNewColorNow(0.05f, material.color, redColor, yellowColor, greenColor);
+            material.color = SetNewColorNow(0.05f, material.color, cLow, cMedium, cHigh);
         }
 
         if (fadeOutAnimationDone)
@@ -86,11 +94,11 @@ public class HealthBar : MonoBehaviour
             shadow.transform.localScale = SetScale(shadowGradualStatus, shadowScaleOld);
             if (pointUp)
             {
-                shadowMaterial.color = shadowGreenColor;
+                shadowMaterial.color = cCharge;
             }
             else
             {
-                shadowMaterial.color = shadowRedColor;
+                shadowMaterial.color = cDrain;
             }
             if (!dontUpdateMainHealthbar)
             {
@@ -98,7 +106,7 @@ public class HealthBar : MonoBehaviour
                 ColorOffset(mainGradualStatus, ref mainColorOld, material.color);
                 SetGradualStatus(ref mainGradualStatus);
                 transform.localScale = SetScale(mainGradualStatus, mainScaleOld);
-                material.color = SetNewColorNow(mainGradualStatus, mainColorOld, redColor, yellowColor, greenColor);
+                material.color = SetNewColorNow(mainGradualStatus, mainColorOld, cLow, cMedium, cHigh);
             }
             if (!chargeDone && mainGradualStatus >= 1)
             {
@@ -171,7 +179,7 @@ public class HealthBar : MonoBehaviour
     }
     private void UpdateHealthBarControlValue()
     {
-        curveController = (float) GameManager.energy / gameManager.maxEnergy;
+        curveController = (float) (GameManager.energy + GameManager.energyPool) / gameManager.maxEnergy;
         //fakeEnergy += eChange;
         //curveController = 1f * fakeEnergy / gameManager.maxEnergy;
     }

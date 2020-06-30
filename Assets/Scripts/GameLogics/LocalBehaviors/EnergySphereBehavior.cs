@@ -1,10 +1,12 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Reflection;
+﻿
 using UnityEngine;
 
 public class EnergySphereBehavior : MonoBehaviour
 {
+    [HideInInspector]
+    public Color cGhost, cAlive, cPickup, cGlued;
+
+
     public GameObject particleTrailPrefabA;
     public GameObject particleTrailLight;
     public GameObject particleTrailPrefabB;
@@ -53,10 +55,21 @@ public class EnergySphereBehavior : MonoBehaviour
     public bool isDead;
     bool movedToBack;
 
-    public SoundManager soundManager;
 
-    private void Awake()
+    float currentSpeed;
+
+    private bool ghostEagerToBeGlued;
+    private GameObject sphereBeingDraggedForEagerGhosts;
+    private GameObject sphereBeingDragged;
+
+    public SoundManager soundManager;
+    public TutorialUI tutorialUI;
+
+
+
+    void Start()
     {
+        // this used to be called in awake
         hasHitNode = false;
         initialSortingOrderA = particleTrailPrefabA.GetComponent<ParticleSystemRenderer>().sortingOrder;
         initialSortingOrderB = particleTrailPrefabB.GetComponent<ParticleSystemRenderer>().sortingOrder;
@@ -64,42 +77,32 @@ public class EnergySphereBehavior : MonoBehaviour
         psmainB = particleTrailPrefabB.GetComponent<ParticleSystem>().main;
         psLight = particleTrailLight.GetComponent<ParticleSystem>().main;
         BecomeGhost();
-        //SpawnParticle(particleTrailPrefabA, ref particleTrailA, ref psmainA);
-        //SetTrailColorA(psmainA);
-        //SpawnParticle(particleTrailPrefabB, ref particleTrailB, ref psmainB);
-        //SetTrailColorA(psmainB);
     }
-    void Start()
+    void FixedUpdate()
     {
-        //soundManager = FindObjectOfType<SoundManager>();
-    }
-    void Update()
-    {
-        
-        if (isDead && !movedToBack)
+        if (isDead)
         {
-            GetComponent<SphereCollider>().enabled = false;
-            transform.localPosition += new Vector3(0, 0, 0); // this is stupid! disable collider instead
-            movedToBack = true;
-        }
-        if (isDead && isBeingDragged)
-        {
-            SpherePickedUpNoMore();
-            isBeingDragged = false;
-            playerIsDraggingAnEnergySphere = false;
-            //psLight.loop = false;
+            if (!movedToBack)
+            {
+                GetComponent<SphereCollider>().enabled = false;
+                transform.localPosition += new Vector3(0, 0, 0); // this is stupid! disable collider instead
+                movedToBack = true;
+            }
+            if (isBeingDragged)
+            {
+                SpherePickedUpNoMore();
+                isBeingDragged = false;
+                playerIsDraggingAnEnergySphere = false;
+            }
         }
         if (!isDead)
         {
-            
-
             if (hasHitNode)
             {
                 isGlued = false;
                 if (isBeingDragged)
                 {
                     isBeingDragged = false;
-                    //psLight.loop = false;
                     playerIsDraggingAnEnergySphere = false;
                 }
                 mPos = transform.position; // this is dumb
@@ -111,8 +114,9 @@ public class EnergySphereBehavior : MonoBehaviour
             }
             else if (isGlued && !playerIsDraggingAnEnergySphere)
             {
-                SetTrailColorA(psmainA);
-                SetTrailColorA(psmainB);
+                SetColorAlive(psmainA);
+                SetColorAlive(psmainB);
+                transform.position = sphereBeingDragged.transform.position;
                 isGlued = false;
             }
             if (ghostEagerToBeGlued)
@@ -120,62 +124,46 @@ public class EnergySphereBehavior : MonoBehaviour
                 if (isGhost && !playerIsDraggingAnEnergySphere)
                 {
                     ghostEagerToBeGlued = false;
-                    sphereBeingDragged = null;
+                    sphereBeingDraggedForEagerGhosts = null;
                 }
                 else if (!isGhost && playerIsDraggingAnEnergySphere)
                 {
                     ghostEagerToBeGlued = false;
-                    if (sphereBeingDragged != null)
+                    if (sphereBeingDraggedForEagerGhosts != null)
                     {
-                        GlueUnclickedObjectToClickedObject(sphereBeingDragged);
+                        GlueUnclickedObjectToClickedObject(sphereBeingDraggedForEagerGhosts);
                     }
                 }
             }
-
             SetParticleDelay();
             SnapPositionOffsetToMousePosition();
             mPosLast = mPos;
         }
     }
-    public void BecomeGhost()
-    {
-        isGhost = true;
-        SetTrailColorD(psmainA);
-        SetTrailColorD(psmainB);
-    }
-    public void BecomeAlive()
-    {
-        isGhost = false;
-        SetTrailColorA(psmainA);
-        SetTrailColorA(psmainB);
-        particleSpawnA.GetComponent<ParticleSystem>().Play();
-        particleSpawnB.GetComponent<ParticleSystem>().Play();
-    }
-
-    
     private void OnMouseDown()
     {
         if (isGhost)
-        {   
+        {
             soundManager.OrbPickupDenied();
+        }
+        if (Time.timeScale == 0)
+        {
+            tutorialUI.ClickOrbAfterFirstSpawn();
         }
         if (!hasHitNode && !isGhost && !isDead && Time.timeScale == 1)
         {
             soundManager.OrbPickup();
             mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
             mOffset = gameObject.transform.position - GetMouseWorldPos();
-            SetTrailColorB(psmainA);
-            SetTrailColorB(psmainB);
+            SetColorPickup(psmainA);
+            SetColorPickup(psmainB);
             isBeingDragged = true;
             playerIsDraggingAnEnergySphere = true;
             particleTrailPrefabA.GetComponent<ParticleSystemRenderer>().sortingOrder = initialSortingOrderA;
             particleTrailPrefabB.GetComponent<ParticleSystemRenderer>().sortingOrder = initialSortingOrderB;
-            //psLight.loop = true;
             particleTrailLight.GetComponent<ParticleSystem>().Play();
         }
     }
-
-    float currentSpeed;
     private void OnMouseDrag()
     {
         if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
@@ -183,14 +171,43 @@ public class EnergySphereBehavior : MonoBehaviour
             AnimationCurvePrint curve = FindObjectOfType<AnimationCurvePrint>();
             Vector3 oldPosition = transform.position;
             Vector3 worldPos = GetMouseWorldPos();
-            IsWithinScreenEdges(ref worldPos);
+            StayWithinScreenEdges(ref worldPos);
             transform.position = worldPos + mOffset;
             currentSpeed = (transform.position - oldPosition).sqrMagnitude;
             curve.valueSpeed = currentSpeed;
         }
     }
+    private void OnMouseUp()
+    {
+        if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
+        {
+            SpherePickedUpNoMore();
+            SetColorAlive(psmainA);
+            SetColorAlive(psmainB);
+            isBeingDragged = false;
+            playerIsDraggingAnEnergySphere = false;
+        }
+    }
 
-    private void IsWithinScreenEdges(ref Vector3 worldPos)
+    #region Ghost
+    private void BecomeGhost()
+    {
+        isGhost = true;
+        SetColorGhost(psmainA);
+        SetColorGhost(psmainB);
+    }
+    public void BecomeAlive()
+    {
+        isGhost = false;
+        SetColorAlive(psmainA);
+        SetColorAlive(psmainB);
+        particleSpawnA.GetComponent<ParticleSystem>().Play();
+        particleSpawnB.GetComponent<ParticleSystem>().Play();
+    }
+    #endregion
+
+    #region Position Methods
+    private void StayWithinScreenEdges(ref Vector3 worldPos)
     {
         if (worldPos.x > OuterEdges.xMax)
         {
@@ -210,48 +227,12 @@ public class EnergySphereBehavior : MonoBehaviour
         }
     }
 
-    private void OnMouseUp()
+    public void SpherePickedUpNoMore()
     {
-        if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
-        {
-            SpherePickedUpNoMore();
-            SetTrailColorA(psmainA);
-            SetTrailColorA(psmainB);
-            isBeingDragged = false;
-            playerIsDraggingAnEnergySphere = false;
-            //psLight.loop = false;
-        }
+        sphereBeingDraggedForEagerGhosts = null;
+        soundManager.OrbPickedUpNoMore();
     }
-
-    private void SpherePickedUpNoMore()
-    {
-        sphereBeingDragged = null;
-        soundManager.SpherePickedUpNoMore();
-    }
-
-    private void SpawnParticle(GameObject prefab, ref GameObject go, ref ParticleSystem.MainModule psmain)
-    {
-        go = Instantiate(prefab, transform);
-        go.transform.localPosition = new Vector3(0, 0, 0);
-        psmain = go.GetComponent<ParticleSystem>().main;
-        go.SetActive(true);
-    }
-    public void SetTrailColorA(ParticleSystem.MainModule psmain)
-    {
-        psmain.startColor = Color.magenta;
-    }
-    public void SetTrailColorB(ParticleSystem.MainModule psmain)
-    {
-        psmain.startColor = Color.cyan;
-    }
-    public void SetTrailColorC(ParticleSystem.MainModule psmain)
-    {
-        psmain.startColor = Color.magenta;
-    }
-    public void SetTrailColorD(ParticleSystem.MainModule psmain)
-    {
-        psmain.startColor = Color.gray;
-    }
+    
     private Vector3 GetMouseWorldPos()
     {
         mPos = Input.mousePosition;
@@ -259,18 +240,6 @@ public class EnergySphereBehavior : MonoBehaviour
         return Camera.main.ScreenToWorldPoint(mPos);
     }
 
-    
-    private void SetParticleDelay()
-    {
-        if (ObjectHasMoved())
-            particleDelay = 0;
-        else
-        {
-            particleDelay += 0.001f;
-            if (particleDelay > 0.1f)
-                particleDelay = 0.1f;
-        }
-    }
     private bool ObjectHasMoved()
     {
         bool hasMoved;
@@ -290,27 +259,89 @@ public class EnergySphereBehavior : MonoBehaviour
                 mOffset = mOffset * snapSoftness;
         }
     }
+    #endregion
 
-    private bool ghostEagerToBeGlued;
-    public void ClickedObjectLeftTheCollider()
+    #region Orb Visuals
+    private void SetColorGhost(ParticleSystem.MainModule psmain)
+    {
+        // is ghost
+        psmain.startColor = cGhost;
+    }
+    private void SetColorAlive(ParticleSystem.MainModule psmain)
+    {
+        // alive
+        psmain.startColor = cAlive;
+    }
+    private void SetColorPickup(ParticleSystem.MainModule psmain)
+    {
+        // pickup
+        psmain.startColor = cPickup;
+    }
+    private void SetColorGlued(ParticleSystem.MainModule psmain)
+    {
+        // is glued
+        psmain.startColor = cGlued;
+    }
+
+
+    public void ApplyColors(Color ghost, Color alive, Color pickup, Color glued)
+    {
+        cGhost = ghost;
+        cAlive = alive;
+        cPickup = pickup;
+        cGlued = glued;
+        //ParticleSystem.MainModule psmainBad = particleCollisionBad.GetComponent<ParticleSystem>().main;
+        //psmainBad.startColor = collBad;
+        //ParticleSystem.MainModule psmainGood = particleCollisionGood.GetComponent<ParticleSystem>().main;
+        //psmainGood.startColor = collGood;
+    }
+
+    private void SetParticleDelay()
+    {
+        if (ObjectHasMoved())
+            particleDelay = 0;
+        else
+        {
+            particleDelay += 0.001f;
+            if (particleDelay > 0.1f)
+                particleDelay = 0.1f;
+        }
+    }
+    private void AlterParticleParameters(ref GameObject particle, int order)
+    {
+        ParticleSystemRenderer psrend = particle.GetComponent<ParticleSystemRenderer>();
+        psrend.sortingOrder = order;
+    }
+    //private void ResetGluedParticleModifications(ref GameObject particle, ref ParticleSystem.MainModule psmain)
+    //{
+    //    // i think this is supposed to reset the sorting order, when player releases the mouse click
+    //}
+    #endregion
+
+    #region External Calls
+    public void ClickedObjectLeftTheCollider(GameObject clickedObject)
     {
         ghostEagerToBeGlued = false;
+        if (!isGhost)
+        {
+            GlueUnclickedObjectToClickedObject(clickedObject);
+        }
     }
-    private GameObject sphereBeingDragged;
     public void GlueUnclickedObjectToClickedObject(GameObject clickedObject)
     {
+        sphereBeingDragged = clickedObject;
         if (isGhost)
         {
             ghostEagerToBeGlued = true;
-            sphereBeingDragged = clickedObject;
+            sphereBeingDraggedForEagerGhosts = clickedObject;
         }
         if (!isDead && !isGlued && !isGhost)
         {
-            soundManager.SphereGlued();
+            soundManager.OrbGlued();
             isGlued = true;
             clickedObjectExternal = clickedObject;
-            SetTrailColorC(psmainA);
-            SetTrailColorC(psmainB);
+            SetColorGlued(psmainA);
+            SetColorGlued(psmainB);
             AlterParticleParameters(ref particleTrailPrefabA, 1);
             AlterParticleParameters(ref particleTrailPrefabB, 1);
 
@@ -326,23 +357,13 @@ public class EnergySphereBehavior : MonoBehaviour
             gluedObjects[arrayLength - 1] = this;
         }
     }
-
-    public void AlterParticleParameters(ref GameObject particle, int order)
-    {
-        ParticleSystemRenderer psrend = particle.GetComponent<ParticleSystemRenderer>();
-        psrend.sortingOrder = order;
-    }
-    public void ResetGluedParticleModifications(ref GameObject particle, ref ParticleSystem.MainModule psmain)
-    {
-        // i think this is supposed too reset the sorting order, when player releases the mouse click
-    }
-
     public void ForceNodeCollisionOnGluedObject(Vector3 objectPos)
     {
         hasHitNode = true;
         collObjectPos = objectPos;
         nodeSnapSpeed = 1; // maybe reduce this speed, if it looks too weird
     }
+
     public void StopParticles()
     {
         particleTrailPrefabA.GetComponent<ParticleSystem>().Stop();
@@ -361,4 +382,5 @@ public class EnergySphereBehavior : MonoBehaviour
     {
         //particleTrailAlight.GetComponent<ParticleSystem>().Stop();
     }
+    #endregion
 }

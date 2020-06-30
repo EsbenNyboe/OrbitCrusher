@@ -31,20 +31,129 @@ public class LevelDesigner : MonoBehaviour
     [System.Serializable]
     public class SoundTriggers
     {
+        [HideInInspector]
+        public string name;
         public int repeatAtBeatInterval;
         public int repeatLifetime;
-        public int[] objectiveFilters;
+        public int[] objectiveFilters; 
+        //public ObjectiveFilter objectiveFilter; // this is not useful right now
         public AudioObject sound;
-        public MusicMeter.MeterCondition soundTiming;
+        public MusicMeter.MeterCondition soundTiming; 
+        
         public bool stinger;
         [HideInInspector]
         public bool hasPlayed;
     }
     public SoundTriggers[] soundTriggers;
+
+    [System.Serializable]
+    public class ObjectiveFilter
+    {
+        [HideInInspector]
+        public string data;
+        public int objective;
+        public bool allowOrBlock;
+    }
+
+    //[System.Serializable]
+    //public class MeterCondition
+    //{
+    //    public int division;
+    //    public int beat;
+    //    public int bar;
+    //    public int section;
+    //}
+
+
+    // fullhealth music
+
+    [System.Serializable]
+    public class FullHPMusic
+    {
+        [HideInInspector]
+        public string name;
+        public AudioObject sound;
+        public MusicMeter.MeterCondition[] soundTimings;
+    }
+    public FullHPMusic[] fullHPMusic;
+    public int fullHPsecSectionLength;
+
+    public AudioObject[] lastObjQuickFadeOut;
+
+    public void NameSoundTriggers()
+    {
+        for (int i = 0; i < soundTriggers.Length; i++)
+        {
+            if (soundTriggers[i].sound != null)
+                soundTriggers[i].name = soundTriggers[i].sound.name;
+            
+            MusicMeter.MeterCondition mc = soundTriggers[i].soundTiming;
+            soundTriggers[i].soundTiming.data = mc.division + "." + mc.beat + "." + mc.bar + "." + mc.section;
+
+            //if (soundTriggers[i].objectiveFilter.objective == 0 && soundTriggers[i].objectiveFilter.allowOrBlock == false)
+            //    soundTriggers[i].objectiveFilter.data = " ";
+            //else
+            //    soundTriggers[i].objectiveFilter.data = "obj.f.: " + soundTriggers[i].objectiveFilter.objective + ": " + soundTriggers[i].objectiveFilter.allowOrBlock;
+
+            string repeatState = " R ";
+            if (soundTriggers[i].repeatAtBeatInterval == 0)
+                repeatState = " ";
+
+            string oneLinerName = soundTriggers[i].soundTiming.data + repeatState + soundTriggers[i].name;
+            soundTriggers[i].name = oneLinerName;
+
+            //soundTriggers[i].soundTiming.data =
+            //        e + "mc: " +
+            //        soundTriggers[i].soundTiming.division + "." +
+            //        soundTriggers[i].soundTiming.beat + "." +
+            //        soundTriggers[i].soundTiming.bar + "." +
+            //        soundTriggers[i].soundTiming.sec;
+
+            //for (int e = 0; e < soundTriggers[i].repeats.Length; e++)
+            //{
+            //    soundTriggers[i].repeats[e].data =
+            //        "i:" +
+            //        soundTriggers[i].repeats[e].repeatInterval + " A:" +
+            //        soundTriggers[i].repeats[e].repeatAmount + " M:" +
+            //        soundTriggers[i].repeats[e].relatedMeterCondition;
+            //}
+        }
+        for (int i = 0; i < fullHPMusic.Length; i++)
+        {
+            if (fullHPMusic[i].sound != null)
+                fullHPMusic[i].name = fullHPMusic[i].sound.name;
+        }
+    }
+
+    public CopyOrPaste copyPasteSoundTriggers;
+    public enum CopyOrPaste
+    {
+        Neutral,
+        Copy, 
+        Paste
+    }
+    public static SoundTriggers[] soundTriggerClipboard;
+    public void CopyPasteSoundTriggers()
+    {
+        switch (copyPasteSoundTriggers)
+        {
+            case CopyOrPaste.Copy:
+                soundTriggerClipboard = soundTriggers;
+                break;
+            case CopyOrPaste.Paste:
+                soundTriggers = soundTriggerClipboard;
+                break;
+        }
+    }
+
+
+
+
+    
     //public SpawnZone[] defaultSpawnZones;
 
     MusicMeter musicMeter;
-    CometBehavior cometBehavior;
+    CometManager cometManager;
 
     private void Start()
     {
@@ -85,17 +194,19 @@ public class LevelDesigner : MonoBehaviour
             LevelManager.sounds[i] = soundTriggers[i].sound;
             LevelManager.soundTimings[i] = soundTriggers[i].soundTiming;
         }
+        LevelManager.fullHPMusic = fullHPMusic;
+        LevelManager.fullHPsecSectionLength = fullHPsecSectionLength;
+
+        LevelManager.lastObjQuickFadeOut = lastObjQuickFadeOut;
 
         LevelManager.beatsPerBar = beatsPerBar;
         LevelManager.barsPerSection = barsPerSection;
         LevelManager.bpm = bpm;
-
-        LevelManager.soundPrePlayed = new bool[soundTriggers.Length];
         
         GameManager gameManager = FindObjectOfType<GameManager>();
         if (gameManager.levelLoadDeveloperMode)
         {
-            LevelManager.levelObjectiveCurrent = gameManager.objectiveQuickLoad;
+            LevelManager.levelObjectiveCurrent = gameManager.objectiveToLoad;
             LoadSpawnSequence(LevelManager.levelObjectiveCurrent);
         }
         else
@@ -104,7 +215,7 @@ public class LevelDesigner : MonoBehaviour
         }
         musicMeter = FindObjectOfType<MusicMeter>();
         LevelManager.transitionMusic = transitionSounds;
-        musicMeter.SubscribeEvent(FindObjectOfType<LevelManager>().LoadLevelTransition, ref musicMeter.subscribeAnytime);
+        //musicMeter.SubscribeEvent(FindObjectOfType<LevelManager>().LoadLevelTransition, ref musicMeter.subscribeAnytime);
         //FindObjectOfType<LevelManager>().LoadLevelTransition();
     }
 
@@ -145,7 +256,7 @@ public class LevelDesigner : MonoBehaviour
         if (unit == 0)
         {
             unit = formerUnit;
-            print("duplicating comet timing");
+            //print("duplicating comet timing");
         }
     }
     
