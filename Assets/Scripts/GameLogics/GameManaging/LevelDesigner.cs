@@ -80,6 +80,19 @@ public class LevelDesigner : MonoBehaviour
 
     public AudioObject[] lastObjQuickFadeOut;
 
+
+
+    bool onOff;
+    public GameObject customSpawnZones;
+    public void ToggleSpawnZoneMeshrenderers()
+    {
+        onOff = !onOff;
+        foreach (Transform child in customSpawnZones.transform)
+                {
+                    child.GetComponent<MeshRenderer>().enabled = onOff;
+                }
+    }
+
     public void NameSoundTriggers()
     {
         for (int i = 0; i < soundTriggers.Length; i++)
