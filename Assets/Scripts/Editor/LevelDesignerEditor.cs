@@ -11,14 +11,19 @@ public class LevelDesignerEditor : Editor
 
 		EditorGUI.BeginDisabledGroup(serializedObject.isEditingMultipleObjects);
 
-		if (GUILayout.Button("Copy/Paste Sound Triggers"))
+		if (GUILayout.Button("Toggle SpawnZone Meshes"))
 		{
-			((LevelDesigner)target).CopyPasteSoundTriggers();
+			((LevelDesigner)target).ToggleSpawnZoneMeshrenderers();
 		}
-		if (GUILayout.Button("Update Inspector Names"))
-		{
-			((LevelDesigner)target).NameSoundTriggers();
-		}
+
+		// if (GUILayout.Button("Copy/Paste Sound Triggers"))
+		// {
+		// 	((LevelDesigner)target).CopyPasteSoundTriggers();
+		// }
+		// if (GUILayout.Button("Update Inspector Names"))
+		// {
+		// 	((LevelDesigner)target).NameSoundTriggers();
+		// }
 
 		EditorGUI.EndDisabledGroup();
 	}
