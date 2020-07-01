@@ -38,7 +38,16 @@ public class EnergySphereDeath : MonoBehaviour
     {
         if (target)
         {
-            StartCoroutine(ScheduledStop(0.2f));
+            if (energySphereBehavior.killParticleOnGoodColl)
+            {
+                StartCoroutine(ScheduledStop(0.2f));
+            }
+            else
+            {
+                energySphereBehavior.SpherePickedUpNoMore();
+            }
+            //energySphereBehavior.isDead = true;
+            //StartCoroutine(ScheduledStop(0.2f));
         }
         else
         {

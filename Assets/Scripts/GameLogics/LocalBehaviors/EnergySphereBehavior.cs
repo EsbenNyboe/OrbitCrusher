@@ -44,6 +44,7 @@ public class EnergySphereBehavior : MonoBehaviour
     public bool isBeingDragged;
     public static bool playerIsDraggingAnEnergySphere;
     public static EnergySphereBehavior[] gluedObjects;
+    public static EnergySphereBehavior draggedObject;
 
     bool isGlued;
     GameObject clickedObjectExternal;
@@ -66,6 +67,7 @@ public class EnergySphereBehavior : MonoBehaviour
     public TutorialUI tutorialUI;
 
 
+    public bool killParticleOnGoodColl;
 
     void Start()
     {
@@ -112,10 +114,13 @@ public class EnergySphereBehavior : MonoBehaviour
             {
                 transform.position = Vector3.Lerp(transform.position, clickedObjectExternal.transform.position, glueSpeed);
             }
-            else if (isGlued && !playerIsDraggingAnEnergySphere)
+            else if (isGlued && !playerIsDraggingAnEnergySphere) //
             {
-                SetColorAlive(psmainA);
-                SetColorAlive(psmainB);
+                if (!hasHitNode)
+                {
+                    SetColorAlive(psmainA);
+                    SetColorAlive(psmainB);
+                }
                 transform.position = sphereBeingDragged.transform.position;
                 isGlued = false;
             }
@@ -162,6 +167,7 @@ public class EnergySphereBehavior : MonoBehaviour
             particleTrailPrefabA.GetComponent<ParticleSystemRenderer>().sortingOrder = initialSortingOrderA;
             particleTrailPrefabB.GetComponent<ParticleSystemRenderer>().sortingOrder = initialSortingOrderB;
             particleTrailLight.GetComponent<ParticleSystem>().Play();
+            draggedObject = this;
         }
     }
     private void OnMouseDrag()
@@ -177,6 +183,7 @@ public class EnergySphereBehavior : MonoBehaviour
             curve.valueSpeed = currentSpeed;
         }
     }
+    
     private void OnMouseUp()
     {
         if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
@@ -281,6 +288,11 @@ public class EnergySphereBehavior : MonoBehaviour
     {
         // is glued
         psmain.startColor = cGlued;
+    }
+    public void SetColorGoodCollision()
+    {
+        psmainA.startColor = cPickup;
+        psmainB.startColor = cPickup;
     }
 
 

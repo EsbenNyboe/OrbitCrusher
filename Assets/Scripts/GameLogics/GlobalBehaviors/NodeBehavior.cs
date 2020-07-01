@@ -76,7 +76,7 @@ public class NodeBehavior : MonoBehaviour
             nodes[i].transform.localScale = new Vector3(0, 0, 0);
             spawning[i] = true;
             nodeParticleStatic[i].SetActive(true);
-            nodes[i].GetComponentInChildren<NodeHaloAnimation>().Spawn();
+            nodes[i].GetComponentInChildren<NodeCometHaloAnimation>().Spawn();
             nodes[i].GetComponentInChildren<MeshRenderer>().enabled = true;
         }
         RemoveTargetHighlighting(LevelManager.targetNodes[0]);
@@ -95,7 +95,7 @@ public class NodeBehavior : MonoBehaviour
             }
             else
             {
-                nodes[i].GetComponentInChildren<NodeHaloAnimation>().Despawn();
+                nodes[i].GetComponentInChildren<NodeCometHaloAnimation>().Despawn();
                 nodes[i].GetComponentInChildren<MeshRenderer>().enabled = false;
             }
         }
@@ -255,11 +255,12 @@ public class NodeBehavior : MonoBehaviour
         //nodeParticleEnergySphereColl[nodeIndex].GetComponent<ParticleSystem>().Play();
         particleSizing[nodeIndex] = true;
 
-        nodes[nodeIndex].GetComponentInChildren<NodeHaloAnimation>().CollComet(target, first, objCompleted);
+        nodes[nodeIndex].GetComponentInChildren<NodeCometHaloAnimation>().CollComet(target, first, objCompleted);
     }
 
     public void CollisionNodeEnergySphereColor(GameObject node, bool correct)
     {
+        
         for (int i = 0; i < nodes.Length; i++)
         {
             if (nodes[i] == node)
@@ -278,7 +279,8 @@ public class NodeBehavior : MonoBehaviour
                 ps.Play();
                 particleSizing[i] = true;
 
-                nodes[i].GetComponentInChildren<NodeHaloAnimation>().CollOrb(correct, false); 
+                nodes[i].GetComponentInChildren<NodeCometHaloAnimation>().CollOrb(correct, false);
+                nodes[i].GetComponentInChildren<NodeOrbHaloAnimation>().CollOrb(correct, false);
             }
         }
         
@@ -310,7 +312,7 @@ public class NodeBehavior : MonoBehaviour
             nodeMat.color = colorGray;
             ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
             psmain.startColor = colorRed;
-            nodes[i].GetComponentInChildren<NodeHaloAnimation>().HighlightNewTarget(false);
+            nodes[i].GetComponentInChildren<NodeCometHaloAnimation>().HighlightNewTarget(false);
         }
     }
     public void HighlightNewTarget(int targetIndex)
@@ -327,7 +329,7 @@ public class NodeBehavior : MonoBehaviour
         ps.Play();
         //nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>().Play();
 
-        nodes[targetIndex].GetComponentInChildren<NodeHaloAnimation>().HighlightNewTarget(true);
+        nodes[targetIndex].GetComponentInChildren<NodeCometHaloAnimation>().HighlightNewTarget(true);
     }
 
     public void HighlightCompletedTarget(int targetIndex)
@@ -338,7 +340,8 @@ public class NodeBehavior : MonoBehaviour
         ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
         psmain.startColor = colorGreen;
 
-        LevelManager.nodes[targetIndex].GetComponentInChildren<NodeHaloAnimation>().CollOrb(true, true);
+        LevelManager.nodes[targetIndex].GetComponentInChildren<NodeCometHaloAnimation>().CollOrb(true, true);
+        LevelManager.nodes[targetIndex].GetComponentInChildren<NodeOrbHaloAnimation>().CollOrb(true, true);
     }
 
     public void ApplyColorsParticleEvents(Color cBadColl, Color cGoodColl, Color cCometCollNodeNotTarget)

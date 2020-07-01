@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEditor;
 
-[CustomEditor(typeof(NodeHaloAnimation), true)]
+[CustomEditor(typeof(NodeCometHaloAnimation), true)]
 public class NodeHaloEditor: Editor
 {
 	public override void OnInspectorGUI()

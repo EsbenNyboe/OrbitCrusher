@@ -206,7 +206,7 @@ public class TutorialUI : MonoBehaviour
     {
         if (GameManager.inTutorial)
         {
-            if (!textShown5B && !tutorialSkip)
+            if (!textShown5B && !tutorialSkip && EnergySphereBehavior.gluedObjects == null)
             {
                 text5B.SetActive(true);
                 StartCoroutine(TimeStopDelayed(firstCorrectHitDelay));
