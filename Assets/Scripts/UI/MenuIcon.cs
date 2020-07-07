@@ -15,7 +15,7 @@ public class MenuIcon : MonoBehaviour
     void Awake()
     {
         //pauseMenu = FindObjectOfType<PauseMenu>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         colorNormal = spriteRenderer.color;
     }
     public void OnMouseEnter()

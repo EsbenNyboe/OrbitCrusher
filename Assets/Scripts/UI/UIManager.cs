@@ -23,8 +23,7 @@ public class UIManager : MonoBehaviour
     public GameObject uiLevelCompleted;
     public TextMeshProUGUI uiLevelCompletedT;
     public GameObject uiGameWon;
-    public TextMeshProUGUI uiGameWonTA;
-    public TextMeshProUGUI uiGameWonTB;
+    public TextMeshProUGUI uiGameWonT;
     public GameObject uiLevelFailed;
     public TextMeshProUGUI uiLevelFailedT;
 
@@ -36,12 +35,13 @@ public class UIManager : MonoBehaviour
     public TutorialUI tutorialUI;
     public SoundManager soundManager;
 
+    public Player player;
+
     private void Start()
     {
         //uiLevelFailedT.enabled = false;
         //uiLevelCompletedT.enabled = false;
-        uiGameWonTA.enabled = false;
-        uiGameWonTB.enabled = false;
+        uiGameWonT.enabled = false;
         uiStart.SetActive(true);
         uiStart3D.SetActive(true);
         uiMenuIcon.SetActive(false);
@@ -54,7 +54,6 @@ public class UIManager : MonoBehaviour
         Activate3Dtext(uiLevelFailed3D);
         Activate3Dtext(uiGameWon3D);
         Activate3Dtext(uiLevelCompleted3D);
-        uiGameWon.SetActive(false);
         //uiGameWon3D.SetActive(false);
 
         menuTitle.SetActive(false);
@@ -66,22 +65,33 @@ public class UIManager : MonoBehaviour
 
 
 
-        if (gameManager.levelToLoad == 0)
+        if (!Player.savedGameAvailable)
         {
             uiStart.GetComponentInChildren<TextMeshProUGUI>().text = "START";
+            newGameText.SetActive(false);
         }
         else
         {
-            uiStart.GetComponentInChildren<TextMeshProUGUI>().text = "CONTINUE: " + gameManager.levelToLoad;
+            uiStart.GetComponentInChildren<TextMeshProUGUI>().text = "CONTINUE: " + (gameManager.levelToLoad + 1);
+            newGameText.SetActive(true);
         }
-        uiLevelFailed.GetComponentInChildren<TextMeshProUGUI>().text = "RETRY: " + gameManager.levelToLoad;
+
+
+        if (gameManager.levelToLoad == 0)
+        {
+        }
+        else
+        {
+        }
+        uiLevelFailed.GetComponentInChildren<TextMeshProUGUI>().text = "RETRY: " + (gameManager.levelToLoad + 1);
     }
+    public GameObject newGameText;
     private void Update()
     {
         
     }
 
-
+    
 
 
     private void ActivateUItext(GameObject go, TextMeshProUGUI tmp)
@@ -104,37 +114,64 @@ public class UIManager : MonoBehaviour
     {
         soundManager.HoverUI();
     }
+
+    bool firstTimeStartingGame;
     public void StartGame()
     {
-        uiGameWon3D.SetActive(false);
-        tutorialUI.LoadTutorial();
-        gameManager.LevelStartTriggered(true);
-        uiStart.SetActive(false);
-        uiGameWonTA.enabled = false;
-        uiGameWonTB.enabled = false;
-        uiStart3D.SetActive(false);
-        uiGameWon.SetActive(false);
-        uiMenuIcon.SetActive(true);
+        if (!AchievementButton.levelMenuOpen)
+        {
+            if (!firstTimeStartingGame)
+            {
+                firstTimeStartingGame = true;
+                Screen.sleepTimeout = SleepTimeout.SystemSetting;
+            }
+            uiGameWon3D.SetActive(false);
+            gameManager.LevelStartTriggered(true);
+            tutorialUI.LoadTutorial();
+            uiStart.SetActive(false);
+            uiGameWonT.enabled = false;
+            uiStart3D.SetActive(false);
+            uiMenuIcon.SetActive(true);
+        }
     }
+
     public void ContinueToNextLevel()
     {
+        if (!AchievementButton.levelMenuOpen)
+        {
+            gameManager.LevelStartTriggered(true);
+            tutorialUI.LoadTutorial();
+            //uiLevelCompleted.SetActive(false);
+            //uiLevelCompletedT.enabled = false;
+            uiLevelCompletedT.enabled = false;
+            uiLevelCompleted.GetComponent<Animator>().SetBool("BetweenLevels", false);
+            uiLevelCompleted3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
+            uiGameWon3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
+            //uiLevelCompleted3D.SetActive(false);
+        }
+    }
+    public void FromLoseScreenToAnotherLevel() // not accurate description
+    {
         gameManager.LevelStartTriggered(true);
-        //uiLevelCompleted.SetActive(false);
-        //uiLevelCompletedT.enabled = false;
-        uiLevelCompletedT.enabled = false;
-        uiLevelCompleted.GetComponent<Animator>().SetBool("BetweenLevels", false);
-        uiLevelCompleted3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
-        //uiLevelCompleted3D.SetActive(false);
+        tutorialUI.LoadTutorial();
+        FailScreenExit();
     }
     public void RetryLevel()
     {
-        gameManager.LevelStartTriggered(false);
-        //uiLevelFailed.GetComponent<Animator>().Play(0);
-        //uiLevelFailedT.enabled = false;
+        if (!AchievementButton.levelMenuOpen)
+        {
+            gameManager.LevelStartTriggered(false);
+            tutorialUI.LoadTutorial();
+            FailScreenExit();
+        }
+    }
+
+    private void FailScreenExit()
+    {
         uiLevelFailedT.enabled = false;
         uiLevelFailed.GetComponent<Animator>().SetBool("BetweenLevels", false);
         uiLevelFailed3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
-        //uiLevelFailed3D.SetActive(false);
+        uiGameWon3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
     }
     #endregion
 
@@ -148,8 +185,7 @@ public class UIManager : MonoBehaviour
         {
             uiGameWon3Dtext.enabled = notInMenu;
             //uiStart3Dtext.enabled = notInMenu;
-            uiGameWonTA.enabled = notInMenu;
-            uiGameWonTB.enabled = notInMenu;
+            uiGameWonT.enabled = notInMenu;
         }
         if (GameManager.death)
         {
@@ -165,6 +201,7 @@ public class UIManager : MonoBehaviour
     }
     public void ShowTextLevelFailed()
     {
+        uiLevelFailed.GetComponentInChildren<TextMeshProUGUI>().text = "RETRY: " + (GameManager.levelProgression + 1);
         //uiLevelFailed.SetActive(true);
 
         //uiLevelFailedT.GetComponent<Animator>().Play(0);
@@ -175,11 +212,13 @@ public class UIManager : MonoBehaviour
         uiLevelFailedT.enabled = true;
         uiLevelFailed3D.GetComponent<Animator>().SetBool("BetweenLevels", true);
         uiLevelFailed3D.GetComponent<MeshRenderer>().enabled = true;
+
+        if (GameManager.inTutorial)
+            tutorialUI.UnloadTutorial();
     }
     public void ShowTextLevelCompleted()
     {
-        uiLevelCompleted.GetComponentInChildren<TextMeshProUGUI>().text = "CONTINUE: " + GameManager.levelProgression;
-        uiLevelFailed.GetComponentInChildren<TextMeshProUGUI>().text = "RETRY: " + GameManager.levelProgression;
+        uiLevelCompleted.GetComponentInChildren<TextMeshProUGUI>().text = "CONTINUE: " + (GameManager.levelProgression + 1);
         //uiLevelCompleted.SetActive(true);
         //uiLevelCompletedT.GetComponent<Animator>().Play(0);
         //uiLevelCompletedT.enabled = true;
@@ -190,21 +229,19 @@ public class UIManager : MonoBehaviour
         uiLevelCompleted3D.GetComponent<Animator>().SetBool("BetweenLevels", true);
         uiLevelCompleted3D.GetComponent<MeshRenderer>().enabled = true;
         
-
-        tutorialUI.UnloadTutorial();
+        if (GameManager.inTutorial)
+            tutorialUI.UnloadTutorial();
     }
     public void ShowTextGameWon()
     {
         uiGameWon3D.SetActive(true);
         uiGameWon3D.GetComponent<MeshRenderer>().enabled = true;
+        uiGameWon3D.GetComponent<Animator>().SetBool("BetweenLevels", true);
 
         //uiStart3D.SetActive(true);
-        uiGameWon.SetActive(true);
-
-        uiGameWon.GetComponent<Animator>().Play(0);
-        uiGameWonTB.GetComponent<Animator>().Play(0);
-        uiGameWonTA.enabled = true;
-        uiGameWonTB.enabled = true;
+        uiGameWonT.GetComponent<Animator>().Play(0);
+        uiGameWonT.GetComponent<Animator>().Play(0);
+        uiGameWonT.enabled = true;
     }
     #endregion
 }

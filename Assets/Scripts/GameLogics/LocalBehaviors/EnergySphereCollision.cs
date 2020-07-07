@@ -12,6 +12,7 @@ public class EnergySphereCollision : MonoBehaviour
     public NodeBehavior nodeManager;
     public SoundManager soundManager;
     public TutorialUI tutorialUI;
+    public ScreenShake screenShake;
     [HideInInspector]
     public bool nodeHit;
 
@@ -35,6 +36,7 @@ public class EnergySphereCollision : MonoBehaviour
                 }
                 soundManager.CometHitsOrb();
                 BadCollision();
+                screenShake.ScreenShakeCollBadComet();
             }
         }
         if (collision.gameObject.CompareTag("Node"))
@@ -50,6 +52,7 @@ public class EnergySphereCollision : MonoBehaviour
                     soundManager.IncorrectNodeHit();
                     nodeManager.CollisionNodeEnergySphereColor(node, false);
                     BadCollision();
+                    screenShake.ScreenShakeCollBadNode();
                     if (GameManager.inTutorial)
                     {
                         tutorialUI.ShowTextFirstRedNodeHit();
@@ -136,6 +139,7 @@ public class EnergySphereCollision : MonoBehaviour
         GetComponentInParent<EnergySphereDeath>().SphereCollision(true);
         objectiveManager.NewCollisionOnTarget(transform.parent.gameObject);
         DisableCollider();
+        screenShake.ScreenShakeCollGoodNode();
     }
 
     private void BadCollision()

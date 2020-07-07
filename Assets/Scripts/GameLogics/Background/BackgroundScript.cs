@@ -27,4 +27,15 @@ public class BackgroundScript : MonoBehaviour
         col = new Color(col.r, col.g, col.b, aColorComponent);
         material.color = col;
     }
+
+
+
+    public void ColorChangeNew(Color start, Color end, float transitionOutput)
+    {
+        Color col;
+        col = Color.Lerp(start, end, transitionOutput);
+        col = new Color(col.r, col.g, col.b, aColorComponent);
+        material.color = col;
+    }
+
 }

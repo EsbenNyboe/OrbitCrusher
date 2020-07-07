@@ -16,15 +16,15 @@ public class LevelDesignerEditor : Editor
 			((LevelDesigner)target).ToggleSpawnZoneMeshrenderers();
 		}
 
-		// if (GUILayout.Button("Copy/Paste Sound Triggers"))
-		// {
-		// 	((LevelDesigner)target).CopyPasteSoundTriggers();
-		// }
-		// if (GUILayout.Button("Update Inspector Names"))
-		// {
-		// 	((LevelDesigner)target).NameSoundTriggers();
-		// }
+        if (GUILayout.Button("Copy/Paste Sound Triggers"))
+        {
+            ((LevelDesigner)target).CopyPasteSoundTriggers();
+        }
+        if (GUILayout.Button("Update Inspector Names"))
+        {
+            ((LevelDesigner)target).NameSoundTriggers();
+        }
 
-		EditorGUI.EndDisabledGroup();
+        EditorGUI.EndDisabledGroup();
 	}
 }

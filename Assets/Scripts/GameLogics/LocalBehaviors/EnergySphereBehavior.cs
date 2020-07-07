@@ -157,6 +157,7 @@ public class EnergySphereBehavior : MonoBehaviour
         }
         if (!hasHitNode && !isGhost && !isDead && Time.timeScale == 1)
         {
+            hasBeenMoved = true;
             soundManager.OrbPickup();
             mZCoord = Camera.main.WorldToScreenPoint(gameObject.transform.position).z;
             mOffset = gameObject.transform.position - GetMouseWorldPos();
@@ -170,6 +171,8 @@ public class EnergySphereBehavior : MonoBehaviour
             draggedObject = this;
         }
     }
+    [HideInInspector]
+    public bool hasBeenMoved;
     private void OnMouseDrag()
     {
         if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
@@ -349,6 +352,7 @@ public class EnergySphereBehavior : MonoBehaviour
         }
         if (!isDead && !isGlued && !isGhost)
         {
+            hasBeenMoved = true;
             soundManager.OrbGlued();
             isGlued = true;
             clickedObjectExternal = clickedObject;

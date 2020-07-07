@@ -67,6 +67,7 @@ public class SoundDsp : MonoBehaviour
 
     bool printFirst;
     double dspTimeOffsetRef;
+
     private IEnumerator InitializeRefControlAtScheduledTime(bool first, double dspTimeClipStart)
     {
         refControlIsQueued = true;
@@ -191,9 +192,9 @@ public class SoundDsp : MonoBehaviour
     private void SetNewSectionStartReferenceWhenUnpausingTheTutorial()
     {
         dspTimeDifference = AudioSettings.dspTime - dspTimeWhenPausing;
-        StartCoroutine(SetRefControl());
+        StartCoroutine(SetRefControlForUnpausing());
     }
-    private IEnumerator SetRefControl()
+    private IEnumerator SetRefControlForUnpausing()
     {
         while(refControlIsQueued)
         {

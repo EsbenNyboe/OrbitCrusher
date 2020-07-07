@@ -17,6 +17,14 @@ public class PauseMenu : MonoBehaviour
     public SoundManager soundManager;
     public UIManager uiManager;
     public TutorialUI tutorialUI;
+    public GameManager gameManager;
+
+    public GameObject exitOrbitText;
+    public GameObject exitOrbitImage;
+    public static bool exitingOrbit;
+
+    public GameObject godModeButton;
+
 
     // Start is called before the first frame update
     private void Awake()
@@ -33,6 +41,16 @@ public class PauseMenu : MonoBehaviour
     }
     public void ToggleMenu()
     {
+        if (GameManager.betweenLevels || GameManager.inTutorial)
+        {
+            exitOrbitText.SetActive(false);
+            exitOrbitImage.SetActive(false);
+        }
+        else
+        {
+            exitOrbitText.SetActive(true);
+            exitOrbitImage.SetActive(true);
+        }
         if (panel.activeInHierarchy)
         {
             ExitMenu();
@@ -92,6 +110,14 @@ public class PauseMenu : MonoBehaviour
         panel.SetActive(menu);
     }
 
+    public void ExitOrbit()
+    {
+        exitingOrbit = true;
+        ToggleMenu();
+        soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, false);
+        soundManager.ActivateGameStateSound(soundManager.levelFailed);
+        GameManager.death = true;
+    }
     public void CloseApplication()
     {
         Application.Quit();

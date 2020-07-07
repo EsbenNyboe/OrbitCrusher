@@ -13,7 +13,7 @@ public class SoundManager : MonoBehaviour
     public AudioObject musicBetweenLevels;
 
     // dsp sounds
-    public AudioObject orbSpawn;
+    public AudioObject orbSpawnStandard, orbSpawnTransposed;
     public AudioObject levelCompleted, levelFailed, objectiveCompleted, objectiveFailed;
     public AudioObject objectiveActivated;
     public AudioObject musTutLoopA, musTutLoopB, musTutLoopC;
@@ -48,10 +48,7 @@ public class SoundManager : MonoBehaviour
     }
     private void Start()
     {
-        if (GameManager.inTutorial)
-        {
-            StartTutMusic();
-        }
+        ToggleTransposedMusic(false);
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
         FadeInMusicBetweenLevels();
         musicBetweenLevelsAllowed = false; // a little confused about this one... 
@@ -66,6 +63,9 @@ public class SoundManager : MonoBehaviour
     }
     private void Update()
     {
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //    FadeInMusicBetweenLevels();
+
         orbGluedTimer += Time.deltaTime;
         hitTimer += Time.deltaTime;
         cometWallHitTimer += Time.deltaTime;
@@ -74,6 +74,7 @@ public class SoundManager : MonoBehaviour
     #region Menu
     public void MenuMix(bool menu)
     {
+        print("menumix");
         if (musicBetweenLevelsAllowed)
         {
             if (menu)
@@ -88,10 +89,12 @@ public class SoundManager : MonoBehaviour
     }
     public void PauseAll()
     {
+        print("pause");
         AudioListener.pause = true;
     }
     public void UnpauseAll()
     {
+        print("unpause");
         AudioListener.pause = false;
     }
     #endregion
@@ -125,16 +128,16 @@ public class SoundManager : MonoBehaviour
         switch (nodeIndex)
         {
             case 0:
-                musTutLoopA.VolumeChangeInParent(musTutLoopA.initialVolume, musTutLoopFadeIn, true);
-                musTutLoopC.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+                musTutLoopA.VolumeChangeInParent(musTutLoopA.initialVolume, musTutLoopFadeIn, false);
+                musTutLoopC.VolumeChangeInParent(0, musTutLoopFadeOut, false);
                 break;
             case 1:
-                musTutLoopB.VolumeChangeInParent(musTutLoopB.initialVolume, musTutLoopFadeIn, true);
-                musTutLoopA.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+                musTutLoopB.VolumeChangeInParent(musTutLoopB.initialVolume, musTutLoopFadeIn, false);
+                musTutLoopA.VolumeChangeInParent(0, musTutLoopFadeOut, false);
                 break;
             case 2:
-                musTutLoopC.VolumeChangeInParent(musTutLoopC.initialVolume, musTutLoopFadeIn, true);
-                musTutLoopB.VolumeChangeInParent(0, musTutLoopFadeOut, true);
+                musTutLoopC.VolumeChangeInParent(musTutLoopC.initialVolume, musTutLoopFadeIn, false);
+                musTutLoopB.VolumeChangeInParent(0, musTutLoopFadeOut, false);
                 break;
         }
     }
@@ -143,8 +146,15 @@ public class SoundManager : MonoBehaviour
     #region Between Levels
     public void FadeInMusicBetweenLevels()
     {
+        StartCoroutine(FadeInMusicBetweenLevelsLameDelay());
+    }
+    IEnumerator FadeInMusicBetweenLevelsLameDelay()
+    {
+        yield return new WaitForSeconds(0.1f);
         if (!musicBetweenLevels.IsPlaying())
+        {
             musicBetweenLevels.TriggerAudioObject();
+        }
         musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, false);
         musicBetweenLevelsAllowed = true;
     }
@@ -323,6 +333,15 @@ public class SoundManager : MonoBehaviour
     #endregion
 
     #region Orb Spawn
+
+    AudioObject orbSpawn; // tbc
+    public void ToggleTransposedMusic(bool isTransposed)
+    {
+        if (isTransposed)
+            orbSpawn = orbSpawnTransposed;
+        else
+            orbSpawn = orbSpawnStandard;
+    }
     public void OrbSpawn(int spawnIndex)
     {
         if (newSpawnSequence)
@@ -383,7 +402,8 @@ public class SoundManager : MonoBehaviour
     {
         for (int i = 0; i < lastObjPreFadeOut.Length; i++)
         {
-            lastObjPreFadeOut[i].VolumeChangeInParent(0, 1, false);
+            print("do it:" + Time.time);
+            lastObjPreFadeOut[i].VolumeChangeInParent(0, 0.1f, false);
         }
     }
     #endregion

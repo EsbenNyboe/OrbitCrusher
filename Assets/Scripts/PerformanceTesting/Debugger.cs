@@ -36,8 +36,9 @@ public class Debugger : MonoBehaviour
         float msec = deltaTime * 1000.0f;
         int fps = Mathf.RoundToInt(1.0f / deltaTime);
         if (!pauseFPS)
-            text = "fps: " + fps;
+            text = platformSpecification + " " + fps;
         GUI.Label(rect, text, style);
     }
     string text;
+    public static string platformSpecification;
 }

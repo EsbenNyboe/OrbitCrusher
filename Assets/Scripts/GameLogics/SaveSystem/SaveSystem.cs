@@ -15,7 +15,6 @@ public class SaveSystem : MonoBehaviour
 
         formatter.Serialize(stream, data);
         stream.Close();
-
     }
 
     public static PlayerData LoadPlayer()
@@ -33,9 +32,21 @@ public class SaveSystem : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Save file not found in " + path);
+            print("no save file found");
+            //Debug.LogError("Save file not found in " + path);
             return null;
         }
+    }
 
+    public static bool DeleteSaveFile()
+    {
+        string path = Application.persistentDataPath + "/player.savedgame";
+        bool deleted = false;
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+            deleted = true;
+        }
+        return deleted;
     }
 }

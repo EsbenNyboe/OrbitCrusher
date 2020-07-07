@@ -29,6 +29,23 @@ public class ScreenShake : MonoBehaviour
     public float fadeInTimeObjFail;
     public float fadeOutTimeObjFail;
 
+    [Header("Collision Good Node")]
+    public float magnitudeCollGood;
+    public float roughnessCollGood;
+    public float fadeInTimeCollGood;
+    public float fadeOutTimeCollGood;
+
+    [Header("Collision Bad Node")]
+    public float magnitudeCollNode;
+    public float roughnessCollNode;
+    public float fadeInTimeCollNode;
+    public float fadeOutTimeCollNode;
+
+    [Header("Collision Bad Comet")]
+    public float magnitudeCollComet;
+    public float roughnessCollComet;
+    public float fadeInTimeCollComet;
+    public float fadeOutTimeCollComet;
 
     private void Update()
     {
@@ -53,5 +70,20 @@ public class ScreenShake : MonoBehaviour
     {
         if (!GameManager.inTutorial)
             CameraShaker.Instance.ShakeOnce(magnitudeObjFail, roughnessObjFail, fadeInTimeObjFail, fadeOutTimeObjFail);
+    }
+    public void ScreenShakeCollGoodNode()
+    {
+        if (!GameManager.inTutorial)
+            CameraShaker.Instance.ShakeOnce(magnitudeCollGood, roughnessCollGood, fadeInTimeCollGood, fadeOutTimeCollGood);
+    }
+    public void ScreenShakeCollBadNode()
+    {
+        if (!GameManager.inTutorial)
+            CameraShaker.Instance.ShakeOnce(magnitudeCollNode, roughnessCollNode, fadeInTimeCollNode, fadeOutTimeCollNode);
+    }
+    public void ScreenShakeCollBadComet()
+    {
+        if (!GameManager.inTutorial)
+            CameraShaker.Instance.ShakeOnce(magnitudeCollComet, roughnessCollComet, fadeInTimeCollComet, fadeOutTimeCollComet);
     }
 }

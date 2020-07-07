@@ -11,10 +11,15 @@ public class PlayerDataEditor : Editor
 
 		EditorGUI.BeginDisabledGroup(serializedObject.isEditingMultipleObjects);
 
+        if (GUILayout.Button("Unlock All"))
+        {
+            ((Player)target).UnlockAll();
+        }
         if (GUILayout.Button("Set Save Point (manually)"))
         {
             ((Player)target).SavePlayer();
         }
+
 
         EditorGUI.EndDisabledGroup();
 	}

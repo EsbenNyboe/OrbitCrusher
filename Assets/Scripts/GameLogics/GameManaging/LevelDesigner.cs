@@ -84,6 +84,24 @@ public class LevelDesigner : MonoBehaviour
 
     bool onOff;
     public GameObject customSpawnZones;
+
+    //public SpawnZone[] defaultSpawnZones;
+
+    MusicMeter musicMeter;
+    CometManager cometManager;
+
+    public int[] transposedObjectives;
+
+    private void Start()
+    {
+        onOff = true;
+        ToggleSpawnZoneMeshrenderers();
+    }
+
+
+
+
+
     public void ToggleSpawnZoneMeshrenderers()
     {
         onOff = !onOff;
@@ -163,15 +181,7 @@ public class LevelDesigner : MonoBehaviour
 
 
     
-    //public SpawnZone[] defaultSpawnZones;
-
-    MusicMeter musicMeter;
-    CometManager cometManager;
-
-    private void Start()
-    {
-        
-    }
+    
 
     public void LoadLevelSettingsNew()
     {
@@ -211,6 +221,7 @@ public class LevelDesigner : MonoBehaviour
         LevelManager.fullHPsecSectionLength = fullHPsecSectionLength;
 
         LevelManager.lastObjQuickFadeOut = lastObjQuickFadeOut;
+        LevelManager.transposedObjectives = transposedObjectives;
 
         LevelManager.beatsPerBar = beatsPerBar;
         LevelManager.barsPerSection = barsPerSection;

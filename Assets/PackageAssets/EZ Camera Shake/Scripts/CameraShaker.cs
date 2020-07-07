@@ -106,9 +106,12 @@ namespace EZCameraShake
         public CameraShakeInstance ShakeOnce(float magnitude, float roughness, float fadeInTime, float fadeOutTime)
         {
             CameraShakeInstance shake = new CameraShakeInstance(magnitude, roughness, fadeInTime, fadeOutTime);
-            shake.PositionInfluence = DefaultPosInfluence;
-            shake.RotationInfluence = DefaultRotInfluence;
-            cameraShakeInstances.Add(shake);
+            if (magnitude != 0)
+            {
+                shake.PositionInfluence = DefaultPosInfluence;
+                shake.RotationInfluence = DefaultRotInfluence;
+                cameraShakeInstances.Add(shake);
+            }
 
             return shake;
         }

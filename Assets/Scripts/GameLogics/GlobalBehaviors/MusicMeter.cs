@@ -85,6 +85,7 @@ public class MusicMeter : MonoBehaviour
                     counterTime += (float)1 / 16;
                     timeTarget += secondsPerBeatDiv;
                     BeatEvent();
+                    //print("stressmode");
                 }
             }
             BeatEvent();

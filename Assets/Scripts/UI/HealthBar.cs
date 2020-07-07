@@ -179,14 +179,19 @@ public class HealthBar : MonoBehaviour
     }
     private void UpdateHealthBarControlValue()
     {
-        curveController = (float) (GameManager.energy + GameManager.energyPool) / gameManager.maxEnergy;
+        //curveController = (float)(GameManager.energy + GameManager.energyPool - energyPoolMemory) / gameManager.maxEnergy;
+        curveController = (float)(GameManager.energy + GameManager.energyPool) / gameManager.maxEnergy;
         //fakeEnergy += eChange;
         //curveController = 1f * fakeEnergy / gameManager.maxEnergy;
     }
+
+    public static int energyPoolMemory;
+
     int fakeEnergy;
     int eChange;
     public void UpdateHealthbarOnObjectiveConclusion(bool getPoints)
     {
+        energyPoolMemory = 0;
         pointUp = getPoints;
         UpdateHealthBarControlValue();
         if (getPoints)
@@ -218,12 +223,19 @@ public class HealthBar : MonoBehaviour
         {
             dontUpdateMainHealthbar = true; // make shadow increase instantly
             shadowGradualStatus = 1;
+
+            energyPoolMemory = GameManager.energyPool;
         }
         else
         {
+
+
             drainDone = false;
             soundManager.HealthDrain();
-            dontUpdateMainHealthbar = false;
+            if (GameManager.energyPool > 0)
+                dontUpdateMainHealthbar = true;
+            else
+                dontUpdateMainHealthbar = false;
             shadowGradualStatus = 0; // make shadow decrease gradually
             mainGradualStatus = 1; // make main decrease instantly
         }

@@ -72,28 +72,30 @@ public class TutorialUI : MonoBehaviour
             ResetTutorial();
             panel.SetActive(true);
             textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
+            textSkipTutorial.GetComponent<Animator>().Play(0);
         }
     }
     public void UnloadTutorial()
     {
+        ResetTutorial();
         panel.SetActive(false);
         textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
     }
     public static bool tutorialSkip;
     public void SkipTutorial()
     {
+        Time.timeScale = 1;
         textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
         tutorialSkip = true;
         StopAllCoroutines();
         numberOfActiveTextboxes = 0;
-        Time.timeScale = 1;
         tutorialPause = false;
         panel.SetActive(false);
         UnloadTutorial();
         LevelManager.levelObjectiveCurrent = 10;
         levelManager.ObjectiveCompleted();
         //soundManager.LevelCompleted(false);
-        soundManager.FadeInMusicBetweenLevels();
+        //soundManager.FadeInMusicBetweenLevels();
         soundManager.levelCompleted.TriggerAudioObject();
     }
     bool tutorialPause;
@@ -168,6 +170,7 @@ public class TutorialUI : MonoBehaviour
         tipPointExplanation.SetActive(false);
         tips.SetActive(false);
         textSkipTutorial.SetActive(true);
+        tutorialSkip = false;
     }
 
 
@@ -186,7 +189,7 @@ public class TutorialUI : MonoBehaviour
     public Button text1Button;
     public void ClickOrbAfterFirstSpawn()
     {
-        if (!text1Done && textShown1)
+        if (!text1Done && textShown1 && !textShown2) 
         {
             text1Done = true;
             text1Button.onClick.Invoke();

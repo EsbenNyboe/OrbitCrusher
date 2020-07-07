@@ -39,18 +39,18 @@ public class CometColor : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Alpha1))
-        {
-            Color_OutOfOrbit();
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            Color_InOrbit();
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha3))
-        {
-            Color_Enraged();
-        }
+        //if (Input.GetKeyDown(KeyCode.Alpha1))
+        //{
+        //    Color_OutOfOrbit();
+        //}
+        //if (Input.GetKeyDown(KeyCode.Alpha2))
+        //{
+        //    Color_InOrbit();
+        //}
+        //if (Input.GetKeyDown(KeyCode.Alpha3))
+        //{
+        //    Color_Enraged();
+        //}
     }
 
 

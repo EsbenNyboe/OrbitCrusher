@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UIElements;
 
 public class LevelManager : MonoBehaviour
 {
@@ -32,6 +33,8 @@ public class LevelManager : MonoBehaviour
     
     public static AudioObject[] transitionMusic; // 4/4 // not used (but don't delete)
 
+    public static int[] transposedObjectives;
+
     public float failFadeOutTime;
     public float completedFadeOutTime;
     public static bool levelCompleted;
@@ -56,6 +59,7 @@ public class LevelManager : MonoBehaviour
     public SoundDsp soundDsp;
     public TutorialUI tutorialUI;
     public UIManager uiManager;
+    public BackgroundColorManager backgroundColorManager;
     ScreenShake screenShake;
 
     bool objectiveActive;
@@ -76,10 +80,6 @@ public class LevelManager : MonoBehaviour
     bool soundFailObj;
     bool soundFailLvl;
 
-    public int moduloA;
-    public int moduloB;
-    public int moduloC;
-
     private void Awake()
     {
         screenShake = GetComponentInChildren<ScreenShake>();
@@ -90,7 +90,6 @@ public class LevelManager : MonoBehaviour
         {
             CheckTheGameStateDichotomies_PlausibleOrCertain_FailOrWin_ObjOrLvl();
         }
-        moduloC = moduloA % moduloB;
     }
 
     #region Game State Sound Handling
@@ -199,7 +198,8 @@ public class LevelManager : MonoBehaviour
                 {
                     soundFailLvl = true;
                     //print("schedule lvl fail for next node" + Time.time);
-                    soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, certainFailLvlNextNode);
+                    if (!PauseMenu.exitingOrbit)
+                        soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, certainFailLvlNextNode);
                 }
             }
         }
@@ -243,6 +243,7 @@ public class LevelManager : MonoBehaviour
     #region Game State Events
     public void LoadLevelTransition()
     {
+        backgroundColorManager.LvlLoaded();
         cometManager.nodeHitTiming = gameManager.transitionTiming;
         cometManager.LoadLevelTransition();
         cometMovement.LoadLevelTransition();
@@ -253,14 +254,20 @@ public class LevelManager : MonoBehaviour
             sounds[i].VolumeChangeInParent(sounds[i].initialVolume, 0, true);
         }
     }
+    bool repeatDataReset;
     public void TransitionSounds()
     {
-        repeatIndex = new int[sounds.Length];
-        repeatActive = new bool[sounds.Length];
+        if (!repeatDataReset)
+        {
+            repeatIndex = new int[sounds.Length];
+            repeatActive = new bool[sounds.Length];
+            repeatDataReset = true;
+        }
         CheckForMusicTriggers(true);
     }
     public void LoadLevel()
     {
+        repeatDataReset = false;
         cometManager.nodeHitTiming = cometTimings[cometDestination];
         musicMeter.SubscribeEvent(CheckIfNodeIsHitByComet, ref nodeHitSubscription);
     }
@@ -270,14 +277,15 @@ public class LevelManager : MonoBehaviour
         {
             for (int i = 0; i < sounds.Length; i++)
             {
-                sounds[i].VolumeChangeInParent(0, failFadeOutTime, true);
+                sounds[i].VolumeChangeInParent(0, failFadeOutTime, false);
             }
         }
         else
         {
+            print("lvlCompl:" + Time.time);
             for (int i = 0; i < sounds.Length; i++)
             {
-                sounds[i].VolumeChangeInParent(0, completedFadeOutTime, true);
+                sounds[i].VolumeChangeInParent(0, completedFadeOutTime, false);
             }
         }
         musicMeter.UnsubscribeEvent(CheckIfNodeIsHitByComet, ref nodeHitSubscription);
@@ -293,6 +301,7 @@ public class LevelManager : MonoBehaviour
         if (lastObjective)
         {
             cometColor.Color_Enraged();
+            backgroundColorManager.LastObjective();
         }
     }
     private void ObjectiveFailed()
@@ -311,7 +320,6 @@ public class LevelManager : MonoBehaviour
             StopFailSoundObj("targethit");
             musicMeter.UnsubscribeEvent(spawnManager.SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
             gameManager.LevelFailed();
-            soundManager.FadeInMusicBetweenLevels();
             for (int i = 0; i < soundTriggers.Length; i++)
             {
                 soundTriggers[i].hasPlayed = false;
@@ -322,7 +330,7 @@ public class LevelManager : MonoBehaviour
             soundManager.ActivateGameStateSound(soundManager.objectiveFailed);
             StopFailSoundLvl("targethit");
             spawnManager.ReloadSpawnSequence(false);
-            if (sphereYetToBeAccountedFor < 0)
+            if (sphereYetToBeAccountedFor < 0 || HealthBar.energyPoolMemory > 0)
                 healthBar.UpdateHealthbarOnObjectiveConclusion(false);
         }
 
@@ -343,6 +351,14 @@ public class LevelManager : MonoBehaviour
 
 
         levelObjectiveCurrent++;
+        bool objectiveIsTransposed = false;
+        for (int i = 0; i < transposedObjectives.Length; i++)
+        {
+            if (transposedObjectives[i] == levelObjectiveCurrent)
+                objectiveIsTransposed = true;
+        }
+        soundManager.ToggleTransposedMusic(objectiveIsTransposed);
+
         if (levelObjectiveCurrent == targetNodes.Length - 1)
         {
             lastObjective = true;
@@ -360,6 +376,10 @@ public class LevelManager : MonoBehaviour
             soundManager.ActivateGameStateSound(soundManager.levelCompleted);
             levelObjectiveCurrent = 0;
             lastObjective = false;
+            for (int i = 0; i < soundTriggers.Length; i++)
+            {
+                soundTriggers[i].hasPlayed = false;
+            }
             gameManager.LevelCompleted();
         }
         else
@@ -398,6 +418,7 @@ public class LevelManager : MonoBehaviour
         return sphereYetToBeAccountedFor;
     }
     public CometColor cometColor;
+    bool firstNodeHitInLevel;
     private void CheckCometTimingForGameStateChanges()
     {
         if (musicMeter.MeterConditionSpecificTarget(cometTimings[cometDestination]))
@@ -412,7 +433,7 @@ public class LevelManager : MonoBehaviour
             {
             }
             
-            if (cometDestination == targetNodes[levelObjectiveCurrent])
+            if (cometDestination == targetNodes[levelObjectiveCurrent] && firstNodeHitInLevel)
             {
                 if (firstTimeHittingTarget)
                 {
@@ -465,6 +486,8 @@ public class LevelManager : MonoBehaviour
             cometManager.ChangeDirectionWhenHittingNode();
             cometMovement.ChangeDirectionToNextDestination(cometDestination);
             cometManager.nodeHitTiming = cometTimings[cometDestination];
+
+            firstNodeHitInLevel = true;
         }
     }
 
@@ -539,7 +562,7 @@ public class LevelManager : MonoBehaviour
                         }
                         else if (!gameManager.godMode)
                         {
-                            soundManager.FadeInMusicBetweenLevels();
+                            //soundManager.FadeInMusicBetweenLevels();
                             scheduledLvlFail = true;
                             soundManager.ActivateGameStateSound(soundManager.levelFailed);
                         }
@@ -559,7 +582,7 @@ public class LevelManager : MonoBehaviour
             if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() > 0)
             {
                 scheduledObjFail = true;
-                soundManager.musicBetweenLevels.VolumeChangeInParent(0, 1f, false);
+                //soundManager.musicBetweenLevels.VolumeChangeInParent(0, 1f, false);
             }
         }
         if (scheduledObjFail)
@@ -639,8 +662,14 @@ public class LevelManager : MonoBehaviour
                 {
                     if (soundTriggers[i].repeatAtBeatInterval > 0 && !repeatActive[i])
                     {
-                        repeatIndex[i] = 0;
-                        repeatActive[i] = true;
+                        if (soundTriggers[i].stinger && soundTriggers[i].hasPlayed)
+                        {
+                        }
+                        else
+                        {
+                            repeatIndex[i] = 0;
+                            repeatActive[i] = true;
+                        }
                     }
                     if (soundTriggers[i].stinger)
                     {
@@ -657,6 +686,30 @@ public class LevelManager : MonoBehaviour
                         soundDsp.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
                         //soundManager.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
                     }
+                }
+            }
+        }
+    }
+
+
+
+    private void MusicRepeater(int i)
+    {
+        MusicMeter.MeterCondition nxtBeat = new MusicMeter.MeterCondition();
+        nxtBeat.division = 1;
+        if (repeatActive[i])
+        {
+            if (meterLookahead.SoundLookaheadRelativeToCondition(nxtBeat))
+            {
+                repeatIndex[i]++;
+                if ((float)repeatIndex[i] / soundTriggers[i].repeatAtBeatInterval > soundTriggers[i].repeatLifetime)
+                {
+                    repeatActive[i] = false;
+                }
+                else if (repeatIndex[i] % soundTriggers[i].repeatAtBeatInterval == 0)
+                {
+                    soundDsp.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
+                    //soundManager.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
                 }
             }
         }
@@ -728,28 +781,6 @@ public class LevelManager : MonoBehaviour
             else
             {
                 fullHPtriggered = false;
-            }
-        }
-    }
-
-    private void MusicRepeater(int i)
-    {
-        MusicMeter.MeterCondition nxtBeat = new MusicMeter.MeterCondition();
-        nxtBeat.division = 1;
-        if (repeatActive[i])
-        {
-            if (meterLookahead.SoundLookaheadRelativeToCondition(nxtBeat))
-            {
-                repeatIndex[i]++;
-                if ((float)repeatIndex[i] / soundTriggers[i].repeatAtBeatInterval > soundTriggers[i].repeatLifetime)
-                {
-                    repeatActive[i] = false;
-                }
-                else if (repeatIndex[i] % soundTriggers[i].repeatAtBeatInterval == 0)
-                {
-                    soundDsp.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
-                    //soundManager.LevelMusic_ScheduledPlayRelativeToDspReference(sounds[i]);
-                }
             }
         }
     }

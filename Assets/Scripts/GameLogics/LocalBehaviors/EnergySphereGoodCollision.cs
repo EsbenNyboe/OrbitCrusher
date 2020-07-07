@@ -7,12 +7,14 @@ public class EnergySphereGoodCollision : MonoBehaviour
     EnergySphereCollision energySphereCollision;
     CometBehavior cometBehavior;
     SphereCollider sphereCollider;
+    EnergySphereBehavior energySphereBehavior;
 
     private void Awake()
     {
         energySphereCollision = transform.parent.GetComponentInChildren<EnergySphereCollision>();
         cometBehavior = energySphereCollision.cometBehavior;
         sphereCollider = GetComponent<SphereCollider>();
+        energySphereBehavior = GetComponentInParent<EnergySphereBehavior>();
     }
     private void Update()
     {
@@ -27,7 +29,7 @@ public class EnergySphereGoodCollision : MonoBehaviour
     }
     void OnCollisionStay(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Node"))
+        if (energySphereBehavior.hasBeenMoved && collision.gameObject.CompareTag("Node"))
         {
             if (!energySphereCollision.nodeHit)
             {

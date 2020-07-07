@@ -10,28 +10,26 @@ public class LevelNumberDisplay : MonoBehaviour
 
     private void Start()
     {
-        fadeInAndOut = GetComponent<Animator>();
-        //fadeInAndOut.runtimeAnimatorController.animationClips[0].legacy = true;
-        //fadeInAndOut.runtimeAnimatorController.animationClips[1].legacy = true;
+        //fadeInAndOut = GetComponent<Animator>();
     }
     public void LevelCompleted()
     {
-        DisplayLevelNumbers();
-        LevelNumberMakeGreen(true);
+        //DisplayLevelNumbers();
+        //LevelNumberMakeGreen(true);
     }
     public void LevelFailed()
     {
-        DisplayLevelNumbers();
-        LevelNumberMakeGreen(false);
+        //DisplayLevelNumbers();
+        //LevelNumberMakeGreen(false);
     }
     public void StartLevel()
     {
-        fadeInAndOut.SetBool("isBetweenLevels", false);
+        //fadeInAndOut.SetBool("isBetweenLevels", false);
     }
     private void DisplayLevelNumbers()
     {
-        fadeInAndOut.enabled = true;
-        fadeInAndOut.SetBool("isBetweenLevels", true);
+        //fadeInAndOut.enabled = true;
+        //fadeInAndOut.SetBool("isBetweenLevels", true);
     }
 
     public void LevelNumberMakeGreen(bool win)
