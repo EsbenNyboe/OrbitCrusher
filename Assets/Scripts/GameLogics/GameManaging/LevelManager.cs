@@ -282,7 +282,6 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
-            print("lvlCompl:" + Time.time);
             for (int i = 0; i < sounds.Length; i++)
             {
                 sounds[i].VolumeChangeInParent(0, completedFadeOutTime, false);
@@ -340,9 +339,9 @@ public class LevelManager : MonoBehaviour
     bool lastObjective;
     public void ObjectiveCompleted()
     {
+        spawnManager.CancelSpawnSequence();
         screenShake.ScreenShakeObjectiveCompleted();
         objectiveActive = false;
-        musicMeter.UnsubscribeEvent(spawnManager.SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
         objectiveManager.RemoveEnergySpheres();
         objectiveManager.ResetSphereArrays();
         firstTimeHittingTarget = true;
@@ -351,13 +350,7 @@ public class LevelManager : MonoBehaviour
 
 
         levelObjectiveCurrent++;
-        bool objectiveIsTransposed = false;
-        for (int i = 0; i < transposedObjectives.Length; i++)
-        {
-            if (transposedObjectives[i] == levelObjectiveCurrent)
-                objectiveIsTransposed = true;
-        }
-        soundManager.ToggleTransposedMusic(objectiveIsTransposed);
+        //SetOrbSoundsToTransposed();
 
         if (levelObjectiveCurrent == targetNodes.Length - 1)
         {
@@ -397,6 +390,24 @@ public class LevelManager : MonoBehaviour
         }
 
         ResetGameStateDichotomies();
+    }
+
+    private void SetOrbSoundsToTransposed(bool timingSectionStart)
+    {
+        bool objectiveIsTransposed = false;
+        for (int i = 0; i < transposedObjectives.Length; i++)
+        {
+            if (transposedObjectives[i] == levelObjectiveCurrent)
+                objectiveIsTransposed = true;
+        }
+        if (!timingSectionStart && objectiveIsTransposed)
+        {
+            // wait until section start to apply transposition
+        }
+        else
+        {
+            soundManager.ToggleTransposedMusic(objectiveIsTransposed);
+        }
     }
     #endregion
 
@@ -511,6 +522,7 @@ public class LevelManager : MonoBehaviour
                 ScheduleSoundsForNextTarget();
                 if (firstTimeHittingTarget)
                 {
+                    SetOrbSoundsToTransposed(false);
                     soundManager.ObjectiveActivatedPlaySound();
                     spawnManager.StartNewSpawnSequence(true);
                     if (lastObjective)
@@ -582,7 +594,6 @@ public class LevelManager : MonoBehaviour
             if (GameManager.energy + CountRemainingSpheresNotYetIncludedInScoreAccounting() > 0)
             {
                 scheduledObjFail = true;
-                //soundManager.musicBetweenLevels.VolumeChangeInParent(0, 1f, false);
             }
         }
         if (scheduledObjFail)
@@ -619,6 +630,7 @@ public class LevelManager : MonoBehaviour
 
         if (meterLookahead.SoundLookaheadRelativeToCondition(sampleRef))
         {
+            SetOrbSoundsToTransposed(true);
             soundDsp.InitializeDspReference(sampleLengthReference);
             //soundManager.InitializeDspReference(sampleLengthReference);
         }

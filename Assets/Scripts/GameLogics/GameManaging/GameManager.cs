@@ -283,7 +283,7 @@ public class GameManager : MonoBehaviour
     public void UpdateEnergyHealth(int amount, bool updatePool)
     {
 
-        if (amount < 0)
+        if (amount != 1)
         {
             damageTakenThisLevel -= amount;
         }
@@ -427,6 +427,8 @@ public class GameManager : MonoBehaviour
             uiManager.ShowTextLevelFailed();
             UnloadLevel();
             achievements.DisplayAchievements(true, false);
+            achievements.HighlightCompletedLevel(levelProgression);
+            achievements.ChangeLevelText(levelProgression);
         }
     }
 

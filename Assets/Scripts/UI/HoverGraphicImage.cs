@@ -6,14 +6,15 @@ using UnityEngine.UI;
 public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     UIManager uiManager;
-    Image image;
+    public Image image;
     public static Color colorNormal;
     public static Color colorHover;
 
     void Awake()
     {
         uiManager = FindObjectOfType<UIManager>();
-        image = GetComponent<Image>();
+        if (image == null)
+            image = GetComponent<Image>();
         colorNormal = image.color;
         colorHover = uiManager.uiHoverColor;
     }

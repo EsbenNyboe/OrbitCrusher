@@ -14,20 +14,49 @@ public class BuildPipeline : MonoBehaviour
         Android,
         IOS
     }
-    public TargetPlatform targetPlatform;
+    public TargetPlatform platformEmulation;
+    public bool emulatePlatformInEditor;
+
 
     public float latencyCompensationMac;
     public float latencyCompensationAndroid;
 
     private void Start()
     {
-        DetectPlatform();
+        if (emulatePlatformInEditor)
+        {
+            EmulatePlatform();
+        }
+        else
+        {
+            DetectPlatform();
+        }
+    }
+
+    private void EmulatePlatform()
+    {
+        switch (platformEmulation)
+        {
+            case TargetPlatform.Windows:
+                SetPlatformSpecifics_Windows();
+                break;
+            case TargetPlatform.Mac:
+                SetPlatformSpecifics_Mac();
+                break;
+            case TargetPlatform.WebGL:
+                SetPlatformSpecifics_WebGL();
+                break;
+            case TargetPlatform.Android:
+                SetPlatformSpecifics_Android();
+                break;
+            case TargetPlatform.IOS:
+                SetPlatformSpecifics_IOS();
+                break;
+        }
     }
 
     public void PrepareForBuild()
     {
-        // add "godMode menu" toggle
-
         GameManager gameManager = GetComponent<GameManager>();
         gameManager.godMode = false;
         gameManager.levelLoadDeveloperMode = false;
@@ -49,46 +78,57 @@ public class BuildPipeline : MonoBehaviour
             FindObjectOfType<Debugger>().enabled = debugTxt;
         }
 
+        emulatePlatformInEditor = false;
+    }
 
-        SoundDsp soundDsp = FindObjectOfType<SoundDsp>();
-        switch (targetPlatform)
+    public SoundDsp soundDsp;
+    public void DetectPlatform()
+    {
+        switch (Application.platform)
         {
-            case TargetPlatform.Windows:
+            case RuntimePlatform.OSXPlayer:
+                SetPlatformSpecifics_Mac();
                 break;
-            case TargetPlatform.Mac:
-                soundDsp.musicLatencyCompensation = latencyCompensationMac;
+            case RuntimePlatform.WindowsPlayer:
+                SetPlatformSpecifics_Windows();
                 break;
-            case TargetPlatform.WebGL:
+            case RuntimePlatform.IPhonePlayer:
+                SetPlatformSpecifics_IOS();
                 break;
-            case TargetPlatform.Android:
-                soundDsp.musicLatencyCompensation = latencyCompensationAndroid;
+            case RuntimePlatform.Android:
+                SetPlatformSpecifics_Android();
                 break;
-            case TargetPlatform.IOS:
+            case RuntimePlatform.WebGLPlayer:
+                SetPlatformSpecifics_WebGL();
                 break;
         }
     }
 
-    public void DetectPlatform()
+    private void SetPlatformSpecifics_Mac()
     {
-        string platformTxt = "";
-        switch (Application.platform)
-        {
-            case RuntimePlatform.OSXPlayer:
-                platformTxt = "OSX";
-                break;
-            case RuntimePlatform.WindowsPlayer:
-                platformTxt = "Windows";
-                break;
-            case RuntimePlatform.IPhonePlayer:
-                platformTxt = "iPhone";
-                break;
-            case RuntimePlatform.Android:
-                platformTxt = "Android";
-                break;
-            case RuntimePlatform.WebGLPlayer:
-                platformTxt = "WebGL";
-                break;
-        }
-        Debugger.platformSpecification = platformTxt;
+        Debugger.platformSpecification = "OSX";
+        soundDsp.musicLatencyCompensation = latencyCompensationMac;
+    }
+    private void SetPlatformSpecifics_Windows()
+    {
+        Debugger.platformSpecification = "Windows";
+        soundDsp.musicLatencyCompensation = latencyCompensationAndroid;
+    }
+    private void SetPlatformSpecifics_IOS()
+    {
+        Debugger.platformSpecification = "iPhone";
+        soundDsp.musicLatencyCompensation = latencyCompensationMac;
+    }
+
+    private void SetPlatformSpecifics_Android()
+    {
+        Debugger.platformSpecification = "Android";
+        soundDsp.musicLatencyCompensation = latencyCompensationAndroid;
+    }
+
+    private void SetPlatformSpecifics_WebGL()
+    {
+        Debugger.platformSpecification = "WebGL";
+        soundDsp.musicLatencyCompensation = latencyCompensationMac;
     }
 }

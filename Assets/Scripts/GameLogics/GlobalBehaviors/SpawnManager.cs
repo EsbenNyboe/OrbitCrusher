@@ -55,9 +55,13 @@ public class SpawnManager : MonoBehaviour
             SpawnAllGhostsAtOnce();
         }
     }
-    public void InterruptAndStopSpawnSequence()
+    public void CancelSpawnSequence()
     {
-
+        for (int i = 0; i < 2; i++)
+        {
+            musicMeter.UnsubscribeEvent(SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime); // quick 'n dirty fix (because reload & newSequence stacks)
+        }
+        StartCoroutine(soundManager.StopOrbSpawnSounds());
     }
 
     private void SpawnAllGhostsAtOnce()

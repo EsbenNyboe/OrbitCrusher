@@ -121,6 +121,7 @@ public class TutorialUI : MonoBehaviour
         }
     }
 
+    GameObject[] textStackHidden;
     public void TimeStopInstant()
     {
         if (!tutorialSkip)
@@ -135,6 +136,14 @@ public class TutorialUI : MonoBehaviour
     {
         soundManager.StopHealthSoundsWhenPausing();
         numberOfActiveTextboxes++;
+        if (numberOfActiveTextboxes > 1)
+        {
+            AddToStack(text4);
+            AddToStack(text5B);
+            AddToStack(text5);
+            AddToStack(text6);
+            AddToStack(text7);
+        }
         timeStopQueued = true;
         yield return new WaitForSeconds(time);
         //soundManager.StopAndQueueTutorialMusicForReschedule();
@@ -144,12 +153,54 @@ public class TutorialUI : MonoBehaviour
     public void TimeNormal()     // called from the canvas
     {
         numberOfActiveTextboxes--;
+        if (numberOfActiveTextboxes > 0)
+        {
+            RemoveFromStack(text4);
+            RemoveFromStack(text5B);
+            RemoveFromStack(text5);
+            RemoveFromStack(text6);
+            RemoveFromStack(text7);
+        }
         if (numberOfActiveTextboxes == 0)
         {
             tutorialPause = false;
             Time.timeScale = 1;
             //soundManager.RescheduleQueuedMusic();
             soundDsp.RescheduleQueuedMusic();
+        }
+    }
+    private void AddToStack(GameObject text)
+    {
+        if (text.activeInHierarchy)
+        {
+            GameObject[] oldArray = textStackHidden;
+            int length = 1;
+            if (oldArray != null)
+                length = oldArray.Length + 1;
+            textStackHidden = new GameObject[length];
+            for (int i = 0; i < length; i++)
+            {
+                if (length - 1 > i)
+                    textStackHidden[i] = oldArray[i];
+            }
+            textStackHidden[length - 1] = text;
+            text.SetActive(false);
+        }
+    }
+    private void RemoveFromStack(GameObject text)
+    {
+        if (textStackHidden != null && textStackHidden.Length > 0)
+        {
+            if (textStackHidden[textStackHidden.Length - 1] == text)
+            {
+                GameObject[] oldArray = textStackHidden;
+                textStackHidden = new GameObject[oldArray.Length - 1];
+                for (int i = 0; i < textStackHidden.Length; i++)
+                {
+                    textStackHidden[i] = oldArray[i];
+                }
+                text.SetActive(true);
+            }
         }
     }
     public void ResetTutorial()

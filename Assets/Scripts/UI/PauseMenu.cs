@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class PauseMenu : MonoBehaviour
@@ -38,6 +39,8 @@ public class PauseMenu : MonoBehaviour
         //displayVolSliders = FindObjectOfType<DisplayVolSliders>();
         displayVolSliders.ToggleSliderDisplay(menu);
         panel.SetActive(menu);
+        pageNumber = 1;
+        ChoosePageInHowToPlay();
     }
     public void ToggleMenu()
     {
@@ -130,5 +133,31 @@ public class PauseMenu : MonoBehaviour
     public void ClickUI()
     {
         soundManager.ClickUI();
+    }
+
+
+
+    public TextMeshProUGUI pageNumberDisplay;
+    public GameObject [] pagesInHowToPlay;
+    public static int pageNumber = 1;
+    public void TurnPageInHowToPlay()
+    {
+        print("turn page");
+        pageNumber++;
+        if (pageNumber > pagesInHowToPlay.Length)
+            pageNumber = 1;
+        ChoosePageInHowToPlay();
+    }
+
+    private void ChoosePageInHowToPlay()
+    {
+        for (int i = 0; i < pagesInHowToPlay.Length; i++)
+        {
+            if (i + 1 == pageNumber)
+                pagesInHowToPlay[i].SetActive(true);
+            else
+                pagesInHowToPlay[i].SetActive(false);
+        }
+        pageNumberDisplay.text = pageNumber + "/" + pagesInHowToPlay.Length;
     }
 }

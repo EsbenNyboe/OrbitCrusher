@@ -55,11 +55,13 @@ public class ScreenShake : MonoBehaviour
 
     public void ScreenShakeLevelCompleted()
     {
-        CameraShaker.Instance.ShakeOnce(magnitudeLvlWin, roughnessLvlWin, fadeInTimeLvlWin, fadeOutTimeLvlWin);
+        if (!GameManager.inTutorial)
+            CameraShaker.Instance.ShakeOnce(magnitudeLvlWin, roughnessLvlWin, fadeInTimeLvlWin, fadeOutTimeLvlWin);
     }
     public void ScreenShakeLevelFailed()
     {
-        CameraShaker.Instance.ShakeOnce(magnitudeLvlFail, roughnessLvlFail, fadeInTimeLvlFail, fadeOutTimeLvlFail);
+        if (!GameManager.inTutorial)
+            CameraShaker.Instance.ShakeOnce(magnitudeLvlFail, roughnessLvlFail, fadeInTimeLvlFail, fadeOutTimeLvlFail);
     }
     public void ScreenShakeObjectiveCompleted()
     {

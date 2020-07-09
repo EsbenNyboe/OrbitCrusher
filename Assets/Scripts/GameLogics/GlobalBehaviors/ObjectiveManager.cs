@@ -21,6 +21,7 @@ public class ObjectiveManager : MonoBehaviour
 
     public void ResetSphereArrays()
     {
+        //print("reset spheres" +Time.time);
         collidedSpheresOnTarget = new GameObject[0];
         collidedSpheresOnTraps = new GameObject[0];
         amountOnTarget = 0;

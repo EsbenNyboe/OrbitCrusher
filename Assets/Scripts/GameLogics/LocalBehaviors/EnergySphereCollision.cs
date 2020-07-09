@@ -23,70 +23,71 @@ public class EnergySphereCollision : MonoBehaviour
     }
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Comet"))
+        if (!energySphereBehavior.isDead)
         {
-            if (!nodeHit && !energySphereBehavior.isGhost)
+            if (collision.gameObject.CompareTag("Comet"))
             {
-                GameObject comet = collision.gameObject;
-                MakeSpherePosSnapToCollObjectPos(comet);
-                ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(comet);
-                if (GameManager.inTutorial)
+                if (!nodeHit && !energySphereBehavior.isGhost)
                 {
-                    tutorialUI.ShowTextFirstCometHit();
-                }
-                soundManager.CometHitsOrb();
-                BadCollision();
-                screenShake.ScreenShakeCollBadComet();
-            }
-        }
-        if (collision.gameObject.CompareTag("Node"))
-        {
-            if (!nodeHit)
-            {
-                GameObject node = collision.transform.parent.gameObject;
-
-                if (node != cometBehavior.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]])
-                {
-                    MakeSpherePosSnapToCollObjectPos(node);
-                    ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(node);
-                    soundManager.IncorrectNodeHit();
-                    nodeManager.CollisionNodeEnergySphereColor(node, false);
-                    BadCollision();
-                    screenShake.ScreenShakeCollBadNode();
+                    GameObject comet = collision.gameObject;
+                    MakeSpherePosSnapToCollObjectPos(comet);
+                    ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(comet);
                     if (GameManager.inTutorial)
                     {
-                        tutorialUI.ShowTextFirstRedNodeHit();
+                        tutorialUI.ShowTextFirstCometHit();
                     }
-                }
-                else if (EnergySphereBehavior.playerIsDraggingAnEnergySphere)
-                {
-                    GoodCollision4Reals(node);
+                    soundManager.CometHitsOrb();
+                    BadCollision();
+                    screenShake.ScreenShakeCollBadComet();
                 }
             }
-        }
-        if (collision.gameObject.CompareTag("EnergySphere") && collision.gameObject.name != transform.parent.gameObject.name)
-        {
-            if (energySphereBehavior.isBeingDragged)
-                collision.gameObject.GetComponentInParent<EnergySphereBehavior>().GlueUnclickedObjectToClickedObject(transform.parent.gameObject);
+            if (collision.gameObject.CompareTag("Node"))
+            {
+                if (!nodeHit)
+                {
+                    GameObject node = collision.transform.parent.gameObject;
+
+                    if (node != cometBehavior.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]])
+                    {
+                        MakeSpherePosSnapToCollObjectPos(node);
+                        ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(node);
+                        soundManager.IncorrectNodeHit();
+                        nodeManager.CollisionNodeEnergySphereColor(node, false);
+                        BadCollision();
+                        screenShake.ScreenShakeCollBadNode();
+                        if (GameManager.inTutorial)
+                        {
+                            tutorialUI.ShowTextFirstRedNodeHit();
+                        }
+                    }
+                    else if (EnergySphereBehavior.playerIsDraggingAnEnergySphere)
+                    {
+                        GoodCollision4Reals(node);
+                    }
+                }
+            }
+            if (collision.gameObject.CompareTag("EnergySphere") && collision.gameObject.name != transform.parent.gameObject.name)
+            {
+                if (energySphereBehavior.isBeingDragged)
+                    collision.gameObject.GetComponentInParent<EnergySphereBehavior>().GlueUnclickedObjectToClickedObject(transform.parent.gameObject);
+            }
         }
     }
 
     public void GoodCollision4Reals(GameObject node)
     {
-        energySphereBehavior.SetColorGoodCollision();
-        MakeSpherePosSnapToCollObjectPos(node);
-        ForceCollisionOnGluedObjectsAndDraggedObject(node);
-        //ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(node);
-        //if (!energySphereBehavior.isBeingDragged) // a bit messy
-        //{
-        //    energySphereBehavior.ForceNodeCollisionOnGluedObject(node.transform.position);
-        //}
-        soundManager.CorrectNodeHit();
-        nodeManager.CollisionNodeEnergySphereColor(node, true);
-        GoodCollision();
-        if (GameManager.inTutorial)
+        if (!energySphereBehavior.isDead)
         {
-            tutorialUI.ShowTextFirstCorrectHit();
+            energySphereBehavior.SetColorGoodCollision();
+            MakeSpherePosSnapToCollObjectPos(node);
+            ForceCollisionOnGluedObjectsAndDraggedObject(node);
+            soundManager.CorrectNodeHit();
+            nodeManager.CollisionNodeEnergySphereColor(node, true);
+            GoodCollision();
+            if (GameManager.inTutorial)
+            {
+                tutorialUI.ShowTextFirstCorrectHit();
+            }
         }
     }
 

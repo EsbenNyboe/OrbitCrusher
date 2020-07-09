@@ -39,6 +39,9 @@ public class Achievements : MonoBehaviour
     private void Awake()
     {
         //MakeAnArrayOkay();
+    }
+    private void Start()
+    {
         if (manualAchievements)
             ManualAchievementUpdate();
         buttonDownHasHappened = new bool[achievementStars.Length];
@@ -229,7 +232,7 @@ public class Achievements : MonoBehaviour
     {
         achievementStars[level].HighlightLevelStar();
     }
-    public void ChangeLevelText(int level)
+    public void ChangeLevelText(int level)  
     {
         achievementStars[previousLevel].ButtonTextPlayOtherLevel();
         achievementStars[level].ButtonTextPlaySameLevel();
