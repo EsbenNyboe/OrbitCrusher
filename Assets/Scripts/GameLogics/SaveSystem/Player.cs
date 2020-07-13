@@ -45,11 +45,11 @@ public class Player : MonoBehaviour
         else
         {
             savedGameAvailable = true;
+            lvl = data.lvl;
+            lvlsWon = data.lvlsWon;
+            lvlsWonFullHp = data.lvlsWonFullHp;
+            lvlsWonZeroDmg = data.lvlsWonZeroDmg;
         }
-        lvl = data.lvl;
-        lvlsWon = data.lvlsWon;
-        lvlsWonFullHp = data.lvlsWonFullHp;
-        lvlsWonZeroDmg = data.lvlsWonZeroDmg;
     }
     public void NewGame()
     {

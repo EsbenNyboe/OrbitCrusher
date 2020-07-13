@@ -17,8 +17,9 @@ public class BuildPipeline : MonoBehaviour
     public TargetPlatform platformEmulation;
     public bool emulatePlatformInEditor;
 
-
+    [Tooltip("-:delay, 0:normal, +:predelay")]
     public float latencyCompensationMac;
+    [Tooltip("-:delay, 0:normal, +:predelay")]
     public float latencyCompensationAndroid;
 
     private void Start()

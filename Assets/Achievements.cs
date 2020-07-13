@@ -215,6 +215,7 @@ public class Achievements : MonoBehaviour
 
     public void UpdateAchievements()
     {
+        lvlsUnlocked[0] = true;
         for (int i = 0; i < achievementStars.Length; i++)
         {
             if (lvlsWon[i])
