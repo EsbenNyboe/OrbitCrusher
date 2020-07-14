@@ -4,15 +4,8 @@ using UnityEngine;
 
 public class AspectRatioScript : MonoBehaviour
 {
-    // Start is called before the first frame update
     void Start()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Camera.main.aspect = 16.0f / 10.0f;
     }
 }

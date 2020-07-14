@@ -15,10 +15,10 @@ public class AchievementStarEditor : Editor
 		{
 			((AchievementStar)target).ApplyNumberToTextbox(((AchievementStar)target).levelNumber);
 		}
-		if (GUILayout.Button("Achievement"))
-		{
-			((AchievementStar)target).NewAchievement();
-		}
+		//if (GUILayout.Button("Achievement"))
+		//{
+		//	((AchievementStar)target).NewAchievement();
+		//}
 
 
 		EditorGUI.EndDisabledGroup();

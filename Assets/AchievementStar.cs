@@ -118,12 +118,18 @@ public class AchievementStar : MonoBehaviour
     }
 
 
-    public void NewAchievement()
+    public void NewAchievement(float t)
     {
+        StartCoroutine(AnimationDelay(t));
+    }
+    IEnumerator AnimationDelay(float t)
+    {
+        yield return new WaitForSeconds(t);
+        HighlightLevelStar();
         shinyStarAnimation.enabled = true;
         shinyStarAnimation.Play(0);
-        HighlightLevelStar();
     }
+
     public void HideLevelInfo()
     {
         panel.SetActive(false);

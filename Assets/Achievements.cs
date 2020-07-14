@@ -239,10 +239,11 @@ public class Achievements : MonoBehaviour
         previousLevel = level;
     }
 
+    public float achievementDelay;
     public void NewAchievement(int level)
     {
         UpdateAchievements();
-        achievementStars[level].NewAchievement();
+        achievementStars[level].NewAchievement(achievementDelay);
     }
     public void ResetAchievementsOnLevelLoadTriggered()
     {
