@@ -48,11 +48,10 @@ public class Achievements : MonoBehaviour
     }
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-            NewAchievement(5);
+        //if (Input.GetKeyDown(KeyCode.Space))
+        //    NewAchievement(5);
         if (Input.GetMouseButtonDown(0))
         {
-
             for (int i = 0; i < achievementStars.Length; i++)
             {
                 if (!buttonDownHasHappened[i])

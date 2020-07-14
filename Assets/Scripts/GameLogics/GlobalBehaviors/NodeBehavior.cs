@@ -6,16 +6,6 @@ using UnityEngine;
 public class NodeBehavior : MonoBehaviour
 {
     GameObject[] nodes;
-    public GameObject nodeParticleCometCollPrefab;
-    GameObject[] nodeParticleCometColl;
-    public GameObject nodeParticleEnergySphereCollPrefab;
-    GameObject[] nodeParticleEnergySphereColl;
-    public GameObject nodeParticleStaticPrefab;
-    GameObject[] nodeParticleStatic;
-    public GameObject nodeParticleSpawnAPrefab;
-    GameObject[] nodeParticleSpawnA;
-    public GameObject nodeParticleSpawnBPrefab;
-    GameObject[] nodeParticleSpawnB;
     public float particleSizeMax;
     public float partGrowSpeed;
     public float partShrinkSpeed;
@@ -60,23 +50,22 @@ public class NodeBehavior : MonoBehaviour
             collSizingSpeed = new float[nodes.Length];
             particleSizing = new bool[nodes.Length];
             particleShrinking = new bool[nodes.Length];
-            nodeParticleCometColl = new GameObject[nodes.Length];
-            nodeParticleEnergySphereColl = new GameObject[nodes.Length];
-            nodeParticleStatic = new GameObject[nodes.Length];
-            nodeParticleSpawnA = new GameObject[nodes.Length];
-            nodeParticleSpawnB = new GameObject[nodes.Length];
             nodeDriftMovement = new Animator[nodes.Length];
             nodeStates = new NodeState[nodes.Length];
             for (int i = 0; i < nodes.Length; i++)
             {
-                nodeParticleStatic[i] = Instantiate(nodeParticleStaticPrefab, nodes[i].transform);
+                //nodeParticleStatic[i] = Instantiate(nodeParticleStaticPrefab, nodes[i].transform);
             }
         }
         for (int i = 0; i < nodes.Length; i++)
         {
             nodes[i].transform.localScale = new Vector3(0, 0, 0);
             spawning[i] = true;
-            nodeParticleStatic[i].SetActive(true);
+
+            NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+            np.psStatic.gameObject.SetActive(true);
+
+            //nodeParticleStatic[i].SetActive(true);
             nodes[i].GetComponentInChildren<NodeCometHaloAnimation>().Spawn();
             nodes[i].GetComponentInChildren<MeshRenderer>().enabled = true;
         }
@@ -86,7 +75,9 @@ public class NodeBehavior : MonoBehaviour
     {
         for (int i = 0; i < nodes.Length; i++)
         {
-            nodeParticleStatic[i].SetActive(appear);
+            NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+            np.psStatic.gameObject.SetActive(appear);
+            //nodeParticleStatic[i].SetActive(appear);
             
             nodeDriftMovement[i] = nodes[i].GetComponentInChildren<Animator>();
             nodeDriftMovement[i].enabled = false;
@@ -112,14 +103,20 @@ public class NodeBehavior : MonoBehaviour
     {
         for (int i = 0; i < nodes.Length; i++)
         {
-            nodeParticleSpawnA[i].GetComponent<ParticleSystem>().Play();
-            nodeParticleSpawnB[i].GetComponent<ParticleSystem>().Play();
+            NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+            np.psSpawnA.Play();
+            np.psSpawnB.Play();
+            //nodeParticleSpawnA[i].GetComponent<ParticleSystem>().Play();
+            //nodeParticleSpawnB[i].GetComponent<ParticleSystem>().Play();
         }
     }
     public void TargetExplode(int nodeIndex)
     {
-        nodeParticleSpawnA[nodeIndex].GetComponent<ParticleSystem>().Play();
-        nodeParticleSpawnB[nodeIndex].GetComponent<ParticleSystem>().Play();
+        NodeParticles np = nodes[nodeIndex].GetComponentInChildren<NodeParticles>();
+        np.psSpawnA.Play();
+        np.psSpawnB.Play();
+        //nodeParticleSpawnA[nodeIndex].GetComponent<ParticleSystem>().Play();
+        //nodeParticleSpawnB[nodeIndex].GetComponent<ParticleSystem>().Play();
     }
     public void LoadLevel()
     {
@@ -131,28 +128,36 @@ public class NodeBehavior : MonoBehaviour
                 {
                     if (nodes[i].GetComponent<ParticleSystem>() == null)
                     {
-                        nodeParticleCometColl[i] = Instantiate(nodeParticleCometCollPrefab, nodes[i].transform);
-                        nodeParticleCometColl[i].SetActive(true);
-                        nodeParticleCometColl[i].GetComponent<ParticleSystem>().Stop();
+                        NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+                        np.psCollComet.Stop();
+                        np.psCollOrb.Stop();
+                        np.psSpawnA.Play();
+                        np.psSpawnB.Play();
 
-                        nodeParticleEnergySphereColl[i] = Instantiate(nodeParticleEnergySphereCollPrefab, nodes[i].transform);
-                        nodeParticleEnergySphereColl[i].SetActive(true);
-                        nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>().Stop();
+                        //nodeParticleCometColl[i] = Instantiate(nodeParticleCometCollPrefab, nodes[i].transform);
+                        //nodeParticleCometColl[i].SetActive(true);
+                        //nodeParticleCometColl[i].GetComponent<ParticleSystem>().Stop();
 
-                        nodeParticleSpawnA[i] = Instantiate(nodeParticleSpawnAPrefab, nodes[i].transform);
-                        nodeParticleSpawnA[i].SetActive(true);
+                        //nodeParticleEnergySphereColl[i] = Instantiate(nodeParticleEnergySphereCollPrefab, nodes[i].transform);
+                        //nodeParticleEnergySphereColl[i].SetActive(true);
+                        //nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>().Stop();
 
-                        nodeParticleSpawnB[i] = Instantiate(nodeParticleSpawnBPrefab, nodes[i].transform);
-                        nodeParticleSpawnB[i].SetActive(true);
+                        //nodeParticleSpawnA[i] = Instantiate(nodeParticleSpawnAPrefab, nodes[i].transform);
+                        //nodeParticleSpawnA[i].SetActive(true);
+
+                        //nodeParticleSpawnB[i] = Instantiate(nodeParticleSpawnBPrefab, nodes[i].transform);
+                        //nodeParticleSpawnB[i].SetActive(true);
                     }
                 }
             }
+            particleSizeInitial = nodes[0].GetComponentInChildren<NodeParticles>().psStatic.main.startSize.constant;
+
+            //ParticleSystem.MainModule psmain = nodeParticleStaticPrefab.GetComponent<ParticleSystem>().main;
+            //particleSizeInitial = psmain.startSize.constant;
 
             AllExplode();
             AllAppear(true);
         }
-        ParticleSystem.MainModule psmain = nodeParticleStaticPrefab.GetComponent<ParticleSystem>().main;
-        particleSizeInitial = psmain.startSize.constant;
     }
 
     public float spawnGrowthRate;
@@ -196,8 +201,11 @@ public class NodeBehavior : MonoBehaviour
                     }
                     if (particleSizing[i])
                     {
-                        ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
-                        float size = psmain.startSize.constant;
+                        NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+                        ParticleSystem.MainModule psmStatic = np.psStatic.main;
+
+                        //ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
+                        float size = psmStatic.startSize.constant;
                         if (particleShrinking[i])
                         {
                             size -= partShrinkSpeed;
@@ -217,7 +225,7 @@ public class NodeBehavior : MonoBehaviour
                                 particleShrinking[i] = true;
                             }
                         }
-                        psmain.startSize = size;
+                        psmStatic.startSize = size;
                     }
                 }
             }
@@ -226,8 +234,12 @@ public class NodeBehavior : MonoBehaviour
 
     public void CollisionNodeCometColor(int nodeIndex, bool target, bool first, bool objCompleted)
     {
-        ParticleSystem psComet = nodeParticleCometColl[nodeIndex].GetComponent<ParticleSystem>();
+        NodeParticles np = nodes[nodeIndex].GetComponentInChildren<NodeParticles>();
+        ParticleSystem psComet = np.psCollComet;
         ParticleSystem.MainModule psmComet = psComet.main;
+
+        //ParticleSystem psComet = nodeParticleCometColl[nodeIndex].GetComponent<ParticleSystem>();
+        //ParticleSystem.MainModule psmComet = psComet.main;
         
         if (target)
         {
@@ -266,8 +278,12 @@ public class NodeBehavior : MonoBehaviour
         {
             if (nodes[i] == node)
             {
-                ParticleSystem ps = nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>();
+                NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+                ParticleSystem ps = np.psCollOrb;
                 ParticleSystem.MainModule psm = ps.main;
+                //ParticleSystem ps = nodeParticleEnergySphereColl[i].GetComponent<ParticleSystem>();
+                //ParticleSystem.MainModule psm = ps.main;
+
                 if (correct)
                     psm.startColor = particleGreen;
                 else
@@ -311,7 +327,11 @@ public class NodeBehavior : MonoBehaviour
             nodeStates[i] = NodeState.NotTarget;
             Material nodeMat = LevelManager.nodes[i].GetComponentInChildren<MeshRenderer>().material;
             nodeMat.color = colorGray;
-            ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
+
+            NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+            ParticleSystem.MainModule psmain = np.psStatic.main;
+
+            //ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
             psmain.startColor = colorRed;
             nodes[i].GetComponentInChildren<NodeCometHaloAnimation>().HighlightNewTarget(false);
         }
@@ -321,13 +341,20 @@ public class NodeBehavior : MonoBehaviour
         nodeStates[targetIndex] = NodeState.Target;
         Material nodeMat = LevelManager.nodes[targetIndex].GetComponentInChildren<MeshRenderer>().material;
         nodeMat.color = colorYellow;
-        ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
-        psmain.startColor = colorYellow;
 
-        ParticleSystem ps = nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>();
-        ParticleSystem.MainModule psm = ps.main;
-        psm.startColor = particleYellow;
-        ps.Play();
+        NodeParticles np = nodes[targetIndex].GetComponentInChildren<NodeParticles>();
+        ParticleSystem.MainModule psmStatic = np.psStatic.main;
+
+        //ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
+        psmStatic.startColor = colorYellow;
+
+        ParticleSystem psCollOrb = np.psCollOrb;
+        ParticleSystem.MainModule psmCollOrb = psCollOrb.main;
+
+        //ParticleSystem psCollOrb = nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>();
+        //ParticleSystem.MainModule psmCollOrb = psCollOrb.main;
+        psmCollOrb.startColor = particleYellow;
+        psCollOrb.Play();
         //nodeParticleEnergySphereColl[targetIndex].GetComponent<ParticleSystem>().Play();
 
         nodes[targetIndex].GetComponentInChildren<NodeCometHaloAnimation>().HighlightNewTarget(true);
@@ -338,8 +365,12 @@ public class NodeBehavior : MonoBehaviour
         nodeStates[targetIndex] = NodeState.TargetCompleted;
         Material nodeMat = LevelManager.nodes[targetIndex].GetComponentInChildren<MeshRenderer>().material;
         nodeMat.color = colorGreen;
-        ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
-        psmain.startColor = colorGreen;
+
+        NodeParticles np = nodes[targetIndex].GetComponentInChildren<NodeParticles>();
+        ParticleSystem.MainModule psmStatic = np.psStatic.main;
+
+        //ParticleSystem.MainModule psmain = nodeParticleStatic[targetIndex].GetComponent<ParticleSystem>().main;
+        psmStatic.startColor = colorGreen;
 
         LevelManager.nodes[targetIndex].GetComponentInChildren<NodeCometHaloAnimation>().CollOrb(true, true);
         LevelManager.nodes[targetIndex].GetComponentInChildren<NodeOrbHaloAnimation>().CollOrb(true, true);
@@ -373,22 +404,25 @@ public class NodeBehavior : MonoBehaviour
             for (int i = 0; i < nodes.Length; i++)
             {
                 Material nodeMat = LevelManager.nodes[i].GetComponentInChildren<MeshRenderer>().material;
-                ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
+                //ParticleSystem.MainModule psmain = nodeParticleStatic[i].GetComponent<ParticleSystem>().main;
+
+                NodeParticles np = nodes[i].GetComponentInChildren<NodeParticles>();
+                ParticleSystem.MainModule psmStatic = np.psStatic.main;
 
                 if (nodeStates[i] == NodeState.NotTarget)
                 {
                     nodeMat.color = colorGray;
-                    psmain.startColor = colorRed;
+                    psmStatic.startColor = colorRed;
                 }
                 if (nodeStates[i] == NodeState.Target)
                 {
                     nodeMat.color = colorYellow;
-                    psmain.startColor = colorYellow;
+                    psmStatic.startColor = colorYellow;
                 }
                 if (nodeStates[i] == NodeState.TargetCompleted)
                 {
                     nodeMat.color = colorGreen;
-                    psmain.startColor = colorGreen;
+                    psmStatic.startColor = colorGreen;
                 }
             }
         }

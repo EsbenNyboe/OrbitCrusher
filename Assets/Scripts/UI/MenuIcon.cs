@@ -11,6 +11,7 @@ public class MenuIcon : MonoBehaviour
     public Color colorNormal;
     [HideInInspector]
     public Color colorHover;
+    public static bool inTransition;
 
     void Awake()
     {
@@ -29,8 +30,23 @@ public class MenuIcon : MonoBehaviour
     }
     public void OnMouseDown()
     {
-        pauseMenu.ClickUI();
-        spriteRenderer.color = colorNormal;
-        pauseMenu.ToggleMenu();
+        if (!inTransition)
+        {
+            PauseMenu.ClickedOnUI();
+            pauseMenu.ClickUI();
+            spriteRenderer.color = colorNormal;
+            if (GameManager.betweenLevels)
+            {
+                pauseMenu.ToggleMenu();
+            }
+            else if (GameManager.inTutorial)
+            {
+                pauseMenu.ToggleMenu();
+            }
+            else
+            {
+                pauseMenu.EnterDialogue_ExitOrbit();
+            }
+        }
     }
 }

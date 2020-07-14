@@ -251,6 +251,8 @@ public class GameManager : MonoBehaviour
         uiManager.uiCurrentLevel.text = levelProgression.ToString();
         uiManager.uiCurrentLevelObjective.text = ": " + LevelManager.levelObjectiveCurrent.ToString();
         cometColor.Color_InOrbit();
+
+        MenuIcon.inTransition = true;
     }
     private void ChooseLevel(int levelNumber)
     {
@@ -263,6 +265,7 @@ public class GameManager : MonoBehaviour
 
         if (musicMeter.MeterConditionSpecificTarget(transitionTiming))
         {
+            screenShake.ScreenShakeLevelStart();
             betweenLevels = false;
             levelManager.LoadLevel();
             nodeBehavior.LoadLevel();
@@ -270,8 +273,17 @@ public class GameManager : MonoBehaviour
             cometManager.LoadLevel();
             musicMeter.UnsubscribeEvent(RunTransitionToLevel, ref musicMeter.subscribeAnytime);
             musicMeter.LoadNewMeterSettings(LevelManager.bpm, LevelManager.beatsPerBar, LevelManager.barsPerSection);
+            StartCoroutine(CustomDelay(0.1f));
         }
     }
+
+    private IEnumerator CustomDelay(float t)
+    {
+        yield return new WaitForSeconds(t);
+        MenuIcon.inTransition = false;
+    }
+
+
     public CometColor cometColor;
 
     public static bool loadNewLevel;

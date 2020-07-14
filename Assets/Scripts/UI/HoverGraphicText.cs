@@ -59,5 +59,6 @@ public class HoverGraphicText : MonoBehaviour, IPointerEnterHandler, IPointerExi
     {
         text.color = colorNormal;
         uiManager.ClickUI();
+        PauseMenu.ClickedOnUI();
     }
 }

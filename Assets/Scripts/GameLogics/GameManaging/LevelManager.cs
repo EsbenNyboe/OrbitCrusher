@@ -317,7 +317,7 @@ public class LevelManager : MonoBehaviour
             objectiveActive = false;
             //soundManager.ActivateGameStateSound(soundManager.levelFailed);
             StopFailSoundObj("targethit");
-            musicMeter.UnsubscribeEvent(spawnManager.SpawnRealSpheresAtTheRelativeTimings, ref musicMeter.subscribeAnytime);
+            spawnManager.CancelSpawnSequence();
             gameManager.LevelFailed();
             for (int i = 0; i < soundTriggers.Length; i++)
             {

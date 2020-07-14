@@ -31,5 +31,6 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
     {
         image.color = colorNormal;
         uiManager.ClickUI();
+        PauseMenu.ClickedOnUI();
     }
 }

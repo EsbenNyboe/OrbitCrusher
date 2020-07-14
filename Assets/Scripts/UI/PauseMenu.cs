@@ -26,6 +26,12 @@ public class PauseMenu : MonoBehaviour
 
     public GameObject godModeButton;
 
+    public TextMeshProUGUI pageNumberDisplay;
+    public GameObject[] pagesInHowToPlay;
+    public static int pageNumber = 1;
+
+    public GameObject exitOrbitObject;
+    public GameObject menuObject;
 
     // Start is called before the first frame update
     private void Awake()
@@ -42,6 +48,28 @@ public class PauseMenu : MonoBehaviour
         pageNumber = 1;
         ChoosePageInHowToPlay();
     }
+
+    public static bool menuFrameClicked;
+    private void Update()
+    {
+        if (Input.GetMouseButtonUp(0))
+        {
+            if (!menuFrameClicked && menu)
+            {
+                ExitMenu();
+            }
+            menuFrameClicked = false;
+        }
+    }
+    public static void ClickedOnUI()
+    {
+        menuFrameClicked = true;
+    }
+    public void ClickedWithinMenuFrame()
+    {
+        menuFrameClicked = true;
+    }
+    
     public void ToggleMenu()
     {
         if (GameManager.betweenLevels || GameManager.inTutorial)
@@ -113,8 +141,17 @@ public class PauseMenu : MonoBehaviour
         panel.SetActive(menu);
     }
 
+    public void EnterDialogue_ExitOrbit()
+    {
+        ToggleMenu();
+        exitOrbitObject.SetActive(true);
+        menuObject.SetActive(false);
+    }
     public void ExitOrbit()
     {
+        exitOrbitObject.SetActive(false);
+        menuObject.SetActive(true);
+
         exitingOrbit = true;
         ToggleMenu();
         soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, false);
@@ -135,11 +172,6 @@ public class PauseMenu : MonoBehaviour
         soundManager.ClickUI();
     }
 
-
-
-    public TextMeshProUGUI pageNumberDisplay;
-    public GameObject [] pagesInHowToPlay;
-    public static int pageNumber = 1;
     public void TurnPageInHowToPlay()
     {
         print("turn page");

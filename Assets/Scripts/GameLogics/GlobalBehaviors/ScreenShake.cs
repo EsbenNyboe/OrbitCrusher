@@ -47,12 +47,23 @@ public class ScreenShake : MonoBehaviour
     public float fadeInTimeCollComet;
     public float fadeOutTimeCollComet;
 
+    [Header("Level Start First Node Hit")]
+    public float magnitudeLvlStart;
+    public float roughnessLvlStart;
+    public float fadeInTimeLvlStart;
+    public float fadeOutTimeLvlStart;
+
     private void Update()
     {
        
 
     }
 
+    public void ScreenShakeLevelStart()
+    {
+        if (!GameManager.inTutorial)
+            CameraShaker.Instance.ShakeOnce(magnitudeLvlStart, roughnessLvlStart, fadeInTimeLvlStart, fadeOutTimeLvlStart);
+    }
     public void ScreenShakeLevelCompleted()
     {
         if (!GameManager.inTutorial)
