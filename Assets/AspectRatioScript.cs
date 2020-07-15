@@ -6,6 +6,7 @@ public class AspectRatioScript : MonoBehaviour
 {
     void Start()
     {
-        Camera.main.aspect = 16.0f / 10.0f;
+        //Screen.SetResolution((int)Screen.width, (int)Screen.height, true);
+        //Camera.main.aspect = 16.0f / 10.0f;
     }
 }

@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: Esben Nyboe
-  productName: Orbit Crusher 2
+  productName: Orbit Crusher
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.03773582, g: 0.03755782, b: 0.03755782, a: 1}
@@ -120,8 +120,8 @@ PlayerSettings:
     5:4: 0
     16:10: 1
     16:9: 1
-    Others: 0
-  bundleVersion: 0.1
+    Others: 1
+  bundleVersion: 1.0
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
