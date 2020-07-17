@@ -15,5 +15,4 @@ public class NewAchievementAnimation : MonoBehaviour
     {
         newAchievementSoundB.TriggerAudioObject();
     }
-
 }

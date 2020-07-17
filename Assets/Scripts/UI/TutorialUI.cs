@@ -92,6 +92,7 @@ public class TutorialUI : MonoBehaviour
         tutorialPause = false;
         panel.SetActive(false);
         UnloadTutorial();
+        NumberDisplayTargetNode.targetNodeIndexMemory = LevelManager.levelObjectiveCurrent;
         LevelManager.levelObjectiveCurrent = 10;
         levelManager.ObjectiveCompleted();
         //soundManager.LevelCompleted(false);

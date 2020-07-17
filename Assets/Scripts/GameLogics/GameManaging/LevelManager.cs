@@ -60,6 +60,7 @@ public class LevelManager : MonoBehaviour
     public TutorialUI tutorialUI;
     public UIManager uiManager;
     public BackgroundColorManager backgroundColorManager;
+    public NumberDisplayEnergyChange numberDisplayEnergyChange;
     ScreenShake screenShake;
 
     bool objectiveActive;
@@ -323,9 +324,11 @@ public class LevelManager : MonoBehaviour
             {
                 soundTriggers[i].hasPlayed = false;
             }
+            nodes[targetNodes[levelObjectiveCurrent]].GetComponentInChildren<NumberDisplayTargetNode>().DeactivateNumberDisplay();
         }
         else
         {
+            numberDisplayEnergyChange.NumberDrain();
             soundManager.ActivateGameStateSound(soundManager.objectiveFailed);
             StopFailSoundLvl("targethit");
             spawnManager.ReloadSpawnSequence(false);
@@ -334,11 +337,18 @@ public class LevelManager : MonoBehaviour
         }
 
         ResetGameStateDichotomies();
+        nodes[cometDestination].GetComponentInChildren<NumberDisplayTargetNode>().SetText();
     }
 
     bool lastObjective;
     public void ObjectiveCompleted()
     {
+        int t = targetNodes[NumberDisplayTargetNode.targetNodeIndexMemory];
+        if (!GameManager.inTutorial)
+        {
+            t = targetNodes[levelObjectiveCurrent];
+        }
+        nodes[t].GetComponentInChildren<NumberDisplayTargetNode>().DeactivateNumberDisplay();
         spawnManager.CancelSpawnSequence();
         screenShake.ScreenShakeObjectiveCompleted();
         objectiveActive = false;
@@ -377,6 +387,7 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
+            numberDisplayEnergyChange.NumberCharge();
             soundManager.ActivateGameStateSound(soundManager.objectiveCompleted);
             healthBar.UpdateHealthbarOnObjectiveConclusion(true);
             uiManager.uiCurrentLevelObjective.text = ": " + levelObjectiveCurrent.ToString();
@@ -454,6 +465,7 @@ public class LevelManager : MonoBehaviour
                         tutorialUI.ShowTextThreeAligned(levelObjectiveCurrent);
                     }
                     ObjectiveActivated();
+                    nodes[cometDestination].GetComponentInChildren<NumberDisplayTargetNode>().ShowNumberDisplay();
                 }
                 else
                 {
@@ -478,6 +490,7 @@ public class LevelManager : MonoBehaviour
                         }
                     }
                 }
+                
             }
             else if (GameManager.death)
             {

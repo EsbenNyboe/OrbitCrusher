@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.UI;
 using UnityEngine;
 
 public class PauseMenu : MonoBehaviour
@@ -33,6 +34,10 @@ public class PauseMenu : MonoBehaviour
     public GameObject exitOrbitObject;
     public GameObject menuObject;
 
+    public GameObject firstLevel;
+    public GameObject secondLevel;
+
+
     // Start is called before the first frame update
     private void Awake()
     {
@@ -47,6 +52,11 @@ public class PauseMenu : MonoBehaviour
         panel.SetActive(menu);
         pageNumber = 1;
         ChoosePageInHowToPlay();
+
+        if (gameManager.easyMode)
+            ChooseEasy();
+        else
+            ChooseNormal();
     }
 
     public static bool menuFrameClicked;
@@ -56,6 +66,11 @@ public class PauseMenu : MonoBehaviour
         {
             if (!menuFrameClicked && menu)
             {
+                firstLevel.SetActive(true);
+                foreach (Transform child in secondLevel.transform)
+                {
+                    child.gameObject.SetActive(false);
+                }
                 ExitMenu();
             }
             menuFrameClicked = false;
@@ -138,6 +153,8 @@ public class PauseMenu : MonoBehaviour
         else
             audioSettingsIsActive = false;
 
+        ResetHowToPlayPageFocus();
+
         panel.SetActive(menu);
     }
 
@@ -172,9 +189,14 @@ public class PauseMenu : MonoBehaviour
         soundManager.ClickUI();
     }
 
+
+    public void ResetHowToPlayPageFocus()
+    {
+        pageNumber = 1;
+        ChoosePageInHowToPlay();
+    }
     public void TurnPageInHowToPlay()
     {
-        print("turn page");
         pageNumber++;
         if (pageNumber > pagesInHowToPlay.Length)
             pageNumber = 1;
@@ -191,5 +213,23 @@ public class PauseMenu : MonoBehaviour
                 pagesInHowToPlay[i].SetActive(false);
         }
         pageNumberDisplay.text = pageNumber + "/" + pagesInHowToPlay.Length;
+    }
+
+    public GameObject chooseEasy, chooseNormal;
+    public void ChooseEasy()
+    {
+        chooseEasy.GetComponentInChildren<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
+        chooseEasy.GetComponentInChildren<Image>().enabled = true;
+        chooseNormal.GetComponentInChildren<TextMeshProUGUI>().fontStyle = FontStyles.Normal;
+        chooseNormal.GetComponentInChildren<Image>().enabled = false;
+        gameManager.easyMode = true;
+    }
+    public void ChooseNormal()
+    {
+        chooseNormal.GetComponentInChildren<TextMeshProUGUI>().fontStyle = FontStyles.Bold;
+        chooseNormal.GetComponentInChildren<Image>().enabled = true;
+        chooseEasy.GetComponentInChildren<TextMeshProUGUI>().fontStyle = FontStyles.Normal;
+        chooseEasy.GetComponentInChildren<Image>().enabled = false;
+        gameManager.easyMode = false;
     }
 }

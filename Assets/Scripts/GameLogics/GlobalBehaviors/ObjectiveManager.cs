@@ -21,6 +21,7 @@ public class ObjectiveManager : MonoBehaviour
 
     public void ResetSphereArrays()
     {
+        NumberDisplayEnergyChange.amountOnTargetMemory = amountOnTarget;
         //print("reset spheres" +Time.time);
         collidedSpheresOnTarget = new GameObject[0];
         collidedSpheresOnTraps = new GameObject[0];
@@ -50,11 +51,18 @@ public class ObjectiveManager : MonoBehaviour
     {
         amountOnTarget++;
         ExpandArrayWithOneNewGoAddition(collidedSphere, amountOnTarget, ref collidedSpheresOnTarget);
+        
         if (collidedSpheresOnTarget.Length == energySpheresSpawned.Length)
+        {
             nodeBehavior.HighlightCompletedTarget(LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]);
+            LevelManager.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]].GetComponentInChildren<NumberDisplayTargetNode>().AllOrbsHaveHitTarget();
+        }
         else
+        {
+            LevelManager.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]].GetComponentInChildren<NumberDisplayTargetNode>().OrbHitsTarget();
             tutorialUI.ShowTextCorrectHitButStillMoreOrbsToGo();
-        //gameManager.UpdateEnergyHealth(0);
+        }
+
         GameManager.energyPool++;
         healthBar.UpdateHealthbarOnCollision(true);
     }

@@ -56,7 +56,6 @@ public class NodeCometHaloAnimation : MonoBehaviour
     }
     public void Despawn()
     {
-        print("despawn");
         anim.SetBool("LevelLoaded", false);
     }
 }

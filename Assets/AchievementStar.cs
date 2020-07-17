@@ -10,9 +10,8 @@ public class AchievementStar : MonoBehaviour
 {
     public Animator overlayAnimation;
     public Animator shinyStarAnimation;
-    public Image starSilver;
-    public Image starGold;
-    public Image starDiamond;
+    public Image starBg;
+    public Image starWood, starBronze, starSilver, starGold;
     public TextMeshProUGUI txtLvlNum;
     public LevelStatus lvlStatus;
     public int levelNumber;
@@ -35,9 +34,10 @@ public class AchievementStar : MonoBehaviour
     {
         Locked,
         Unlocked,
+        Wood,
+        Bronze,
         Silver,
-        Gold,
-        Diamond
+        Gold
     }
     private void Awake()
     {
@@ -46,13 +46,19 @@ public class AchievementStar : MonoBehaviour
     }
     private void Start()
     {
+        if (lvlStatus == LevelStatus.Wood || lvlStatus == LevelStatus.Bronze || lvlStatus == LevelStatus.Silver || lvlStatus == LevelStatus.Gold)
+            starBg.enabled = true;
+        else
+            starBg.enabled = false;
+
         ButtonTextPlayOtherLevel();
     }
     private void Update()
     {
+        starWood.color = SetAlpha(starWood.color);
+        starBronze.color = SetAlpha(starBronze.color);
         starSilver.color = SetAlpha(starSilver.color);
         starGold.color = SetAlpha(starGold.color);
-        starDiamond.color = SetAlpha(starDiamond.color);
         txtLvlNum.color = SetAlpha(txtLvlNum.color);
     }
 
@@ -78,31 +84,35 @@ public class AchievementStar : MonoBehaviour
         levelNumber = number;
         txtLvlNum.text = levelNumber.ToString();
     }
-    public void SetLevelStatus(bool lvlUnlocked, bool lvlWon, bool fullHp, bool noDmg)
+    public void SetLevelStatus(bool lvlUnlocked, bool lvlWonEasy, bool lvlWon, bool fullHp, bool noDmg)
     {
         if (lvlUnlocked)
         {
+            if (lvlWonEasy)
+            {
+                lvlStatus = LevelStatus.Wood;
+            }
+            else
+            {
+                lvlStatus = LevelStatus.Unlocked;
+            }
             if (lvlWon)
             {
                 if (fullHp || noDmg)
                 {
                     if (fullHp)
                     {
-                        lvlStatus = LevelStatus.Gold;
+                        lvlStatus = LevelStatus.Silver;
                     }
                     if (noDmg)
                     {
-                        lvlStatus = LevelStatus.Diamond;
+                        lvlStatus = LevelStatus.Gold;
                     }
                 }
                 else
                 {
-                    lvlStatus = LevelStatus.Silver;
+                    lvlStatus = LevelStatus.Bronze;
                 }
-            }
-            else
-            {
-                lvlStatus = LevelStatus.Unlocked;
             }
         }
         else
@@ -169,8 +179,8 @@ public class AchievementStar : MonoBehaviour
 
 
     public GameObject buttonEnterOrbit;
-    public string silverTxtTitle, goldTxtTitle, diamondTxtTitle;
-    public string lockedTxt, unlockedTxt, silverTxt, goldTxt, diamondTxt;
+    public string woodTxtTitle, silverTxtTitle, goldTxtTitle, diamondTxtTitle;
+    public string lockedTxt, unlockedTxt, woodTxt, silverTxt, goldTxt, diamondTxt;
     private void ApplyLevelStatusVisualSettings()
     {
         if (lvlStatus != LevelStatus.Locked)
@@ -182,40 +192,49 @@ public class AchievementStar : MonoBehaviour
                 buttonEnterOrbit.SetActive(false);
                 SetTextAchievementDescription(lockedTxt);
                 txtLvlNum.color = txtLocked;
-                DisplayAchievement(false, false, false);
+                DisplayAchievement(false, false, false, false);
                 break;
             case LevelStatus.Unlocked:
                 textAchievementTitle.text = " ";
                 SetTextAchievementDescription(unlockedTxt);
                 txtLvlNum.color = txtUnlocked;
-                DisplayAchievement(false, false, false);
+                DisplayAchievement(false, false, false, false);
                 break;
-            case LevelStatus.Silver:
+            case LevelStatus.Wood:
+                textAchievementTitle.text = woodTxtTitle;
+                SetTextAchievementDescription(woodTxt);
+                txtLvlNum.color = txtUnlocked;
+                DisplayAchievement(true, false, false, false);
+                break;
+            case LevelStatus.Bronze:
                 textAchievementTitle.text = silverTxtTitle;
                 SetTextAchievementDescription(silverTxt);
                 txtLvlNum.color = txtCompleted;
-                DisplayAchievement(true, false, false);
+                DisplayAchievement(false, true, false, false);
                 break;
-            case LevelStatus.Gold:
+            case LevelStatus.Silver:
                 textAchievementTitle.text = goldTxtTitle;
                 SetTextAchievementDescription(goldTxt);
                 txtLvlNum.color = txtCompleted;
-                DisplayAchievement(false, true, false);
+                DisplayAchievement(false, false, true, false);
                 break;
-            case LevelStatus.Diamond:
+            case LevelStatus.Gold:
                 textAchievementTitle.text = diamondTxtTitle;
                 SetTextAchievementDescription(diamondTxt);
                 txtLvlNum.color = txtCompleted;
-                DisplayAchievement(false, false, true);
+                DisplayAchievement(false, false, false, true);
                 break;
         }
     }
 
-    private void DisplayAchievement(bool silver, bool gold, bool diamond)
+    private void DisplayAchievement(bool wood, bool bronze, bool silver, bool gold)
     {
+        if (wood || bronze || silver || gold)
+            starBg.enabled = true;
+        starWood.enabled = wood;
+        starBronze.enabled = bronze;
         starSilver.enabled = silver;
         starGold.enabled = gold;
-        starDiamond.enabled = diamond;
     }
 
 

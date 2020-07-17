@@ -70,6 +70,8 @@ public class GameManager : MonoBehaviour
         if (levelLoadUseSaveSystem)
         {
             levelToLoad = player.lvl;
+            easyMode = player.easyMode;
+            Achievements.lvlsWonEasy = player.lvlsWonEasy;
             Achievements.lvlsWon = player.lvlsWon;
             Achievements.lvlsWonFullHp = player.lvlsWonFullHp;
             Achievements.lvlsWonNoDmg = player.lvlsWonZeroDmg;
@@ -147,7 +149,8 @@ public class GameManager : MonoBehaviour
     {
         for (int i = 0; i < levels.Length; i++)
         {
-            Achievements.lvlsUnlocked[i] = Achievements.lvlsWon[i] = Achievements.lvlsWonFullHp[i] = Achievements.lvlsWonNoDmg[i] = false;
+            easyMode = false;
+            Achievements.lvlsUnlocked[i] = Achievements.lvlsWonEasy[i] = Achievements.lvlsWon[i] = Achievements.lvlsWonFullHp[i] = Achievements.lvlsWonNoDmg[i] = false;
             player.lvlsWon[i] = player.lvlsWonFullHp[i] = player.lvlsWonZeroDmg[i] = false;
         }
         Achievements.lvlsUnlocked[0] = true;
@@ -200,6 +203,9 @@ public class GameManager : MonoBehaviour
         LoadTransitionToLevel();
         achievements.DisplayAchievements(false, false);
         achievements.ResetAchievementsOnLevelLoadTriggered();
+        damageTakenThisLevel = 0;
+        fullHpBonusChecked = false;
+        hpAtLevelCompletion = 0;
     }
 
 
@@ -349,33 +355,52 @@ public class GameManager : MonoBehaviour
     public Player player;
     public Achievements achievements;
     public static int damageTakenThisLevel;
+    //[HideInInspector]
+    public bool easyMode;
     public void LevelCompleted()
     {
         achievements.DisplayAchievements(true, false);
         bool newAchievement = false;
-        if (hpAtLevelCompletion == maxEnergy && !Achievements.lvlsWonFullHp[levelProgression])
+        // gamemode
+        if (easyMode)
         {
-            //print("full hp");
-            Achievements.lvlsWonFullHp[levelProgression] = true;
-            newAchievement = true;
-            player.lvlsWonFullHp[levelProgression] = true;
+            if (!Achievements.lvlsWonEasy[levelProgression])
+            {
+                Achievements.lvlsUnlocked[levelProgression] = true;
+                if (levelProgression + 1 < levels.Length)
+                    Achievements.lvlsUnlocked[levelProgression + 1] = true;
+                Achievements.lvlsWonEasy[levelProgression] = true;
+                newAchievement = true;
+                player.lvlsWonEasy[levelProgression] = true;
+            }
         }
-        if (damageTakenThisLevel == 0 && !Achievements.lvlsWonNoDmg[levelProgression])
+        else
         {
-            //print("no dmg");
-            Achievements.lvlsWonNoDmg[levelProgression] = true;
-            newAchievement = true;
-            player.lvlsWonZeroDmg[levelProgression] = true;
-        }
-        if (!Achievements.lvlsWon[levelProgression])
-        {
-            //print("completed");
-            Achievements.lvlsUnlocked[levelProgression] = true;
-            if (levelProgression + 1 < levels.Length)
-                Achievements.lvlsUnlocked[levelProgression + 1] = true;
-            Achievements.lvlsWon[levelProgression] = true;
-            newAchievement = true;
-            player.lvlsWon[levelProgression] = true;
+            if (hpAtLevelCompletion == maxEnergy && !Achievements.lvlsWonFullHp[levelProgression])
+            {
+                //print("full hp");
+                Achievements.lvlsWonFullHp[levelProgression] = true;
+                newAchievement = true;
+                player.lvlsWonFullHp[levelProgression] = true;
+            }
+            if (damageTakenThisLevel == 0 && !Achievements.lvlsWonNoDmg[levelProgression])
+            {
+                //print("no dmg");
+                Achievements.lvlsWonNoDmg[levelProgression] = true;
+                newAchievement = true;
+                player.lvlsWonZeroDmg[levelProgression] = true;
+            }
+            if (!Achievements.lvlsWon[levelProgression])
+            {
+                //print("completed");
+                Achievements.lvlsUnlocked[levelProgression] = true;
+                if (levelProgression + 1 < levels.Length)
+                    Achievements.lvlsUnlocked[levelProgression + 1] = true;
+                Achievements.lvlsWonEasy[levelProgression] = true;
+                Achievements.lvlsWon[levelProgression] = true;
+                newAchievement = true;
+                player.lvlsWon[levelProgression] = true;
+            }
         }
         if (newAchievement)
         {
@@ -387,9 +412,8 @@ public class GameManager : MonoBehaviour
             achievements.HighlightCompletedLevel(levelProgression);
             achievements.ChangeLevelText(levelProgression);
         }
-        damageTakenThisLevel = 0;
-        fullHpBonusChecked = false;
-        hpAtLevelCompletion = 0;
+        player.easyMode = easyMode;
+
 
         screenShake.ScreenShakeLevelCompleted();
         levelCompleted = true;

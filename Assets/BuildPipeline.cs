@@ -67,7 +67,7 @@ public class BuildPipeline : MonoBehaviour
         gameManager.objectiveToLoad = 0;
 
         Player player = gameManager.player;
-        player.unlockAllDiamond = player.unlockAllGold = player.unlockAllSilver = false;
+        player.unlockAllGold = player.unlockAllSilver = player.unlockAllBronze = false;
         player.UnlockAll();
         player.SavePlayer();
 

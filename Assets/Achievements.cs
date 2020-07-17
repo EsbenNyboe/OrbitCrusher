@@ -10,6 +10,7 @@ public class Achievements : MonoBehaviour
     public int levelCount;
 
     public static bool[] lvlsUnlocked;
+    public static bool[] lvlsWonEasy;
     public static bool[] lvlsWon;
     public static bool[] lvlsWonFullHp;
     public static bool[] lvlsWonNoDmg;
@@ -20,9 +21,10 @@ public class Achievements : MonoBehaviour
     {
         Locked,
         Unlocked,
+        Wood,
+        Bronze,
         Silver,
-        Gold,
-        Diamond
+        Gold
     }
     public LevelStatus[] achievementStatuses;
 
@@ -35,6 +37,7 @@ public class Achievements : MonoBehaviour
 
     public UIManager uiManager;
     public GameManager gameManager;
+    public AchievementParticleEffects achievementParticleEffects;
 
     private void Awake()
     {
@@ -168,14 +171,17 @@ public class Achievements : MonoBehaviour
                     case LevelStatus.Unlocked:
                         lvlsUnlocked[i] = true;
                         break;
+                    case LevelStatus.Wood:
+                        lvlsWonEasy[i] = lvlsUnlocked[i] = true;
+                        break;
+                    case LevelStatus.Bronze:
+                        lvlsWon[i] = lvlsWonEasy[i] = lvlsUnlocked[i] = true;
+                        break;
                     case LevelStatus.Silver:
-                        lvlsWon[i] = lvlsUnlocked[i] = true;
+                        lvlsWonFullHp[i] = lvlsWon[i] = lvlsWonEasy[i] = lvlsUnlocked[i] = true;
                         break;
                     case LevelStatus.Gold:
-                        lvlsWonFullHp[i] = lvlsWon[i] = lvlsUnlocked[i] = true;
-                        break;
-                    case LevelStatus.Diamond:
-                        lvlsWonNoDmg[i] = lvlsWonFullHp[i] = lvlsWon[i] = lvlsUnlocked[i] = true;
+                        lvlsWonNoDmg[i] = lvlsWonFullHp[i] = lvlsWon[i] = lvlsWonEasy[i] = lvlsUnlocked[i] = true;
                         break;
                 }
                 //if (lvlsWon.Length > i + 1 && lvlsWon[i + 1])
@@ -196,6 +202,7 @@ public class Achievements : MonoBehaviour
     private void CreateCompletionArrays()
     {
         lvlsUnlocked = new bool[achievementStars.Length];
+        lvlsWonEasy = new bool[achievementStars.Length];
         lvlsWon = new bool[achievementStars.Length];
         lvlsWonFullHp = new bool[achievementStars.Length];
         lvlsWonNoDmg = new bool[achievementStars.Length];
@@ -217,13 +224,13 @@ public class Achievements : MonoBehaviour
         lvlsUnlocked[0] = true;
         for (int i = 0; i < achievementStars.Length; i++)
         {
-            if (lvlsWon[i])
+            if (lvlsWonEasy[i])
             {
                 lvlsUnlocked[i] = true;
                 if (i + 1 < achievementStars.Length)
                     lvlsUnlocked[i + 1] = true;
             }
-            achievementStars[i].SetLevelStatus(lvlsUnlocked[i], lvlsWon[i], lvlsWonFullHp[i], lvlsWonNoDmg[i]);
+            achievementStars[i].SetLevelStatus(lvlsUnlocked[i], lvlsWonEasy[i], lvlsWon[i], lvlsWonFullHp[i], lvlsWonNoDmg[i]);
         }
     }
 
@@ -244,6 +251,7 @@ public class Achievements : MonoBehaviour
     {
         UpdateAchievements();
         achievementStars[level].NewAchievement(achievementDelay);
+        achievementParticleEffects.NewAchievement(level);
     }
     public void ResetAchievementsOnLevelLoadTriggered()
     {

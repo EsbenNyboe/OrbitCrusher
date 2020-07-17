@@ -39,7 +39,6 @@ public class NodeBehavior : MonoBehaviour
 
     public void SpawnNodes(bool firstTime)
     {
-        print("spawn nodes" + firstTime);
         if (firstTime)
         {
             nodes = LevelManager.nodes;

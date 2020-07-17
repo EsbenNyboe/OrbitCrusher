@@ -7,19 +7,21 @@ using UnityEngine;
 public class Player : MonoBehaviour 
 {
     public int lvl;
+    public bool easyMode;
+    public bool[] lvlsWonEasy;
     public bool[] lvlsWon;
     public bool[] lvlsWonFullHp;
     public bool[] lvlsWonZeroDmg;
 
+    public bool unlockAllBronze;
     public bool unlockAllSilver;
     public bool unlockAllGold;
-    public bool unlockAllDiamond;
 
     public void UnlockAll()
     {
-        UnlockAllTrophies(unlockAllSilver, lvlsWon);
-        UnlockAllTrophies(unlockAllGold, lvlsWonFullHp);
-        UnlockAllTrophies(unlockAllDiamond, lvlsWonZeroDmg);
+        UnlockAllTrophies(unlockAllBronze, lvlsWon);
+        UnlockAllTrophies(unlockAllSilver, lvlsWonFullHp);
+        UnlockAllTrophies(unlockAllGold, lvlsWonZeroDmg);
     }
 
     private void UnlockAllTrophies(bool unlockStatus, bool[] achievementData)
@@ -46,6 +48,10 @@ public class Player : MonoBehaviour
         {
             savedGameAvailable = true;
             lvl = data.lvl;
+            easyMode = data.easyMode;
+            lvlsWonEasy = data.lvlsWonEasy;
+            if (lvlsWonEasy == null)
+                lvlsWonEasy = new bool[15];
             lvlsWon = data.lvlsWon;
             lvlsWonFullHp = data.lvlsWonFullHp;
             lvlsWonZeroDmg = data.lvlsWonZeroDmg;
