@@ -16,7 +16,7 @@ public class ApplicationPause : MonoBehaviour
     }
     void OnApplicationFocus(bool hasFocus)
     {
-        if (!GameManager.betweenLevels && gameManager.autoPauseEnabled)
+        if (!GameManager.betweenLevels && !GameManager.inTutorial && gameManager.autoPauseEnabled)
         {
             isPaused = !hasFocus;
             if (isPaused)
@@ -28,7 +28,7 @@ public class ApplicationPause : MonoBehaviour
 
     void OnApplicationPause(bool pauseStatus)
     {
-        if (!GameManager.betweenLevels && gameManager.autoPauseEnabled)
+        if (!GameManager.betweenLevels && !GameManager.inTutorial && gameManager.autoPauseEnabled)
         {
             isPaused = pauseStatus;
             if (isPaused)

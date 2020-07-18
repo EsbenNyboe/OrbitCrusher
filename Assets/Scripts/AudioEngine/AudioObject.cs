@@ -245,6 +245,7 @@ public class AudioObject : MonoBehaviour
                 return;
         }
         ChooseSequence();
+        soundMultiples[selectedFile].soundFile.LoadAudioData();
         voicePlayerNew[currentVoice].PlayAudioScheduled(selectedFile, scheduledTime);
     }
     public void StopAudioAllVoices()

@@ -27,9 +27,8 @@ public class HoverGraphicText : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     void OnEnable()
     {
-        if (buttonDelay && !allButtonsActive)
+        if (buttonDelay)
         {
-            allButtonsActive = true;
             thisButtonActive = false;
             StartCoroutine(PostponeTrigger());
         }
@@ -38,15 +37,15 @@ public class HoverGraphicText : MonoBehaviour, IPointerEnterHandler, IPointerExi
     }
     IEnumerator PostponeTrigger()
     {
-        yield return new WaitForSeconds(delayTime);
+        yield return new WaitForSecondsRealtime(delayTime);
         thisButtonActive = true;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        text.color = colorHover;
         if (thisButtonActive)
         {
-            text.color = colorHover;
             uiManager.HoverUI();
         }
     }

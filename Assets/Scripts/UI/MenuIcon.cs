@@ -13,28 +13,33 @@ public class MenuIcon : MonoBehaviour
     public Color colorHover;
     public static bool inTransition;
 
-    void Awake()
+    //void Awake()
+    //{
+    //    //pauseMenu = FindObjectOfType<PauseMenu>();
+    //    spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+    //    colorNormal = spriteRenderer.color;
+    //}
+    //public void OnMouseEnter()
+    //{
+    //    pauseMenu.HoverUI();
+    //    spriteRenderer.color = colorHover;
+    //}
+    //public void OnMouseExit()
+    //{
+    //    spriteRenderer.color = colorNormal;
+    //}
+    //public void OnMouseDown()
+    //{
+    //    ClickMenuIcon();
+    //}
+
+    public void ClickMenuIcon()
     {
-        //pauseMenu = FindObjectOfType<PauseMenu>();
-        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
-        colorNormal = spriteRenderer.color;
-    }
-    public void OnMouseEnter()
-    {
-        pauseMenu.HoverUI();
-        spriteRenderer.color = colorHover;
-    }
-    public void OnMouseExit()
-    {
-        spriteRenderer.color = colorNormal;
-    }
-    public void OnMouseDown()
-    {
-        if (!inTransition)
+        if (!inTransition && Time.timeScale != 0)
         {
             PauseMenu.ClickedOnUI();
             pauseMenu.ClickUI();
-            spriteRenderer.color = colorNormal;
+            //spriteRenderer.color = colorNormal;
             if (GameManager.betweenLevels)
             {
                 pauseMenu.ToggleMenu();

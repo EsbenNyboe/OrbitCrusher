@@ -18,13 +18,8 @@ public class TutorialUI : MonoBehaviour
     public GameObject text7;
     public GameObject text8;
 
-    public GameObject showTip;
-    public TextMeshProUGUI showTipT;
     public GameObject tips;
-    public GameObject tipUnclickables;
-    public GameObject tipCometDanger;
-    public GameObject tipPointExplanation;
-    bool pointExplanationShown;
+    public GameObject tipGameModes, tipOrbActivation, tipDamageControl, tipReenteringOrbits;
 
     public static bool timeStopQueued;
     public static bool textShown1;
@@ -50,19 +45,29 @@ public class TutorialUI : MonoBehaviour
     public LevelManager levelManager;
     public SoundManager soundManager;
     public SoundDsp soundDsp;
+    public UIManager uiManager;
 
     public static int numberOfActiveTextboxes;
-
-    bool tipLoaded;
-    bool tipShown;
 
     private void Awake()
     {
         textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
         panel.SetActive(false);
-        showTip.SetActive(true);
-        showTipT.enabled = false;
-        //showTipT.enabled = true;
+        tips.SetActive(true);
+        tipGameModes.SetActive(false);
+        tipOrbActivation.SetActive(false);
+        tipDamageControl.SetActive(false);
+        tipReenteringOrbits.SetActive(false);
+    }
+    private void Update()
+    {
+        if (GameManager.inTutorial && clickAnywhereAllowed)
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                ClickAnywhere();
+            }
+        }
     }
 
     public void LoadTutorial()
@@ -153,6 +158,7 @@ public class TutorialUI : MonoBehaviour
     }
     public void TimeNormal()     // called from the canvas
     {
+        StopAllCoroutines();
         numberOfActiveTextboxes--;
         if (numberOfActiveTextboxes > 0)
         {
@@ -169,6 +175,7 @@ public class TutorialUI : MonoBehaviour
             //soundManager.RescheduleQueuedMusic();
             soundDsp.RescheduleQueuedMusic();
         }
+        clickAnywhereAllowed = false;
     }
     private void AddToStack(GameObject text)
     {
@@ -217,15 +224,25 @@ public class TutorialUI : MonoBehaviour
         text6.SetActive(false);
         text7.SetActive(false);
         text8.SetActive(false);
-        tipUnclickables.SetActive(false);
-        tipCometDanger.SetActive(false);
-        tipPointExplanation.SetActive(false);
-        tips.SetActive(false);
         textSkipTutorial.SetActive(true);
         tutorialSkip = false;
     }
 
 
+    private GameObject activeTextbox;
+    private bool clickAnywhereAllowed;
+    private IEnumerator EnableClickAnywhere(GameObject go)
+    {
+        yield return new WaitForSecondsRealtime(2f);
+        activeTextbox = go;
+        clickAnywhereAllowed = true;
+    }
+    private void ClickAnywhere()
+    {
+        activeTextbox.SetActive(false);
+        activeTextbox.GetComponentInChildren<HoverGraphicText>().TextClicked();
+        TimeNormal();
+    }
 
     public void ShowTextFirstSpawn()
     {
@@ -234,6 +251,7 @@ public class TutorialUI : MonoBehaviour
             panel.SetActive(true);
             text1.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstSpawnDelay));
+            StartCoroutine(EnableClickAnywhere(text1));
         }
         textShown1 = true;
     }
@@ -241,7 +259,7 @@ public class TutorialUI : MonoBehaviour
     public Button text1Button;
     public void ClickOrbAfterFirstSpawn()
     {
-        if (!text1Done && textShown1 && !textShown2) 
+        if (!text1Done && textShown1 && !textShown2)
         {
             text1Done = true;
             text1Button.onClick.Invoke();
@@ -254,6 +272,7 @@ public class TutorialUI : MonoBehaviour
         {
             text2.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstCorrectHitDelay));
+            StartCoroutine(EnableClickAnywhere(text2));
         }
         textShown2 = true;
     }
@@ -265,6 +284,7 @@ public class TutorialUI : MonoBehaviour
             {
                 text5B.SetActive(true);
                 StartCoroutine(TimeStopDelayed(firstCorrectHitDelay));
+                StartCoroutine(EnableClickAnywhere(text5B));
             }
             textShown5B = true;
         }
@@ -282,6 +302,7 @@ public class TutorialUI : MonoBehaviour
                 }
                 text3.SetActive(true);
                 StartCoroutine(TimeStopDelayed(healthBarDelay));
+                StartCoroutine(EnableClickAnywhere(text3));
             }
             textShown3 = true;
         }
@@ -295,6 +316,7 @@ public class TutorialUI : MonoBehaviour
             {
                 text5.SetActive(true);
                 StartCoroutine(TimeStopDelayed(firstObjFailDelay));
+                StartCoroutine(EnableClickAnywhere(text5));
             }
             textShown5 = true;
         }
@@ -305,6 +327,7 @@ public class TutorialUI : MonoBehaviour
         {
             text6.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstCometHitDelay));
+            StartCoroutine(EnableClickAnywhere(text6));
         }
         textShown6 = true;
     }
@@ -314,6 +337,7 @@ public class TutorialUI : MonoBehaviour
         {
             text7.SetActive(true);
             StartCoroutine(TimeStopDelayed(firstRedNodeHitDelay));
+            StartCoroutine(EnableClickAnywhere(text7));
         }
         textShown7 = true;
     }
@@ -325,6 +349,7 @@ public class TutorialUI : MonoBehaviour
             {
                 text8.SetActive(true);
                 StartCoroutine(TimeStopDelayed(threeAlignedDelay));
+                StartCoroutine(EnableClickAnywhere(text8));
             }
             textShown8 = true;
         }
@@ -338,68 +363,63 @@ public class TutorialUI : MonoBehaviour
             {
                 text4.SetActive(true);
                 StartCoroutine(TimeStopDelayed(clickDeniedDelay));
+                StartCoroutine(EnableClickAnywhere(text4));
             }
             textShown4 = true;
         }
     }
 
 
-    public void LoadTipOnLevelFailed()
-    {
-        if (!tipLoaded)
-        {
-            tips.SetActive(false);
-            if (!textShown4)
-            {
-                tipUnclickables.SetActive(true);
-                textShown4 = true;
-                tipLoaded = true;
-            }
-            else if (!textShown6)
-            {
-                tipCometDanger.SetActive(true);
-                textShown6 = true;
-                tipLoaded = true;
-            }
-            else if (!pointExplanationShown)
-            {
-                tipPointExplanation.SetActive(true);
-                pointExplanationShown = true;
-                tipLoaded = true;
-            }
-        }
-        if (tipLoaded)
-        {
-            showTipT.enabled = true;
-            showTip.GetComponent<Animator>().SetBool("betweenLevels", true);
-        }
-    }
-    
-    public void ShowTipsWhenDesired()
-    {
-        tipShown = true;
-        tips.SetActive(true);
-        //showTip.SetActive(false);
-        showTip.GetComponent<Animator>().SetBool("betweenLevels", false);
-    }
-    public void HideTipsOnLevelLoaded()
-    {
-        if (tipShown)
-        {
-            tipUnclickables.SetActive(false);
-            tipCometDanger.SetActive(false);
-            tipPointExplanation.SetActive(false);
-            tipShown = false;
-            tipLoaded = false;
-        }
-        //showTip.SetActive(false);
-        if (showTip.activeInHierarchy)
-            showTip.GetComponent<Animator>().SetBool("betweenLevels", false);
-    }
     public void DisplayTipsOnMenuToggle(bool notInMenu)
     {
-        if (tipShown)
-            tips.SetActive(notInMenu);
-        showTipT.enabled = notInMenu;
+        tips.SetActive(notInMenu);
+    }
+
+    public void DisplayTip(int levelNumber)
+    {
+        print("display:" + levelNumber);
+        switch (levelNumber)
+        {
+            case 1:
+                StartCoroutine(ShowTip(tipGameModes));
+                break;
+            case 3:
+                StartCoroutine(ShowTip(tipOrbActivation));
+                break;
+            case 5:
+                StartCoroutine(ShowTip(tipDamageControl));
+                break;
+            case 7:
+                StartCoroutine(ShowTip(tipReenteringOrbits));
+                break;
+        }
+    }
+
+    private IEnumerator ShowTip(GameObject tip)
+    {
+        tip.SetActive(true);
+        ToggleComponentsActivation(tip, false);
+        yield return new WaitForSeconds(0.1f);
+        ToggleComponentsActivation(tip, true);
+        TipUIDisabling();
+    }
+
+    private static void ToggleComponentsActivation(GameObject tip, bool status)
+    {
+        tip.GetComponent<Image>().enabled = status;
+        tip.GetComponentInChildren<TextMeshProUGUI>().enabled = status;
+        tip.GetComponentInChildren<Button>().GetComponentInParent<TextMeshProUGUI>().enabled = status;
+        tip.GetComponentInChildren<HoverGraphicText>().GetComponent<TextMeshProUGUI>().enabled = status;
+    }
+
+    private void TipUIDisabling()
+    {
+        uiManager.uiLevelCompletedT.enabled = false;
+        uiManager.uiLevelCompletedT.GetComponentInParent<Button>().enabled = false;
+    }
+    public void TipUIEnable()
+    {
+        uiManager.uiLevelCompletedT.enabled = true;
+        uiManager.uiLevelCompletedT.GetComponentInParent<Button>().enabled = true;
     }
 }

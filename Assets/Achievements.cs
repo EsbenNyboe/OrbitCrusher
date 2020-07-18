@@ -53,15 +53,18 @@ public class Achievements : MonoBehaviour
     {
         //if (Input.GetKeyDown(KeyCode.Space))
         //    NewAchievement(5);
-        if (Input.GetMouseButtonDown(0))
+        if (GameManager.betweenLevels)
         {
-            for (int i = 0; i < achievementStars.Length; i++)
+            if (Input.GetMouseButtonDown(0))
             {
-                if (!buttonDownHasHappened[i])
+                for (int i = 0; i < achievementStars.Length; i++)
                 {
-                    if (achievementStars[i].panel.activeInHierarchy)
+                    if (!buttonDownHasHappened[i])
                     {
-                        achievementStars[i].HideLevelInfo();
+                        if (achievementStars[i].panel.activeInHierarchy)
+                        {
+                            achievementStars[i].HideLevelInfo();
+                        }
                     }
                 }
             }
@@ -246,11 +249,10 @@ public class Achievements : MonoBehaviour
         previousLevel = level;
     }
 
-    public float achievementDelay;
     public void NewAchievement(int level)
     {
         UpdateAchievements();
-        achievementStars[level].NewAchievement(achievementDelay);
+        achievementStars[level].NewAchievement();
         achievementParticleEffects.NewAchievement(level);
     }
     public void ResetAchievementsOnLevelLoadTriggered()

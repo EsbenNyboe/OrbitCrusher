@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Security.Cryptography;
 using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 
@@ -58,7 +59,25 @@ public class GameManager : MonoBehaviour
         GameCompleted
     }
     public static BetweenLevelsState betweenLevelsState;
-    
+
+    public int energyDisplay;
+
+    public CometColor cometColor;
+
+    public static bool loadNewLevel;
+
+
+    public static int energyPool;
+    int hpAtLevelCompletion;
+    bool fullHpBonusChecked;
+
+    public Player player;
+    public Achievements achievements;
+    public static int damageTakenThisLevel;
+    //[HideInInspector]
+    public bool easyMode;
+
+
 
     private void Awake()
     {
@@ -143,7 +162,6 @@ public class GameManager : MonoBehaviour
         energyDisplay = energy;
         CheckIfEnergyFull();
     }
-    public int energyDisplay;
 
     public void NewGame()
     {
@@ -206,13 +224,13 @@ public class GameManager : MonoBehaviour
         damageTakenThisLevel = 0;
         fullHpBonusChecked = false;
         hpAtLevelCompletion = 0;
+        godMode = easyMode;
     }
 
 
 
     private void LoadTransitionToLevel()
     {
-        tutorialUI.HideTipsOnLevelLoaded();
         HealthBar.tutorialFadeOut = false;
         healthBar.FadeInHealthbar();
         if (inTutorial)
@@ -288,16 +306,6 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(t);
         MenuIcon.inTransition = false;
     }
-
-
-    public CometColor cometColor;
-
-    public static bool loadNewLevel;
-    
-
-    public static int energyPool;
-    int hpAtLevelCompletion;
-    bool fullHpBonusChecked;
     public void UpdateEnergyHealth(int amount, bool updatePool)
     {
 
@@ -318,13 +326,15 @@ public class GameManager : MonoBehaviour
         energy += amount;
         if (energy < 1)
         {
+            energy = 0;
             if (!godMode)
                 death = true;
         }
-        if (energy > maxEnergy)
+        else if (energy > maxEnergy)
         {
             energy = maxEnergy;
         }
+
 
         if (!fullHpBonusChecked && LevelManager.levelObjectiveCurrent + 1 == LevelManager.targetNodes.Length)
         {
@@ -352,11 +362,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public Player player;
-    public Achievements achievements;
-    public static int damageTakenThisLevel;
-    //[HideInInspector]
-    public bool easyMode;
     public void LevelCompleted()
     {
         achievements.DisplayAchievements(true, false);
@@ -400,6 +405,7 @@ public class GameManager : MonoBehaviour
                 Achievements.lvlsWon[levelProgression] = true;
                 newAchievement = true;
                 player.lvlsWon[levelProgression] = true;
+                tutorialUI.DisplayTip(levelProgression);
             }
         }
         if (newAchievement)
@@ -456,7 +462,6 @@ public class GameManager : MonoBehaviour
             cometMovement.LevelFailed();
             backgroundColorManager.LevelFailed();
             levelNumberDisplay.LevelFailed();
-            tutorialUI.LoadTipOnLevelFailed();
             HoverGraphicText.allButtonsActive = false;
             healthBar.FadeOutHealthbar();
             LevelManager.firstTimeHittingTarget = true;
@@ -472,6 +477,7 @@ public class GameManager : MonoBehaviour
     {
         soundManager.ToggleTransposedMusic(false);
         soundManager.FadeInMusicBetweenLevels();
+
         PauseMenu.exitingOrbit = false;
         nodeBehavior.AllAppear(false);
         nodeBehavior.AllExplode();
@@ -483,6 +489,8 @@ public class GameManager : MonoBehaviour
         //achievements.NewAchievement(levelProgression);
         player.lvl = levelProgression;
         player.SavePlayer();
+
+        StartCoroutine(soundManager.UnloadAudioDataLevelMusic());
     }
 
     public void ToggleGodMode()

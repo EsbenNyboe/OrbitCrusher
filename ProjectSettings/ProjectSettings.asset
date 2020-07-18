@@ -44,8 +44,8 @@ PlayerSettings:
     duration: 2
   m_VirtualRealitySplashScreen: {fileID: 0}
   m_HolographicTrackingLossScreen: {fileID: 0}
-  defaultScreenWidth: 1920
-  defaultScreenHeight: 1200
+  defaultScreenWidth: 1152
+  defaultScreenHeight: 720
   defaultScreenWidthWeb: 1280
   defaultScreenHeightWeb: 800
   m_StereoRenderingPath: 0
@@ -67,7 +67,7 @@ PlayerSettings:
   androidStartInFullscreen: 1
   androidRenderOutsideSafeArea: 1
   androidUseSwappy: 0
-  androidBlitType: 0
+  androidBlitType: 2
   defaultIsNativeResolution: 0
   macRetinaSupport: 1
   runInBackground: 1
@@ -116,7 +116,7 @@ PlayerSettings:
   vulkanNumSwapchainBuffers: 3
   vulkanEnableSetSRGBWrite: 0
   m_SupportedAspectRatios:
-    4:3: 0
+    4:3: 1
     5:4: 0
     16:10: 1
     16:9: 1
@@ -156,12 +156,12 @@ PlayerSettings:
       v2Signing: 1
     enable360StereoCapture: 0
   isWsaHolographicRemotingEnabled: 0
-  enableFrameTimingStats: 0
+  enableFrameTimingStats: 1
   useHDRDisplay: 0
   D3DHDRBitDepth: 0
   m_ColorGamuts: 00000000
-  targetPixelDensity: 30
-  resolutionScalingMode: 0
+  targetPixelDensity: 250
+  resolutionScalingMode: 1
   androidSupportedAspectRatio: 1
   androidMaxAspectRatio: 2.1
   applicationIdentifier: {}

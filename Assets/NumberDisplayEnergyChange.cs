@@ -15,6 +15,8 @@ public class NumberDisplayEnergyChange : MonoBehaviour
     public static int amountOnTargetMemory;
     int num;
 
+    public bool alphaUpdate;
+
     private void Awake()
     {
         textMesh = GetComponent<TextMeshPro>();
@@ -22,12 +24,14 @@ public class NumberDisplayEnergyChange : MonoBehaviour
     }
     private void Update()
     {
-        Color c = textMesh.color;
-        textMesh.color = new Color(c.r, c.g, c.b, aColorComponent);
+        if (alphaUpdate)
+        {
+            Color c = textMesh.color;
+            textMesh.color = new Color(c.r, c.g, c.b, aColorComponent);
+        }
     }
     public void NumberDrain()
     {
-        print("drain");
         num = amountOnTargetMemory - ObjectiveManager.amountSpawned;
         if (num == -1)
         {
@@ -49,7 +53,6 @@ public class NumberDisplayEnergyChange : MonoBehaviour
             textMesh.color = neutral;
         else
             textMesh.color = positive;
-        print("charge");
         num = ObjectiveManager.amountSpawned;
         textMesh.text = "+ ";
 

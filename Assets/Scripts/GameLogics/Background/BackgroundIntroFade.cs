@@ -9,6 +9,8 @@ public class BackgroundIntroFade : MonoBehaviour
     public float colorAlpha;
     Color c;
 
+    public bool alphaUpdate;
+
     private void Awake()
     {
         MeshRenderer meshR = GetComponent<MeshRenderer>();
@@ -19,6 +21,7 @@ public class BackgroundIntroFade : MonoBehaviour
 
     void Update()
     {
-        material.color = new Color(c.r, c.g, c.b, colorAlpha);
+        if (alphaUpdate)
+            material.color = new Color(c.r, c.g, c.b, colorAlpha);
     }
 }

@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems; // 1
 using UnityEngine.UI;
@@ -18,10 +19,25 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
         colorNormal = image.color;
         colorHover = uiManager.uiHoverColor;
     }
+    private bool thisButtonActive;
+    void OnEnable()
+    {
+        thisButtonActive = false;
+        StartCoroutine(PostponeTrigger());
+    }
+    private IEnumerator PostponeTrigger()
+    {
+        yield return new WaitForSecondsRealtime(0.1f);
+        thisButtonActive = true;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         image.color = colorHover;
-        uiManager.HoverUI();
+        if (thisButtonActive)
+        {
+            uiManager.HoverUI();
+        }
     }
     public void OnPointerExit(PointerEventData eventData)
     {

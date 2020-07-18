@@ -39,6 +39,8 @@ public class AchievementStar : MonoBehaviour
         Silver,
         Gold
     }
+    public bool alphaTime;
+
     private void Awake()
     {
         shinyStarAnimation.enabled = false;
@@ -55,14 +57,18 @@ public class AchievementStar : MonoBehaviour
     }
     private void Update()
     {
+        if (alphaTime)
+            SetAlphaStuff();
+    }
+
+    private void SetAlphaStuff()
+    {
         starWood.color = SetAlpha(starWood.color);
         starBronze.color = SetAlpha(starBronze.color);
         starSilver.color = SetAlpha(starSilver.color);
         starGold.color = SetAlpha(starGold.color);
         txtLvlNum.color = SetAlpha(txtLvlNum.color);
     }
-
-
 
     public void SetTextAchievementDescription(string text)
     {
@@ -128,14 +134,15 @@ public class AchievementStar : MonoBehaviour
     }
 
 
-    public void NewAchievement(float t)
+    public float achievementDelay;
+    public void NewAchievement()
     {
-        StartCoroutine(AnimationDelay(t));
+        StartCoroutine(AnimationDelay(achievementDelay));
     }
     IEnumerator AnimationDelay(float t)
     {
-        yield return new WaitForSeconds(t);
         HighlightLevelStar();
+        yield return new WaitForSeconds(t);
         shinyStarAnimation.enabled = true;
         shinyStarAnimation.Play(0);
     }

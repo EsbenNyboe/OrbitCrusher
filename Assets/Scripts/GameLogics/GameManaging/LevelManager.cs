@@ -591,6 +591,10 @@ public class LevelManager : MonoBehaviour
                             scheduledLvlFail = true;
                             soundManager.ActivateGameStateSound(soundManager.levelFailed);
                         }
+                        else if (gameManager.godMode)
+                        {
+                            soundManager.ActivateGameStateSound(soundManager.objectiveFailed);
+                        }
                         soundManager.RepeatingSpawnSequence();
                     }
                 }

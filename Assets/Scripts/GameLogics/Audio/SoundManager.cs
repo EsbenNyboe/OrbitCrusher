@@ -361,11 +361,11 @@ public class SoundManager : MonoBehaviour
     {
         spawnSequenceRepeatIndex++;
 
-        float decreaseFactorPerRepeat = 1 - spawnSequenceRepeatIndex * 0.11f;
-        if (decreaseFactorPerRepeat < 0.6f)
-            decreaseFactorPerRepeat = 0.6f;
-        float decreasedVolume = orbSpawn.initialVolume * decreaseFactorPerRepeat;
-        orbSpawn.VolumeChangeInParent(decreasedVolume, 0.1f, false);
+        //float decreaseFactorPerRepeat = 1 - spawnSequenceRepeatIndex * 0.11f;
+        //if (decreaseFactorPerRepeat < 0.6f)
+        //    decreaseFactorPerRepeat = 0.6f;
+        //float decreasedVolume = orbSpawn.initialVolume * decreaseFactorPerRepeat;
+        //orbSpawn.VolumeChangeInParent(decreasedVolume, 0.1f, false);
     }
     #endregion
 
@@ -398,6 +398,13 @@ public class SoundManager : MonoBehaviour
     public void ActivateGameStateSound(AudioObject audioObject)
     {
         audioObject.VolumeChangeInParent(audioObject.initialVolume, 0, false);
+        if (gameManager.godMode)
+        {
+            if (audioObject == levelFailed)
+            {
+                audioObject.VolumeChangeInParent(0, 0, false);
+            }
+        }
     }
     public void StopGameStateSound(AudioObject audioObject)
     {
@@ -414,4 +421,15 @@ public class SoundManager : MonoBehaviour
     }
     #endregion
 
+    public IEnumerator UnloadAudioDataLevelMusic()
+    {
+        yield return new WaitForSeconds(0.5f);
+        for (int i = 0; i < LevelManager.sounds.Length; i++)
+        {
+            for (int e = 0; e < LevelManager.sounds[i].soundMultiples.Length; e++)
+            {
+                LevelManager.sounds[i].soundMultiples[e].soundFile.UnloadAudioData();
+            }
+        }
+    }
 }

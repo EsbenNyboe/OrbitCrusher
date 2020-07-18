@@ -174,6 +174,7 @@ public class PauseMenu : MonoBehaviour
         soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, false);
         soundManager.ActivateGameStateSound(soundManager.levelFailed);
         GameManager.death = true;
+        gameManager.godMode = false;
     }
     public void CloseApplication()
     {
