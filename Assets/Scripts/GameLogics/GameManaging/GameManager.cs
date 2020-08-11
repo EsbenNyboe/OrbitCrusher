@@ -15,22 +15,43 @@ public class GameManager : MonoBehaviour
     public bool frameRateDeveloperMode;
     public int targetFrameRate;
 
+    [HideInInspector]
     public MusicMeter musicMeter;
+    [HideInInspector]
     public NodeBehavior nodeBehavior;
+    [HideInInspector]
     public CometBehavior cometMovement;
+    [HideInInspector]
     public CometManager cometManager;
+    [HideInInspector]
     public HealthBar healthBar;
+    [HideInInspector]
     public SoundManager soundManager;
+    [HideInInspector]
     public UIManager uiManager;
-    private LevelDesigner levelSettings;
+    [HideInInspector]
     public LevelManager levelManager;
+    [HideInInspector]
     public TutorialUI tutorialUI;
-    public LevelNumberDisplay levelNumberDisplay;
+    [HideInInspector]
     public BackgroundColorManager backgroundColorManager;
+    [HideInInspector]
     public SoundDsp soundDsp;
-    ScreenShake screenShake;
+    [HideInInspector]
+    public ScreenShake screenShake;
+    [HideInInspector]
+    public Player player;
+    [HideInInspector]
+    public Achievements achievements;
+    [HideInInspector]
+    public CometColor cometColor;
+
 
     public GameObject[] levels;
+    [HideInInspector]
+    public LevelDesigner[] levelDesigners;
+    private LevelDesigner levelDesigner;
+
     public int tutorialEnergy;
     public int startEnergy;
     public int maxEnergy;
@@ -62,19 +83,15 @@ public class GameManager : MonoBehaviour
 
     public int energyDisplay;
 
-    public CometColor cometColor;
-
     public static bool loadNewLevel;
 
 
     public static int energyPool;
-    int hpAtLevelCompletion;
+    public static int hpAtLevelCompletion;
     bool fullHpBonusChecked;
 
-    public Player player;
-    public Achievements achievements;
     public static int damageTakenThisLevel;
-    //[HideInInspector]
+    [HideInInspector]
     public bool easyMode;
 
 
@@ -96,7 +113,7 @@ public class GameManager : MonoBehaviour
             Achievements.lvlsWonNoDmg = player.lvlsWonZeroDmg;
         }
         achievements.UpdateAchievements();
-        screenShake = GetComponentInChildren<ScreenShake>();
+        //screenShake = GetComponentInChildren<ScreenShake>();
     }
     private void Start()
     {
@@ -113,7 +130,7 @@ public class GameManager : MonoBehaviour
             achievements.DisplayAchievements(false, true);
         }
 
-        if (!levelLoadDeveloperMode)
+        if (levelLoadUseSaveSystem)
         {
             betweenLevelsState = BetweenLevelsState.GameStart;
 
@@ -147,14 +164,14 @@ public class GameManager : MonoBehaviour
     }
     private void Update()
     {
-        if (levelLoadDeveloperMode)
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                LoadQuickloadLevelSelection();
-                levelLoadDeveloperMode = false;
-            }
-        }
+        //if (levelLoadDeveloperMode)
+        //{
+        //    if (Input.GetKeyDown(KeyCode.Space))
+        //    {
+        //        LoadQuickloadLevelSelection();
+        //        levelLoadDeveloperMode = false;
+        //    }
+        //}
         if (frameRateDeveloperMode)
         {
             Application.targetFrameRate = targetFrameRate;
@@ -207,7 +224,6 @@ public class GameManager : MonoBehaviour
     public void LevelStartTriggered(bool newLevel)
     {
         loadNewLevel = newLevel;
-        levelNumberDisplay.StartLevel();
         if (levelProgression == 0)
         {
             inTutorial = true;
@@ -224,11 +240,16 @@ public class GameManager : MonoBehaviour
         damageTakenThisLevel = 0;
         fullHpBonusChecked = false;
         hpAtLevelCompletion = 0;
-        godMode = easyMode;
+        if (levelLoadUseSaveSystem)
+            godMode = easyMode;
+
+        Screen.autorotateToLandscapeLeft = false;
+        Screen.autorotateToLandscapeRight = false;
     }
 
 
 
+    public ProgressBar progressBar;
     private void LoadTransitionToLevel()
     {
         HealthBar.tutorialFadeOut = false;
@@ -256,11 +277,16 @@ public class GameManager : MonoBehaviour
             if (levelObject == currentLevel)
             {
                 levelObject.SetActive(true);
-                levelSettings.LoadLevelSettingsNew();
+                levelDesigner.LoadLevelSettingsNew();
             }
             else
                 levelObject.SetActive(false);
         }
+
+        progressBar.DisplayProgress(true);
+        progressBar.SetProgressBarLevel(levelProgression, LevelManager.targetNodes.Length);
+        progressBar.SetProgressBarStage(LevelManager.levelObjectiveCurrent);
+
 
         SoundDsp.dspTimeAtSectionStart = 0; // this could be overwritten, correct? 
         musicMeter.LoadNewMeterSettings(120, 8, 2);
@@ -281,7 +307,8 @@ public class GameManager : MonoBehaviour
     private void ChooseLevel(int levelNumber)
     {
         currentLevel = levels[levelNumber];
-        levelSettings = currentLevel.GetComponent<LevelDesigner>();
+        levelDesigner = levelDesigners[levelNumber];
+        //levelDesigner = currentLevel.GetComponent<LevelDesigner>();
     }
     private void RunTransitionToLevel()
     {
@@ -346,8 +373,10 @@ public class GameManager : MonoBehaviour
             hpAtLevelCompletion = 0;
         }
         //print(hpAtLevelCompletion);
-
-
+        
+        soundManager.LevelWonChooseSound();
+        if (LevelManager.lastObjective && hpAtLevelCompletion != maxEnergy)
+            soundManager.LevelWonDmgOnLastObjective();
     }
 
     private void CheckIfEnergyFull()
@@ -362,11 +391,25 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public static int previousAchievementIndexForLastFinishedLevel;
+    public static bool silver;
+    public static bool gold;
     public void LevelCompleted()
     {
         achievements.DisplayAchievements(true, false);
         bool newAchievement = false;
-        // gamemode
+        bool newSilver = false;
+        bool newGold = false;
+
+        if (Achievements.lvlsWonEasy[levelProgression])
+            previousAchievementIndexForLastFinishedLevel = 1;
+        if (Achievements.lvlsWon[levelProgression])
+            previousAchievementIndexForLastFinishedLevel = 2;
+        if (Achievements.lvlsWonFullHp[levelProgression])
+            previousAchievementIndexForLastFinishedLevel = 3;
+        if (Achievements.lvlsWonNoDmg[levelProgression])
+            previousAchievementIndexForLastFinishedLevel = 4;
+
         if (easyMode)
         {
             if (!Achievements.lvlsWonEasy[levelProgression])
@@ -381,20 +424,34 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            if (hpAtLevelCompletion == maxEnergy && !Achievements.lvlsWonFullHp[levelProgression])
+            if (hpAtLevelCompletion == maxEnergy)
             {
-                //print("full hp");
-                Achievements.lvlsWonFullHp[levelProgression] = true;
-                newAchievement = true;
-                player.lvlsWonFullHp[levelProgression] = true;
+                if (!Achievements.lvlsWonFullHp[levelProgression])
+                {
+                    //print("full hp");
+                    Achievements.lvlsWonFullHp[levelProgression] = true;
+                    newAchievement = true;
+                    player.lvlsWonFullHp[levelProgression] = true;
+                    newSilver = true;
+                }
+                silver = true;
             }
-            if (damageTakenThisLevel == 0 && !Achievements.lvlsWonNoDmg[levelProgression])
+            else
+                silver = false;
+            if (damageTakenThisLevel == 0)
             {
-                //print("no dmg");
-                Achievements.lvlsWonNoDmg[levelProgression] = true;
-                newAchievement = true;
-                player.lvlsWonZeroDmg[levelProgression] = true;
+                if (!Achievements.lvlsWonNoDmg[levelProgression])
+                {
+                    //print("no dmg");
+                    Achievements.lvlsWonNoDmg[levelProgression] = true;
+                    newAchievement = true;
+                    player.lvlsWonZeroDmg[levelProgression] = true;
+                    newGold = true;
+                }
+                gold = true;
             }
+            else
+                gold = false;
             if (!Achievements.lvlsWon[levelProgression])
             {
                 //print("completed");
@@ -410,7 +467,7 @@ public class GameManager : MonoBehaviour
         }
         if (newAchievement)
         {
-            achievements.NewAchievement(levelProgression);
+            achievements.NewAchievement(levelProgression, newSilver, newGold);
             achievements.ChangeLevelText(levelProgression);
         }
         else
@@ -424,7 +481,6 @@ public class GameManager : MonoBehaviour
         screenShake.ScreenShakeLevelCompleted();
         levelCompleted = true;
         backgroundColorManager.LevelCompleted();
-        levelNumberDisplay.LevelCompleted();
         healthBar.FadeOutHealthbar();
         HoverGraphicText.allButtonsActive = false;
         objectiveToLoad = 0;
@@ -437,13 +493,13 @@ public class GameManager : MonoBehaviour
             gameCompleted = true;
             uiManager.ShowTextGameWon();
             levelProgression = 0;
-            levelLoadDeveloperMode = false;
+            levelLoadDeveloperMode = false; // why though??
             godMode = false;
         }
         else
         {
             betweenLevelsState = BetweenLevelsState.Continue;
-            uiManager.ShowTextLevelCompleted();
+            uiManager.ShowTextLevelCompleted(newSilver, newGold);
         }
         if (inTutorial)
         {
@@ -461,7 +517,6 @@ public class GameManager : MonoBehaviour
             screenShake.ScreenShakeLevelFailed();
             cometMovement.LevelFailed();
             backgroundColorManager.LevelFailed();
-            levelNumberDisplay.LevelFailed();
             HoverGraphicText.allButtonsActive = false;
             healthBar.FadeOutHealthbar();
             LevelManager.firstTimeHittingTarget = true;
@@ -475,7 +530,7 @@ public class GameManager : MonoBehaviour
 
     private void UnloadLevel()
     {
-        soundManager.ToggleTransposedMusic(false);
+        soundManager.ToggleTransposedMusic(false, false);
         soundManager.FadeInMusicBetweenLevels();
 
         PauseMenu.exitingOrbit = false;
@@ -486,11 +541,18 @@ public class GameManager : MonoBehaviour
         CometBehavior.isMoving = false;
         musicMeter.StopMusicMeter();
         cometColor.Color_OutOfOrbit();
+        cometManager.UnloadLevel();
         //achievements.NewAchievement(levelProgression);
         player.lvl = levelProgression;
         player.SavePlayer();
 
         StartCoroutine(soundManager.UnloadAudioDataLevelMusic());
+
+        Screen.autorotateToLandscapeLeft = true;
+        Screen.autorotateToLandscapeRight = true;
+
+        //Screen.orientation = ScreenOrientation.AutoRotation;
+        StartCoroutine(soundManager.StopTranToObjActivationSounds());
     }
 
     public void ToggleGodMode()

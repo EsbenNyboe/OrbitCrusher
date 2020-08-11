@@ -10,10 +10,9 @@ public class BackgroundIntroFade : MonoBehaviour
     Color c;
 
     public bool alphaUpdate;
-
+    public MeshRenderer meshR;
     private void Awake()
     {
-        MeshRenderer meshR = GetComponent<MeshRenderer>();
         meshR.enabled = true;
         material = meshR.material;
         c = material.color;
@@ -23,5 +22,10 @@ public class BackgroundIntroFade : MonoBehaviour
     {
         if (alphaUpdate)
             material.color = new Color(c.r, c.g, c.b, colorAlpha);
+    }
+
+    public void DisableGameObject()
+    {
+        gameObject.SetActive(false);
     }
 }

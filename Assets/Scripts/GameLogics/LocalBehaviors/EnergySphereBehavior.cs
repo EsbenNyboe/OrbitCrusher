@@ -3,17 +3,36 @@ using UnityEngine;
 
 public class EnergySphereBehavior : MonoBehaviour
 {
-    [HideInInspector]
     public Color cGhost, cAlive, cPickup, cGlued;
 
+    public GameObject particleTrailLight;
+    public ParticleSystem particleTrailLight_ps;
 
     public GameObject particleTrailPrefabA;
-    public GameObject particleTrailLight;
+    [HideInInspector]
+    public ParticleSystem particleTrailPrefabA_ps;
+    [HideInInspector]
+    public ParticleSystemRenderer particleTrailPrefabA_psRenderer;
+
     public GameObject particleTrailPrefabB;
+    [HideInInspector]
+    public ParticleSystem particleTrailPrefabB_ps;
+    [HideInInspector]
+    public ParticleSystemRenderer particleTrailPrefabB_psRenderer;
+
+
+
+
     public GameObject particleCollisionBad;
+    public ParticleSystem particleCollisionBad_ps;
     public GameObject particleCollisionGood;
+    public ParticleSystem particleCollisionGood_ps;
     public GameObject particleSpawnA;
+    [HideInInspector]
+    public ParticleSystem particleSpawnA_ps;
     public GameObject particleSpawnB;
+    [HideInInspector]
+    public ParticleSystem particleSpawnB_ps;
 
     ParticleSystem.MainModule psLight;
     ParticleSystem.MainModule psmainA;
@@ -66,6 +85,9 @@ public class EnergySphereBehavior : MonoBehaviour
     public SoundManager soundManager;
     public TutorialUI tutorialUI;
 
+    [HideInInspector]
+    public SphereCollider sphereCollider;
+
 
     public bool killParticleOnGoodColl;
 
@@ -73,11 +95,12 @@ public class EnergySphereBehavior : MonoBehaviour
     {
         // this used to be called in awake
         hasHitNode = false;
-        initialSortingOrderA = particleTrailPrefabA.GetComponent<ParticleSystemRenderer>().sortingOrder;
-        initialSortingOrderB = particleTrailPrefabB.GetComponent<ParticleSystemRenderer>().sortingOrder;
-        psmainA = particleTrailPrefabA.GetComponent<ParticleSystem>().main;
-        psmainB = particleTrailPrefabB.GetComponent<ParticleSystem>().main;
-        psLight = particleTrailLight.GetComponent<ParticleSystem>().main;
+        initialSortingOrderA = particleTrailPrefabA_psRenderer.sortingOrder;
+        initialSortingOrderB = particleTrailPrefabB_psRenderer.sortingOrder;
+        psmainA = particleTrailPrefabA_ps.main;
+        psmainB = particleTrailPrefabB_ps.main;
+
+        //psLight = particleTrailLight.GetComponent<ParticleSystem>().main;
         BecomeGhost();
     }
     void FixedUpdate()
@@ -86,7 +109,8 @@ public class EnergySphereBehavior : MonoBehaviour
         {
             if (!movedToBack)
             {
-                GetComponent<SphereCollider>().enabled = false;
+                sphereCollider.enabled = false;
+                //GetComponent<SphereCollider>().enabled = false;
                 transform.localPosition += new Vector3(0, 0, 0); // this is stupid! disable collider instead
                 movedToBack = true;
             }
@@ -165,9 +189,12 @@ public class EnergySphereBehavior : MonoBehaviour
             SetColorPickup(psmainB);
             isBeingDragged = true;
             playerIsDraggingAnEnergySphere = true;
-            particleTrailPrefabA.GetComponent<ParticleSystemRenderer>().sortingOrder = initialSortingOrderA;
-            particleTrailPrefabB.GetComponent<ParticleSystemRenderer>().sortingOrder = initialSortingOrderB;
-            particleTrailLight.GetComponent<ParticleSystem>().Play();
+
+
+            particleTrailPrefabA_psRenderer.sortingOrder = initialSortingOrderA;
+            particleTrailPrefabB_psRenderer.sortingOrder = initialSortingOrderB;
+            particleTrailLight_ps.Play();
+            //particleTrailLight.GetComponent<ParticleSystem>().Play();
             draggedObject = this;
         }
     }
@@ -211,10 +238,15 @@ public class EnergySphereBehavior : MonoBehaviour
         isGhost = false;
         SetColorAlive(psmainA);
         SetColorAlive(psmainB);
-        particleSpawnA.GetComponent<ParticleSystem>().Play();
-        particleSpawnB.GetComponent<ParticleSystem>().Play();
+
+        particleSpawnA_ps.Play();
+        particleSpawnB_ps.Play();
+        //particleSpawnA.GetComponent<ParticleSystem>().Play();
+        //particleSpawnB.GetComponent<ParticleSystem>().Play();
     }
     #endregion
+
+
 
     #region Position Methods
     private void StayWithinScreenEdges(ref Vector3 worldPos)
@@ -240,7 +272,8 @@ public class EnergySphereBehavior : MonoBehaviour
     public void SpherePickedUpNoMore()
     {
         sphereBeingDraggedForEagerGhosts = null;
-        soundManager.OrbPickedUpNoMore();
+        if (isBeingDragged || isGlued)
+            soundManager.OrbPickedUpNoMore();
     }
     
     private Vector3 GetMouseWorldPos()
@@ -382,17 +415,19 @@ public class EnergySphereBehavior : MonoBehaviour
 
     public void StopParticles()
     {
-        particleTrailPrefabA.GetComponent<ParticleSystem>().Stop();
-        particleTrailPrefabB.GetComponent<ParticleSystem>().Stop();
+        particleTrailPrefabA_ps.Stop();
+        particleTrailPrefabB_ps.Stop();
+        //particleTrailPrefabA.GetComponent<ParticleSystem>().Stop();
+        //particleTrailPrefabB.GetComponent<ParticleSystem>().Stop();
     }
     public void CollisionParticleEffectBad()
     {
         if (!isDead)
-            particleCollisionBad.GetComponent<ParticleSystem>().Play();
+            particleCollisionBad_ps.Play();
     }
     public void CollisionParticleEffectGood()
     {
-        particleCollisionGood.GetComponent<ParticleSystem>().Play();
+        particleCollisionGood_ps.Play();
     }
     public void KillTheLights()
     {

@@ -19,6 +19,21 @@ public class ObjectiveManager : MonoBehaviour
     public NodeBehavior nodeBehavior;
     public TutorialUI tutorialUI;
 
+    private void Update()
+    {
+        if (gameManager.levelLoadDeveloperMode)
+        {
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                EnergySphereBehavior.draggedObject = energySpheresSpawned[energySpheresSpawned.Length - 1].GetComponent<EnergySphereBehavior>();
+                for (int i = 0; i < energySpheresSpawned.Length; i++)
+                {
+                    GameObject node = LevelManager.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]];
+                    energySpheresSpawned[i].GetComponentInChildren<EnergySphereCollision>().GoodCollision4Reals(node);
+                }
+            }
+        }
+    }
     public void ResetSphereArrays()
     {
         NumberDisplayEnergyChange.amountOnTargetMemory = amountOnTarget;
@@ -56,6 +71,8 @@ public class ObjectiveManager : MonoBehaviour
         {
             nodeBehavior.HighlightCompletedTarget(LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]);
             LevelManager.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]].GetComponentInChildren<NumberDisplayTargetNode>().AllOrbsHaveHitTarget();
+            if (LevelManager.levelMusic != null)
+                LevelManager.levelMusic.AllOrbsHaveHitTarget();
         }
         else
         {

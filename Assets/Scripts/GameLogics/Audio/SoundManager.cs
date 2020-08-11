@@ -5,18 +5,87 @@ using UnityEngine;
 public class SoundManager : MonoBehaviour
 {
     // main thread sounds
-    public AudioObject orbPickup, orbGlued, orbGluedAlt, orbPickupDenied, orbDrag;
+    public AudioObject orbPickup, orbGlued, orbGluedAlt, orbPickupDenied, orbDrag, orbDisconnect;
     public AudioObject[] orbDragGlued;
-    public AudioObject correctHit, incorrectHit, incorrectHitComet;
+    public AudioObject correctHitStandard, correctHitTransA, correctHitTransB;
+    public AudioObject incorrectHit, incorrectHitComet;
     public AudioObject healthChargeLower, healthChargeUpper, healthDrainLower, healthDrainUpper;
     public AudioObject cometWallHit, uiClick, uiHover;
-    public AudioObject musicBetweenLevels;
+    public AudioObject musicBetweenLevels, musicDefeat, musicVictory;
 
     // dsp sounds
-    public AudioObject orbSpawnStandard, orbSpawnTransposed;
-    public AudioObject levelCompleted, levelFailed, objectiveCompleted, objectiveFailed;
+    public AudioObject orbSpawnStandard, orbSpawnTransposed, orbSpawnTransposedTwice;
+    [HideInInspector]
+    public AudioObject levelWon;
+    public AudioObject levelWonBronze, levelWonSilver, levelWonGold;
+    public AudioObject levelFailed, objectiveFailed;
+    public AudioObject objectiveCompletedStandard, objectiveCompletedTransA, objectiveCompletedTransB;
     public AudioObject objectiveActivated;
     public AudioObject musTutLoopA, musTutLoopB, musTutLoopC;
+
+    public AudioObject tranToObjActivate, tranToObjActivateShort;
+    public float tranToObjActivateLookaheadTime, tranToObjActivateShortLookaheadTime;
+
+    public AnimationCurve fadeOutAnim;
+    public static AnimationCurve fadeAnimStatic;
+
+    public static float levelMusicFadeTime;
+    public static float levelMusicInitialVol;
+    public static bool levelMusicFadeIn;
+    public void LevelMusicFadeOutMethod(VoicePlayer voicePlayer, float fadeTime, bool fadeIn)
+    {
+        levelMusicFadeTime = fadeTime;
+        levelMusicInitialVol = 1;
+        levelMusicFadeIn = fadeIn;
+        voicePlayer.LetMeDoTheCoroutiningOkPlz();
+    }
+
+    public void LevelMusicFadeOutMethodNew(VoicePlayer voicePlayer)
+    {
+        float timeUntilTarget = musicMeter.CheckTimeRemainingUntilMeterTarget(LevelManager.cometTimings[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]], "", 0, false);
+        float threshold = 0.2f;
+        float fadeTime;
+        float delay = 0;
+        float frameBuffer = Time.deltaTime;
+        if (timeUntilTarget > threshold)
+        {
+            fadeTime = threshold;
+            delay = timeUntilTarget - threshold - frameBuffer - soundDsp.musicLatencyCompensation;
+        }
+        else
+        {
+            fadeTime = timeUntilTarget - frameBuffer - soundDsp.musicLatencyCompensation;
+            if (fadeTime < 0)
+                fadeTime = 0.02f;
+        }
+        float extensionAmount = 0f;
+        fadeTime *= 1 + extensionAmount;
+
+
+        voicePlayer.FadeOutMethodNew(fadeTime, false, delay);
+    }
+
+
+    public void LevelWonChooseSound()
+    {
+        if (GameManager.damageTakenThisLevel == 0)
+        {
+            levelWon = levelWonGold;
+        }
+        else if (GameManager.energy == gameManager.maxEnergy && LevelManager.levelObjectiveCurrent + 2 >= LevelManager.targetNodes.Length)
+        {
+            levelWon = levelWonSilver;
+        }
+        else
+        {
+            levelWon = levelWonBronze;
+        }
+    }
+    public void LevelWonDmgOnLastObjective()
+    {
+        levelWon = levelWonBronze;
+    }
+
 
     public float musTutLoopFadeIn;
     public float musTutLoopFadeOut;
@@ -36,19 +105,21 @@ public class SoundManager : MonoBehaviour
 
     float cometWallHitTimer;
 
+    [HideInInspector]
     public GameManager gameManager;
+    [HideInInspector]
     public TutorialUI tutorialUI;
+    [HideInInspector]
     public MusicMeter musicMeter;
+    [HideInInspector]
     public MeterLookahead meterLookahead;
-    SoundDsp soundDsp;
+    [HideInInspector]
+    public SoundDsp soundDsp;
 
-    private void Awake()
-    {
-        soundDsp = GetComponent<SoundDsp>();
-    }
     private void Start()
     {
-        ToggleTransposedMusic(false);
+        fadeAnimStatic = fadeOutAnim;
+        ToggleTransposedMusic(false, false);
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
         FadeInMusicBetweenLevels();
         musicBetweenLevelsAllowed = false; // a little confused about this one... 
@@ -148,6 +219,7 @@ public class SoundManager : MonoBehaviour
     IEnumerator FadeInMusicBetweenLevelsLameDelay()
     {
         yield return new WaitForSeconds(0.1f);
+        musicBetweenLevels.TriggerAudioObject();
         if (!musicBetweenLevels.IsPlaying())
         {
             musicBetweenLevels.TriggerAudioObject();
@@ -157,7 +229,11 @@ public class SoundManager : MonoBehaviour
     }
     public void LevelTransition()
     {
-        levelCompleted.VolumeChangeInParent(0f, 2f, false);
+        if (levelWon == null)
+            levelWon = levelWonBronze;
+        levelWon.VolumeChangeInParent(0f, 2f, false);
+        //levelWonSilver.VolumeChangeInParent(0f, 2f, false);
+        //levelWonGold.VolumeChangeInParent(0f, 2f, false);
         levelFailed.VolumeChangeInParent(0f, 2f, false);
         musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
         musicBetweenLevelsAllowed = false;
@@ -305,6 +381,7 @@ public class SoundManager : MonoBehaviour
             orbDragGlued[i].VolumeChangeInParent(0, sphereDragVolFade, false);
         }
         orbsGluedIndex = 0;
+        orbDisconnect.TriggerAudioObject();
     }
     public void CorrectNodeHit()
     {
@@ -335,12 +412,31 @@ public class SoundManager : MonoBehaviour
     #region Orb Spawn
 
     AudioObject orbSpawn; // tbc
-    public void ToggleTransposedMusic(bool isTransposed)
+    [HideInInspector]
+    public AudioObject objectiveCompleted;
+    AudioObject correctHit;
+    public void ToggleTransposedMusic(bool isTransposedOnce, bool isTransposedTwice)
     {
-        if (isTransposed)
+        if (isTransposedTwice)
+        {
+            orbSpawn = orbSpawnTransposedTwice;
+            objectiveCompleted = objectiveCompletedTransB;
+            correctHit = correctHitTransB;
+        }
+        else if (isTransposedOnce)
+        {
             orbSpawn = orbSpawnTransposed;
+            objectiveCompleted = objectiveCompletedTransA;
+            correctHit = correctHitTransA;
+        }
         else
+        {
             orbSpawn = orbSpawnStandard;
+            objectiveCompleted = objectiveCompletedStandard;
+            correctHit = correctHitStandard;
+        }
+
+        objectiveCompleted = objectiveCompletedStandard;
     }
 
     public IEnumerator StopOrbSpawnSounds()
@@ -369,6 +465,36 @@ public class SoundManager : MonoBehaviour
     }
     #endregion
 
+    public IEnumerator ScheduleTranToObjActivation(bool nextTarget)
+    {
+        yield return new WaitForEndOfFrame();
+        double dspTime = soundDsp.DspTimeOnNodeHit(nextTarget) - soundDsp.musicStartOffset - tranToObjActivateLookaheadTime;
+
+        if (dspTime > AudioSettings.dspTime + 0.1f)
+        {
+            tranToObjActivate.TriggerAudioObjectScheduled(dspTime);
+            if (GameManager.inTutorial)
+            {
+                soundDsp.AddScheduledMusicToList(tranToObjActivate, dspTime);
+            }
+        }
+        else
+        {
+            dspTime = dspTime + tranToObjActivateLookaheadTime - tranToObjActivateShortLookaheadTime;
+            tranToObjActivateShort.TriggerAudioObjectScheduled(dspTime);
+            if (GameManager.inTutorial)
+            {
+                soundDsp.AddScheduledMusicToList(tranToObjActivateShort, dspTime);
+            }
+        }
+    }
+    public IEnumerator StopTranToObjActivationSounds()
+    {
+        yield return new WaitForSeconds(0.1f);
+        tranToObjActivate.StopAudioAllVoices();
+        tranToObjActivateShort.StopAudioAllVoices();
+    }
+
     #region Music Stingers For GameState Changes
     public void ObjectiveActivatedPlaySound()
     {
@@ -376,10 +502,8 @@ public class SoundManager : MonoBehaviour
         objectiveActivated.TriggerAudioObjectScheduled(dspTime);
         if (GameManager.inTutorial)
         {
-            //AddToScheduledMusicPool(objectiveActivated, dspTime);
             soundDsp.AddScheduledMusicToList(objectiveActivated, dspTime);
         }
-        //MusicScheduledPlayRelativeToDspReferenceNotFirstBeat(objectiveActivated);
     }
     public void ScheduleGameStateSound(AudioObject audioObject, bool nextTarget, bool isActivated)
     {
@@ -391,7 +515,6 @@ public class SoundManager : MonoBehaviour
         }
         if (GameManager.inTutorial)
         {
-            //AddToScheduledMusicPool(audioObject, dspTime);
             soundDsp.AddScheduledMusicToList(audioObject, dspTime);
         }
     }
@@ -415,7 +538,6 @@ public class SoundManager : MonoBehaviour
     {
         for (int i = 0; i < lastObjPreFadeOut.Length; i++)
         {
-            print("do it:" + Time.time);
             lastObjPreFadeOut[i].VolumeChangeInParent(0, 0.1f, false);
         }
     }
@@ -424,11 +546,29 @@ public class SoundManager : MonoBehaviour
     public IEnumerator UnloadAudioDataLevelMusic()
     {
         yield return new WaitForSeconds(0.5f);
-        for (int i = 0; i < LevelManager.sounds.Length; i++)
+        if (LevelManager.levelDesigner.useLevelMusicSystem)
         {
-            for (int e = 0; e < LevelManager.sounds[i].soundMultiples.Length; e++)
+            LevelMusic.Part[] part = LevelManager.levelMusic.part;
+            for (int i = 0; i < part.Length; i++)
             {
-                LevelManager.sounds[i].soundMultiples[e].soundFile.UnloadAudioData();
+                LevelMusic.Sound[] s = part[i].sound;
+                for (int e = 0; e < s.Length; e++)
+                {
+                    for (int a = 0; a < s[e].audioObject.soundMultiples.Length; a++)
+                    {
+                        s[e].audioObject.soundMultiples[a].soundFile.UnloadAudioData();
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < LevelManager.sounds.Length; i++)
+            {
+                for (int e = 0; e < LevelManager.sounds[i].soundMultiples.Length; e++)
+                {
+                    LevelManager.sounds[i].soundMultiples[e].soundFile.UnloadAudioData();
+                }
             }
         }
     }

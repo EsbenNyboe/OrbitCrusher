@@ -4,7 +4,7 @@
 QualitySettings:
   m_ObjectHideFlags: 0
   serializedVersion: 5
-  m_CurrentQuality: 5
+  m_CurrentQuality: 1
   m_QualitySettings:
   - serializedVersion: 2
     name: Very Low
@@ -44,8 +44,8 @@ QualitySettings:
     excludedTargetPlatforms:
     - Standalone
     - WebGL
-    - Android
     - iPhone
+    - Android
   - serializedVersion: 2
     name: Low
     pixelLightCount: 0
@@ -198,10 +198,10 @@ QualitySettings:
     resolutionScalingFixedDPIFactor: 1
     customRenderPipeline: {fileID: 0}
     excludedTargetPlatforms:
-    - Standalone
     - WebGL
     - iPhone
     - Android
+    - Standalone
   - serializedVersion: 2
     name: Ultra
     pixelLightCount: 0
@@ -241,6 +241,7 @@ QualitySettings:
     - WebGL
     - iPhone
     - Android
+    - Standalone
   m_PerPlatformDefaultQuality:
     Android: 1
     Lumin: 5

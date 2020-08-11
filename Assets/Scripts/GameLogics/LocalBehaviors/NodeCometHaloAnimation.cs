@@ -4,14 +4,15 @@ using UnityEngine;
 
 public class NodeCometHaloAnimation : MonoBehaviour
 {
-    Animator anim;
+    public Animator anim;
     public Color colorBad; // not  used
     public Color colorGood; // not  used
     public Color colorPulse; // not  used
+    public NodeCollisionScript nodeCollisionScript;
 
     private void Awake()
     {
-        anim = GetComponent<Animator>();
+        //anim = GetComponent<Animator>();
     }
     public void ApplyColors(Color cBad, Color cGood, Color cPulse)
     {
@@ -32,7 +33,7 @@ public class NodeCometHaloAnimation : MonoBehaviour
     }
     public void HighlightNewTarget(bool isTarget)
     {
-        
+        nodeCollisionScript.ChooseCollider(isTarget);
     }
     public void CollComet(bool isTarget, bool first, bool isCompleted)
     {

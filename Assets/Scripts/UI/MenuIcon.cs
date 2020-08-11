@@ -46,7 +46,7 @@ public class MenuIcon : MonoBehaviour
             }
             else if (GameManager.inTutorial)
             {
-                pauseMenu.ToggleMenu();
+                pauseMenu.EnterDialogue_SkipTutorial();
             }
             else
             {

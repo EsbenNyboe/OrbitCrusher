@@ -7,7 +7,7 @@ public class HoverGraphicText : MonoBehaviour, IPointerEnterHandler, IPointerExi
 {
     UIManager uiManager;
     TextMeshProUGUI text;
-    public static Color colorNormal;
+    Color colorNormal;
     public static Color colorHover;
     public bool buttonDelay;
     public float delayTime;

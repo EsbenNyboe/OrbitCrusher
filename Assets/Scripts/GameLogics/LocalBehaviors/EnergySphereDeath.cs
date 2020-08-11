@@ -9,10 +9,11 @@ public class EnergySphereDeath : MonoBehaviour
     [Range(0.001f, 5f)]
     public float collisionDeathDelay;
     IEnumerator scheduledDestroy;
-    EnergySphereBehavior energySphereBehavior; 
+    [HideInInspector]
+    public EnergySphereBehavior energySphereBehavior; 
     private void Awake()
     {
-        energySphereBehavior = GetComponent<EnergySphereBehavior>();
+        //energySphereBehavior = GetComponent<EnergySphereBehavior>();
     }
     public void StopRemainingParticlesThenDestroy()
     {

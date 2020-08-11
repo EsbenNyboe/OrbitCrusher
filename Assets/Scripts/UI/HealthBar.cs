@@ -9,11 +9,13 @@ public class HealthBar : MonoBehaviour
     [Range(0, 1)]
     public float aColorHealthbar, aColorShadow, aColorFrame;
     public GameObject healthbarAnimGameObject;
-    private Animator healthbarAnimator;
+    public Animator healthbarAnimator;
 
-    public GameObject shadow;
     public GameObject frame;
-    private Animator frameAnimator;
+    [HideInInspector]
+    public SpriteRenderer frameSprite;
+    [HideInInspector]
+    public Animator frameAnimator;
 
     public float minSize;
     public float maxSize;
@@ -22,10 +24,17 @@ public class HealthBar : MonoBehaviour
     public AnimationCurve sizeCurve;
     public Animation tutorialEndFadeOut;
 
-    Material material;
-    Material shadowMaterial;
-    SpriteRenderer frameSprite;
+    
     [HideInInspector]
+    public MeshRenderer hpMesh;
+    Material material;
+
+    public GameObject shadow;
+    [HideInInspector]
+    public MeshRenderer hpShadowMesh;
+    Material shadowMaterial;
+    
+
     public Color cLow, cMedium, cHigh, cDrain, cCharge;
     public AnimationCurve energyCorrelation;
     public AnimationCurve colorCurve;
@@ -68,14 +77,16 @@ public class HealthBar : MonoBehaviour
         scaleZ = transform.localScale.z;
         transform.localScale = new Vector3(0, scaleY, scaleZ);
         shadow.transform.localScale = new Vector3(0, scaleY, scaleZ);
-        material = GetComponent<MeshRenderer>().material;
-        shadowMaterial = shadow.GetComponent<MeshRenderer>().material;
+        material = hpMesh.material;
+        //material = GetComponent<MeshRenderer>().material;
+        shadowMaterial = hpShadowMesh.material;
+        //shadowMaterial = shadow.GetComponent<MeshRenderer>().material;
     }
     private void Start()
     {
-        healthbarAnimator = healthbarAnimGameObject.GetComponent<Animator>();
-        frameAnimator = frame.GetComponent<Animator>();
-        frameSprite = frame.GetComponent<SpriteRenderer>();
+        //healthbarAnimator = healthbarAnimGameObject.GetComponent<Animator>();
+        //frameAnimator = frame.GetComponent<Animator>();
+        //frameSprite = frame.GetComponent<SpriteRenderer>();
     }
     public bool setColorManually;
     private void FixedUpdate()
@@ -252,6 +263,7 @@ public class HealthBar : MonoBehaviour
     IEnumerator DelayedHealthbarDrain()
     {
         yield return new WaitForSeconds(0.1f);
+        GameManager.energy = 0;
         UpdateHealthbarOnObjectiveConclusion(false);
     }
     public static bool frameColorIndependent = true;

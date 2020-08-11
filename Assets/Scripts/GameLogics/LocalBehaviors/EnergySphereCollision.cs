@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class EnergySphereCollision : MonoBehaviour
 {
-    EnergySphereBehavior energySphereBehavior;
+    public EnergySphereBehavior energySphereBehavior;
 
     public ObjectiveManager objectiveManager;
     public CometBehavior cometBehavior;
@@ -18,8 +18,7 @@ public class EnergySphereCollision : MonoBehaviour
 
     private void Start()
     {
-        // this used to be in awake
-        energySphereBehavior = GetComponentInParent<EnergySphereBehavior>();
+        //energySphereBehavior = GetComponentInParent<EnergySphereBehavior>();
     }
     void OnCollisionEnter(Collision collision)
     {
@@ -134,10 +133,13 @@ public class EnergySphereCollision : MonoBehaviour
         }
     }
 
+    [HideInInspector]
+    public EnergySphereDeath energySphereDeath;
     private void GoodCollision()
     {
         energySphereBehavior.CollisionParticleEffectGood();
-        GetComponentInParent<EnergySphereDeath>().SphereCollision(true);
+        energySphereDeath.SphereCollision(true);
+        //GetComponentInParent<EnergySphereDeath>().SphereCollision(true);
         objectiveManager.NewCollisionOnTarget(transform.parent.gameObject);
         DisableCollider();
         screenShake.ScreenShakeCollGoodNode();
@@ -146,13 +148,17 @@ public class EnergySphereCollision : MonoBehaviour
     private void BadCollision()
     {
         energySphereBehavior.CollisionParticleEffectBad();
-        GetComponentInParent<EnergySphereDeath>().SphereCollision(false);
+        energySphereDeath.SphereCollision(false);
+        //GetComponentInParent<EnergySphereDeath>().SphereCollision(false);
         objectiveManager.NewCollisionOnTrap(transform.parent.gameObject);
         DisableCollider();
     }
 
+    //[HideInInspector]
+    public SphereCollider sphereCollider;
     public void DisableCollider()
     {
-        GetComponent<SphereCollider>().enabled = false;
+        sphereCollider.enabled = false;
+        //GetComponent<SphereCollider>().enabled = false;
     }
 }

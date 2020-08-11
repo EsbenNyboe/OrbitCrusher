@@ -11,6 +11,7 @@ public class CometColor : MonoBehaviour
     public ParticleSystem trailOutOfOrbit;
     public ParticleSystem trailInOrbit;
     public ParticleSystem trailEnraged;
+    public ParticleSystem trailBetweenPuzzles;
 
     void Start()
     {
@@ -19,14 +20,23 @@ public class CometColor : MonoBehaviour
         Color_OutOfOrbit();
     }
 
+    public void Color_BetweenPuzzles()
+    {
+        trailBetweenPuzzles.Play();
+        trailOutOfOrbit.Stop();
+        trailInOrbit.Stop();
+        trailEnraged.Stop();
+    }
     public void Color_OutOfOrbit()
     {
+        trailBetweenPuzzles.Stop();
         trailOutOfOrbit.Play();
         trailInOrbit.Stop();
         trailEnraged.Stop();
     }
     public void Color_InOrbit()
     {
+        trailBetweenPuzzles.Stop();
         trailOutOfOrbit.Stop();
         trailInOrbit.Play();
         trailEnraged.Stop();

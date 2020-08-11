@@ -4,17 +4,17 @@ using UnityEngine;
 
 public class EnergySphereGoodCollision : MonoBehaviour
 {
-    EnergySphereCollision energySphereCollision;
+    public EnergySphereCollision energySphereCollision;
     CometBehavior cometBehavior;
-    SphereCollider sphereCollider;
-    EnergySphereBehavior energySphereBehavior;
+    public SphereCollider sphereCollider;
+    public EnergySphereBehavior energySphereBehavior;
 
     private void Awake()
     {
-        energySphereCollision = transform.parent.GetComponentInChildren<EnergySphereCollision>();
         cometBehavior = energySphereCollision.cometBehavior;
-        sphereCollider = GetComponent<SphereCollider>();
-        energySphereBehavior = GetComponentInParent<EnergySphereBehavior>();
+        //energySphereCollision = transform.parent.GetComponentInChildren<EnergySphereCollision>();
+        //sphereCollider = GetComponent<SphereCollider>();
+        //energySphereBehavior = GetComponentInParent<EnergySphereBehavior>();
     }
     private void Update()
     {

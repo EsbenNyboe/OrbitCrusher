@@ -267,6 +267,7 @@ public class AudioObject : MonoBehaviour
             voicePlayerNew[i].UnpauseAudio();
     }
     // when absolute-time is false, fadingTime refers to the time it takes to go from 0 to 1 volume - making the resulting fade time relative, aka. shorter
+
     public void VolumeChangeInParent(float volDestination, float fadingTime, bool absoluteTime)
     {
         fadeVolDestinationTime = Time.time + fadingTime;

@@ -13,12 +13,14 @@ public class Player : MonoBehaviour
     public bool[] lvlsWonFullHp;
     public bool[] lvlsWonZeroDmg;
 
+    public bool unlockAllWood;
     public bool unlockAllBronze;
     public bool unlockAllSilver;
     public bool unlockAllGold;
 
     public void UnlockAll()
     {
+        UnlockAllTrophies(unlockAllWood, lvlsWonEasy);
         UnlockAllTrophies(unlockAllBronze, lvlsWon);
         UnlockAllTrophies(unlockAllSilver, lvlsWonFullHp);
         UnlockAllTrophies(unlockAllGold, lvlsWonZeroDmg);

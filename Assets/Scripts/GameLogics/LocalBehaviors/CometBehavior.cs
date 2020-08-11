@@ -37,8 +37,15 @@ public class CometBehavior : MonoBehaviour
 
     public AnimationCurve lerpToTransitionNode;
 
+    public Light light;
+    public float intensityHigh;
+    public float intensityLow;
+
     private void Start()
     {
+        light.enabled = false;
+        light.intensity = intensityLow;
+
         transform.position = cometSpawnPosition;
         freeBirdStartDirection = initialCometSpeedNew;
         //RandomStartDirection();
@@ -99,7 +106,8 @@ public class CometBehavior : MonoBehaviour
     {
         nodes = LevelManager.nodes;
         currentDestination = 0;
-        LevelManager.transitionNode.transform.parent = null;
+        //LevelManager.transitionNode.transform.parent = null;
+        LevelManager.transitionNodeAnim.Play(0);
         transNodeStartPos = transNodePos = LevelManager.transitionNode.transform.position;
         inTransition = true;
     }
@@ -111,7 +119,7 @@ public class CometBehavior : MonoBehaviour
     Vector3 transNodeStartPos; // maybe this is doing nothing actually...
     public void LevelFailed()
     {
-        LevelManager.transitionNode.transform.localPosition = transNodeStartPos;
+        //LevelManager.transitionNode.transform.localPosition = transNodeStartPos;
     }
     #endregion
 
@@ -153,12 +161,15 @@ public class CometBehavior : MonoBehaviour
         //print("timeProgress:" + cometManager.timeProgressAdapted + "t:" + Time.time);
         //print("pos:" + transNodeProgress + "t:" + Time.time);
 
-        LevelManager.transitionNode.transform.localPosition = transNodeProgress; // replace
+        //LevelManager.transitionNode.transform.localPosition = transNodeProgress; // replace
+
         float cometTransitionMovement = transitionSpeedThis * cometManager.timeProgressAdapted * cometManager.timeProgressAdapted; // replace
         Vector3 pos = transform.localPosition;
         //transform.localPosition = Vector3.Lerp(pos, transNodeProgress, cometTransitionMovement); // replace
 
-        transform.localPosition = Vector3.Lerp(pos, transNodeProgress, lerpToTransitionNode.Evaluate(cometManager.timeProgressAdapted));
+        //transform.localPosition = Vector3.Lerp(pos, transNodeProgress, lerpToTransitionNode.Evaluate(cometManager.timeProgressAdapted));
+
+        transform.localPosition = Vector3.Lerp(pos, LevelManager.transitionNode.transform.position, lerpToTransitionNode.Evaluate(cometManager.timeProgressAdapted));
 
         freeBirdStartDirection = Vector3.Lerp(freeBirdStartDirection, new Vector3(0, 0, 0), cometTransitionMovement * transitionSpeedFactor);
     }

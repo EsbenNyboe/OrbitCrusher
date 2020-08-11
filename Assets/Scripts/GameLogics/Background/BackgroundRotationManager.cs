@@ -4,18 +4,17 @@ using UnityEngine;
 
 public class BackgroundRotationManager : MonoBehaviour
 {
+    [HideInInspector]
     public GameObject bg1;
+    [HideInInspector]
     public GameObject bg2;
     bool bg1AnimStarted;
     bool bg2AnimStarted;
-    Animator bg1Animator;
-    Animator bg2Animator;
+    [HideInInspector]
+    public Animator bg1Animator;
+    [HideInInspector]
+    public Animator bg2Animator;
 
-    private void Start()
-    {
-        bg1Animator = bg1.GetComponent<Animator>();
-        bg2Animator = bg2.GetComponent<Animator>();
-    }
     public void RotateBackground1()
     {
         if (!bg1AnimStarted)

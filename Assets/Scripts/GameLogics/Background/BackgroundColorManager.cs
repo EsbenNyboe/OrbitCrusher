@@ -25,6 +25,17 @@ public class BackgroundColorManager : MonoBehaviour
 
     public GameManager gameManager;
 
+
+    public Color betweenLevels, lvlLoad, lastObj, lvlFail; //blue, blue, dark blue, orange
+
+    public Color[] specials;
+    public int colorSelection; 
+
+    bool colorFade;
+    Color colorFadeStart, colorFadeEnd;
+    public Animator bgColorFadeAnim;
+
+
     public void ApplyColors(Color bgA, Color bgB, Color bgC)
     {
         colorRed = bgA;
@@ -74,15 +85,6 @@ public class BackgroundColorManager : MonoBehaviour
             colorLerpFactor = colorLerpFactorOnLevelLoad;
     }
 
-
-    public Color betweenLevels, lvlLoad, lastObj, lvlFail; //blue, blue, dark blue, orange
-
-    bool colorFade;
-    Color colorFadeStart, colorFadeEnd;
-    public Animator bgColorFadeAnim;
-
-
-
     private void LoadColors(Color fadeStart, Color fadeEnd)
     {
         colorFade = true;
@@ -107,6 +109,13 @@ public class BackgroundColorManager : MonoBehaviour
     {
         LoadColorEnd(lvlLoad);
     }
+    public void LoadSpecialColor(int index)
+    {
+        if (index < specials.Length)
+            LoadColorEnd(specials[index]);
+        else
+            LoadColorEnd(lvlLoad);
+    }
     public void LastObjective()
     {
         LoadColorEnd(lastObj);
@@ -119,7 +128,10 @@ public class BackgroundColorManager : MonoBehaviour
     }
     public void LevelFailed()
     {
-        LoadColorEnd(lvlFail);
+        if (PauseMenu.exitingOrbit)
+            LoadColorEnd(betweenLevels);
+        else
+            LoadColorEnd(lvlFail);
 
         colorLerpFactor = colorLerpFactorInitial;
     }

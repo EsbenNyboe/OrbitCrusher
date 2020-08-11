@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class BackgroundScript : MonoBehaviour
 {
+    [HideInInspector]
+    public MeshRenderer meshRenderer;
     Material material;
 
     [Tooltip("the animator sets this to 0-1")]
@@ -12,7 +14,8 @@ public class BackgroundScript : MonoBehaviour
 
     public void LoadMaterial()
     {
-        material = GetComponent<MeshRenderer>().material;
+        material = meshRenderer.material;
+        //material = GetComponent<MeshRenderer>().material;
     }
 
     public void ColorChange(Color red, Color yellow, Color green, float colorTransitionOutput)

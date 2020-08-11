@@ -4,12 +4,8 @@ using UnityEngine;
 
 public class NodeOrbHaloAnimation : MonoBehaviour
 {
-    Animator anim;
+    public Animator anim;
     
-    private void Awake()
-    {
-        anim = GetComponent<Animator>();
-    }
     public void CollOrb(bool isTarget, bool isCompleted)
     {
         //anim.SetBool("TargetCompleted", isCompleted);

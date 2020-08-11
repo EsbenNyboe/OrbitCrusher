@@ -1,11 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class CometManager : MonoBehaviour
 {
     public GameObject cometParticleEffect;
     public MusicMeter musicMeter;
+
+    [HideInInspector]
     public CometBehavior cometMovement;
     [HideInInspector]
     public MusicMeter.MeterCondition nodeHitTiming;
@@ -17,21 +20,40 @@ public class CometManager : MonoBehaviour
     [HideInInspector] // remove hiding to show in inspector
     public float timeProgressAdapted; // read
 
+
+    [HideInInspector]
     [Range(0, 1)]
     public float expPower1;
+    [HideInInspector]
     [Range(0, 1)]
     public float curveShiftPoint;
+    [HideInInspector]
     [Range(1, 5)]
     public float expPower2;
+    [HideInInspector]
     [Range(0, 2)]
     public float normalizationAmount;
 
     float initialTimeUntilTarget;
     float timeProgressExp;
 
+    [HideInInspector]
     public float cometRestTime;
+    [HideInInspector]
     public float cometStopTime;
+    [HideInInspector]
     public float cometStopFactor; // not too usable these ones
+
+    bool directionChange;
+
+
+    public AnimationCurve nodeTravelCurve;
+    public AnimationCurve nodeTravelAngryCurve;
+    public AnimationCurve nodeTravelCrazyCurve;
+
+    private bool crazyMovement;
+    public Vector2[] crazyMovementApplications;
+
 
     private void Start()
     {
@@ -46,10 +68,17 @@ public class CometManager : MonoBehaviour
     }
     public void LoadLevel()
     {
+        cometMovement.light.enabled = true;
+        // light on
         ChangeDirectionWhenHittingNode();
         musicMeter.SubscribeEvent(ActivateCometMovementToTheMeter, ref musicMeter.subscribeAnytime);
         musicMeter.SubscribeToTimeChecker(CheckTimeUntilNextNodeHit, false);
         musicMeter.SubscribeToTimeChecker(CheckTimeUntilNextNodeHit, true);
+    }
+    public void UnloadLevel()
+    {
+        cometMovement.light.enabled = false;
+        // light off
     }
 
     private void ActivateCometMovementToTheMeter()
@@ -65,7 +94,6 @@ public class CometManager : MonoBehaviour
         }
     }
 
-    bool directionChange;
     public void ChangeDirectionWhenHittingNode()
     {
         directionChange = true;
@@ -82,14 +110,53 @@ public class CometManager : MonoBehaviour
         float timeChange = oldTime - timeUntilMeterTarget;
         if (directionChange) // this ensures that the comet doesn't try to move backwards when moving between nodes
         {
-                directionChange = false;
-                initialTimeUntilTarget = timeUntilMeterTarget; // this shouldn't only run when the comet changes its direction
-                                                               // cases: transition start, transition end, node hit
-                //print("initialTime:" + initialTimeUntilTarget);
+            directionChange = false;
+            initialTimeUntilTarget = timeUntilMeterTarget; // this shouldn't only run when the comet changes its direction
+                                                           // cases: transition start, transition end, node hit
+                                                           //print("initialTime:" + initialTimeUntilTarget);
             if (timeChange < 0)
             {
             }
         }
+
+        NewTimeProgressAlgorithm();
+        //OldTimeProgressAlgorithm();
+
+        cometMovement.FakeUpdate();
+        //print("timeProgress:" + timeProgressAdapted);
+    }
+
+    private void NewTimeProgressAlgorithm()
+    {
+        float timeProgressClamped = timeUntilMeterTarget / initialTimeUntilTarget; // 1: set off time. 0: destination time.
+        float timeProgressReversed = -timeProgressClamped + 1; // 0: set off time. 1: destination time.
+
+        if (LevelManager.lastObjective)
+            timeProgressAdapted = nodeTravelAngryCurve.Evaluate(timeProgressReversed);
+        else
+            timeProgressAdapted = nodeTravelCurve.Evaluate(timeProgressReversed);
+
+        crazyMovement = false;
+        if (LevelManager.lastTravelBeforeActivation)
+            crazyMovement = true;
+
+        for (int i = 0; i < crazyMovementApplications.Length; i++)
+        {
+            if (GameManager.levelProgression == (int)crazyMovementApplications[i].x)
+            {
+                if (LevelManager.levelObjectiveCurrent == (int)crazyMovementApplications[i].y)
+                {
+                    crazyMovement = true;
+                }
+            }
+        }
+        if (crazyMovement)
+        {
+            timeProgressAdapted = nodeTravelCrazyCurve.Evaluate(timeProgressReversed);
+        }
+    }
+    private void OldTimeProgressAlgorithm()
+    {
         float timeProgressClamped = timeUntilMeterTarget / initialTimeUntilTarget; // 1: set off time. 0: destination time.
         float timeProgressReversed = -timeProgressClamped + 1; // 0: set off time. 1: destination time.
         //print("timeClamped:" + timeProgressClamped);
@@ -120,9 +187,8 @@ public class CometManager : MonoBehaviour
             timeProgressExp = ConvertToExponentialCurve(timeProgressReversed, 0, curveShiftPoint, expPower1);
             timeProgressAdapted = NormalizeTheExponentialCurve(timeProgressReversed, timeProgressExp, curveShiftPoint - timeProgressReversed, curveShiftPoint);
         }
-        cometMovement.FakeUpdate();
-        //print("timeProgress:" + timeProgressAdapted);
     }
+
     private float ConvertToExponentialCurve(float timeProgress, float curveMin, float curveMax, float expPower)
     {
         float curveProgress = (timeProgress - curveMin) / (curveMax - curveMin);

@@ -7,7 +7,11 @@ using UnityEngine.UI;
 public class TutorialUI : MonoBehaviour
 {
     public GameObject panel;
-    public GameObject textSkipTutorial;
+
+    //public GameObject textSkipTutorial;
+    //public TextMeshProUGUI textSkipTutorial_tmp;
+    //public Animator textSkipTutorial_anim;
+
     public GameObject text1;
     public GameObject text2;
     public GameObject text3;
@@ -19,7 +23,7 @@ public class TutorialUI : MonoBehaviour
     public GameObject text8;
 
     public GameObject tips;
-    public GameObject tipGameModes, tipOrbActivation, tipDamageControl, tipReenteringOrbits;
+    public GameObject tipGameModes, tipOrbActivation, tipDamageControl, tipReenteringOrbits, tipExitingOrbits, tipGravitation;
 
     public static bool timeStopQueued;
     public static bool textShown1;
@@ -51,13 +55,11 @@ public class TutorialUI : MonoBehaviour
 
     private void Awake()
     {
-        textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+        //textSkipTutorial_tmp.enabled = false;
+        //textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
         panel.SetActive(false);
         tips.SetActive(true);
-        tipGameModes.SetActive(false);
-        tipOrbActivation.SetActive(false);
-        tipDamageControl.SetActive(false);
-        tipReenteringOrbits.SetActive(false);
+        ForceCloseTips();
     }
     private void Update()
     {
@@ -76,33 +78,39 @@ public class TutorialUI : MonoBehaviour
         {
             ResetTutorial();
             panel.SetActive(true);
-            textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = true;
-            textSkipTutorial.GetComponent<Animator>().Play(0);
+            //textSkipTutorial_tmp.enabled = true;
+            //textSkipTutorial_anim.Play(0);
+            //textSkipTutorial.GetComponent<Animator>().Play(0);
         }
     }
     public void UnloadTutorial()
     {
         ResetTutorial();
         panel.SetActive(false);
-        textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+        //textSkipTutorial_tmp.enabled = false;
     }
     public static bool tutorialSkip;
     public void SkipTutorial()
     {
+        //panel.SetActive(false);
+
+
+        //textSkipTutorial.SetActive(false);
         Time.timeScale = 1;
-        textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = false;
+        //textSkipTutorial_tmp.enabled = false;
         tutorialSkip = true;
         StopAllCoroutines();
         numberOfActiveTextboxes = 0;
         tutorialPause = false;
-        panel.SetActive(false);
         UnloadTutorial();
         NumberDisplayTargetNode.targetNodeIndexMemory = LevelManager.levelObjectiveCurrent;
-        LevelManager.levelObjectiveCurrent = 10;
+        LevelManager.levelObjectiveCurrent = LevelManager.targetNodes.Length - 1;
         levelManager.ObjectiveCompleted();
         //soundManager.LevelCompleted(false);
         //soundManager.FadeInMusicBetweenLevels();
-        soundManager.levelCompleted.TriggerAudioObject();
+
+        soundManager.LevelWonChooseSound();
+        soundManager.levelWon.TriggerAudioObject();
     }
     bool tutorialPause;
     public void ToggleWhenMenu(bool notInMenu)
@@ -110,7 +118,7 @@ public class TutorialUI : MonoBehaviour
         if (GameManager.inTutorial)
         {
             panel.SetActive(notInMenu);
-            textSkipTutorial.GetComponentInChildren<TextMeshProUGUI>().enabled = notInMenu;
+            //textSkipTutorial_tmp.enabled = notInMenu;
             if (!tutorialPause)
             {
                 if (notInMenu)
@@ -224,7 +232,7 @@ public class TutorialUI : MonoBehaviour
         text6.SetActive(false);
         text7.SetActive(false);
         text8.SetActive(false);
-        textSkipTutorial.SetActive(true);
+        //textSkipTutorial.SetActive(true);
         tutorialSkip = false;
     }
 
@@ -357,7 +365,7 @@ public class TutorialUI : MonoBehaviour
 
     public void ShowTextPickupDenied()
     {
-        if (GameManager.inTutorial)
+        if (GameManager.inTutorial && Time.timeScale != 0)
         {
             if (!textShown4 && !tutorialSkip)
             {
@@ -377,7 +385,7 @@ public class TutorialUI : MonoBehaviour
 
     public void DisplayTip(int levelNumber)
     {
-        print("display:" + levelNumber);
+        //print("display:" + levelNumber);
         switch (levelNumber)
         {
             case 1:
@@ -392,16 +400,31 @@ public class TutorialUI : MonoBehaviour
             case 7:
                 StartCoroutine(ShowTip(tipReenteringOrbits));
                 break;
+            case 9:
+                StartCoroutine(ShowTip(tipExitingOrbits));
+                break;
+            case 11:
+                StartCoroutine(ShowTip(tipGravitation));
+                break;
         }
     }
 
+    public static float tipDelay;
     private IEnumerator ShowTip(GameObject tip)
     {
+        yield return new WaitForEndOfFrame();
         tip.SetActive(true);
         ToggleComponentsActivation(tip, false);
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(tipDelay + 0.1f);
         ToggleComponentsActivation(tip, true);
         TipUIDisabling();
+    }
+    public void ForceCloseTips()
+    {
+        tipGameModes.SetActive(false);
+        tipOrbActivation.SetActive(false);
+        tipDamageControl.SetActive(false);
+        tipReenteringOrbits.SetActive(false);
     }
 
     private static void ToggleComponentsActivation(GameObject tip, bool status)
@@ -414,12 +437,12 @@ public class TutorialUI : MonoBehaviour
 
     private void TipUIDisabling()
     {
-        uiManager.uiLevelCompletedT.enabled = false;
-        uiManager.uiLevelCompletedT.GetComponentInParent<Button>().enabled = false;
+        uiManager.uiLevelCompletedTmPro.enabled = false;
+        uiManager.uiLevelCompletedTmPro.GetComponentInParent<Button>().enabled = false;
     }
     public void TipUIEnable()
     {
-        uiManager.uiLevelCompletedT.enabled = true;
-        uiManager.uiLevelCompletedT.GetComponentInParent<Button>().enabled = true;
+        uiManager.uiLevelCompletedTmPro.enabled = true;
+        uiManager.uiLevelCompletedTmPro.GetComponentInParent<Button>().enabled = true;
     }
 }

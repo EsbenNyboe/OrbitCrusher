@@ -10,6 +10,8 @@ public class OuterEdges : MonoBehaviour
     public static float yMax;
     public static float yMin;
 
+    public MeshRenderer meshRenderer;
+
     public bool autoDisableRenderer;
 
     private void Awake()
@@ -21,6 +23,7 @@ public class OuterEdges : MonoBehaviour
         yMax = pos.y + scale.y * 0.5f;
         yMin = pos.y - scale.y * 0.5f;
         if (autoDisableRenderer)
-            GetComponent<MeshRenderer>().enabled = false;
+            //GetComponent<MeshRenderer>().enabled = false;
+            meshRenderer.enabled = false;
     }
 }

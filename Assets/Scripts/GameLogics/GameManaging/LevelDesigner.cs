@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class LevelDesigner : MonoBehaviour
 {
+    public bool useLevelMusicSystem;
     public int beatsPerBar;
     public int barsPerSection;
     public int bpm;
@@ -80,6 +81,8 @@ public class LevelDesigner : MonoBehaviour
 
     public AudioObject[] lastObjQuickFadeOut;
 
+    [Tooltip("x: objective, y: color index")]
+    public Vector2[] bgColors;
 
 
     bool onOff;
@@ -91,6 +94,7 @@ public class LevelDesigner : MonoBehaviour
     CometManager cometManager;
 
     public int[] transposedObjectives;
+    public int[] transposedObjectivesB;
 
     private void Start()
     {
@@ -185,12 +189,15 @@ public class LevelDesigner : MonoBehaviour
 
     public void LoadLevelSettingsNew()
     {
+        LevelManager.bgColors = bgColors;
         LevelManager.sampleLengthReference = sampleLengthReference;
         LevelManager.levelDesigner = this;
+        LevelManager.levelMusic = GetComponent<LevelMusic>();
         LevelManager.levelObjectiveCurrent = 0;
         LevelManager.cometDestination = 0;
         LevelManager.nodes = new GameObject[nodeSettings.Length];
         LevelManager.transitionNode = transitionNode;
+        LevelManager.transitionNodeAnim = transitionNode.GetComponent<Animator>();
         LevelManager.cometTimings = new MusicMeter.MeterCondition[nodeSettings.Length];
         LevelManager.targetNodes = new int[levelObjectives.Length];
         //LevelManager.defaultSpawnZones = defaultSpawnZones;
@@ -209,26 +216,36 @@ public class LevelDesigner : MonoBehaviour
                 LazyMansDuplicationOfFormerTimingValues(ref LevelManager.cometTimings[i].beat, LevelManager.cometTimings[i - 1].beat);
             }
         }
-        LevelManager.soundTriggers = soundTriggers;
-        LevelManager.sounds = new AudioObject[soundTriggers.Length];
-        LevelManager.soundTimings = new MusicMeter.MeterCondition[soundTriggers.Length];
-        for (int i = 0; i < soundTriggers.Length; i++)
-        {
-            LevelManager.sounds[i] = soundTriggers[i].sound;
-            LevelManager.soundTimings[i] = soundTriggers[i].soundTiming;
-        }
-        LevelManager.fullHPMusic = fullHPMusic;
-        LevelManager.fullHPsecSectionLength = fullHPsecSectionLength;
 
-        LevelManager.lastObjQuickFadeOut = lastObjQuickFadeOut;
-        LevelManager.transposedObjectives = transposedObjectives;
+        if (useLevelMusicSystem)
+        {
+            LevelManager.levelMusic.LoadIntoLevelManager();
+        }
+        else
+        {
+            LevelManager.levelMusic = null;
+            LevelManager.soundTriggers = soundTriggers;
+            LevelManager.sounds = new AudioObject[soundTriggers.Length];
+            LevelManager.soundTimings = new MusicMeter.MeterCondition[soundTriggers.Length];
+            for (int i = 0; i < soundTriggers.Length; i++)
+            {
+                LevelManager.sounds[i] = soundTriggers[i].sound;
+                LevelManager.soundTimings[i] = soundTriggers[i].soundTiming;
+            }
+            LevelManager.fullHPMusic = fullHPMusic;
+            LevelManager.fullHPsecSectionLength = fullHPsecSectionLength;
+
+            LevelManager.lastObjQuickFadeOut = lastObjQuickFadeOut;
+            LevelManager.transposedObjectives = transposedObjectives;
+            LevelManager.transposedObjectivesB = transposedObjectivesB;
+        }
 
         LevelManager.beatsPerBar = beatsPerBar;
         LevelManager.barsPerSection = barsPerSection;
         LevelManager.bpm = bpm;
         
         GameManager gameManager = FindObjectOfType<GameManager>();
-        if (gameManager.levelLoadDeveloperMode)
+        if (gameManager.levelLoadDeveloperMode && !gameManager.levelLoadUseSaveSystem)
         {
             LevelManager.levelObjectiveCurrent = gameManager.objectiveToLoad;
             LoadSpawnSequence(LevelManager.levelObjectiveCurrent);

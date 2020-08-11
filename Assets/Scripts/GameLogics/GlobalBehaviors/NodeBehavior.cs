@@ -109,6 +109,12 @@ public class NodeBehavior : MonoBehaviour
             //nodeParticleSpawnB[i].GetComponent<ParticleSystem>().Play();
         }
     }
+    public int activationAnimLookahead;
+    public void ObjectiveActivationAnimation(int nodeIndex)
+    {
+        NodeParticles np = nodes[nodeIndex].GetComponentInChildren<NodeParticles>();
+        np.psInwardsCircle.Play();
+    }
     public void TargetExplode(int nodeIndex)
     {
         NodeParticles np = nodes[nodeIndex].GetComponentInChildren<NodeParticles>();
