@@ -103,8 +103,14 @@ public class Achievements : MonoBehaviour
 
     }
 
+    public IEnumerator DisplayAchievementsDelayed()
+    {
+        yield return new WaitForSeconds(2f);
+        DisplayAchievements(true, true);
+    }
     public void DisplayAchievements(bool display, bool gameStart)
     {
+        panelParentAnimator.enabled = true;
         if (display)
         {
             for (int i = 0; i < achievementStars.Length; i++)
@@ -327,6 +333,15 @@ public class Achievements : MonoBehaviour
         {
             achievementStars[i].RemoveFocus();
             achievementStars[i].RemoveFocusLevelInfoDisplay();
+        }
+    }
+
+    public void NewGame()
+    {
+        UpdateAchievements();
+        for (int i = 0; i < achievementStars.Length; i++)
+        {
+            achievementStars[i].ToggleBackgroundCircle();
         }
     }
 

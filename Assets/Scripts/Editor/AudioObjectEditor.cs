@@ -27,22 +27,27 @@ public class AudioObjectEditor : Editor
 		{
 			((AudioObject)target).PreviewAudioEvent(_previewer);
 		}
-		if (GUILayout.Button("Trigger (in-game)"))
+		if (GUILayout.Button("Prepare Audio Object"))
 		{
-			((AudioObject)target).TriggerAudioObject();
+			((AudioObject)target).ReBuildVoices();
 		}
-		if (GUILayout.Button("Stop Audio Event"))
-		{
-			((AudioObject)target).StopAudioAllVoices();
-		}
-		if (GUILayout.Button("Fade In"))
-		{
-			((AudioObject)target).VolumeChangeInParent(((AudioObject)target).initialVolume, ((AudioObject)target).fadeTimeTestValue, false);
-		}
-		if (GUILayout.Button("Fade Out"))
-		{
-			((AudioObject)target).VolumeChangeInParent(0, ((AudioObject)target).fadeTimeTestValue, false);
-		}
+
+		//if (GUILayout.Button("Trigger (in-game)"))
+		//{
+		//	((AudioObject)target).TriggerAudioObject();
+		//}
+		//if (GUILayout.Button("Stop Audio Event"))
+		//{
+		//	((AudioObject)target).StopAudioAllVoices();
+		//}
+		//if (GUILayout.Button("Fade In"))
+		//{
+		//	((AudioObject)target).VolumeChangeInParent(((AudioObject)target).initialVolume, ((AudioObject)target).fadeTimeTestValue, false);
+		//}
+		//if (GUILayout.Button("Fade Out"))
+		//{
+		//	((AudioObject)target).VolumeChangeInParent(0, ((AudioObject)target).fadeTimeTestValue, false);
+		//}
 		EditorGUI.EndDisabledGroup();
 	}
 

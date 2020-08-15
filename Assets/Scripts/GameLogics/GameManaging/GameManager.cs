@@ -46,6 +46,8 @@ public class GameManager : MonoBehaviour
     [HideInInspector]
     public CometColor cometColor;
 
+    public PauseMenu pauseMenu;
+
 
     public GameObject[] levels;
     [HideInInspector]
@@ -71,6 +73,8 @@ public class GameManager : MonoBehaviour
     public static bool death;
     public static bool gameCompleted;
     public static bool levelCompleted;
+
+    public bool timeScaleDeveloper;
 
     public enum BetweenLevelsState
     {
@@ -119,11 +123,11 @@ public class GameManager : MonoBehaviour
     {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
-        //print(Achievements.lvlsWon[levels.Length - 1]);
-        if (Achievements.lvlsWon[levels.Length - 1])
+        if (Achievements.lvlsWon[1])
         {
-            //achievements.GetComponent<Animator>().SetBool("AllCompleted", true);
-            achievements.DisplayAchievements(true, true);
+            StartCoroutine(achievements.DisplayAchievementsDelayed());
+            //achievements.DisplayAchievements(true, true);
+            pauseMenu.menuIcon.gameObject.SetActive(true);
         }
         else
         {
@@ -134,20 +138,6 @@ public class GameManager : MonoBehaviour
         {
             betweenLevelsState = BetweenLevelsState.GameStart;
 
-            if (levelToLoad == 0)
-            {
-                //inTutorial = true;
-                //energy = tutorialEnergy;
-            }
-            else if (levelToLoad == levels.Length - 1)
-            {
-                //betweenLevelsState = BetweenLevelsState.GameCompleted;
-            }
-            else
-            {
-                //betweenLevelsState = BetweenLevelsState.Continue;
-            }
-            //print("lvlToLoad:" + levelToLoad);
             if (autoUnloadActiveLevels)
             {
                 foreach (var levelObject in levels)
@@ -162,21 +152,19 @@ public class GameManager : MonoBehaviour
             LoadQuickloadLevelSelection();
         }
     }
+
+    public float tScale;
+
     private void Update()
     {
-        //if (levelLoadDeveloperMode)
+        if (timeScaleDeveloper)
+            Time.timeScale = tScale;
+
+        //if (frameRateDeveloperMode)
         //{
-        //    if (Input.GetKeyDown(KeyCode.Space))
-        //    {
-        //        LoadQuickloadLevelSelection();
-        //        levelLoadDeveloperMode = false;
-        //    }
+        //    Application.targetFrameRate = targetFrameRate;
         //}
-        if (frameRateDeveloperMode)
-        {
-            Application.targetFrameRate = targetFrameRate;
-        }
-        energyDisplay = energy;
+
         CheckIfEnergyFull();
     }
 
@@ -189,7 +177,7 @@ public class GameManager : MonoBehaviour
             player.lvlsWon[i] = player.lvlsWonFullHp[i] = player.lvlsWonZeroDmg[i] = false;
         }
         Achievements.lvlsUnlocked[0] = true;
-        achievements.UpdateAchievements();
+        achievements.NewGame();
         player.lvl = 0;
         
         player.NewGame();
@@ -245,6 +233,8 @@ public class GameManager : MonoBehaviour
 
         Screen.autorotateToLandscapeLeft = false;
         Screen.autorotateToLandscapeRight = false;
+
+        pauseMenu.LoadLevel();
     }
 
 
@@ -335,7 +325,6 @@ public class GameManager : MonoBehaviour
     }
     public void UpdateEnergyHealth(int amount, bool updatePool)
     {
-
         if (amount != 1)
         {
             damageTakenThisLevel -= amount;
@@ -375,7 +364,7 @@ public class GameManager : MonoBehaviour
         //print(hpAtLevelCompletion);
         
         soundManager.LevelWonChooseSound();
-        if (LevelManager.lastObjective && hpAtLevelCompletion != maxEnergy)
+        if (LevelManager.lastObjective && fullHpBonusChecked && hpAtLevelCompletion != maxEnergy)
             soundManager.LevelWonDmgOnLastObjective();
     }
 
@@ -400,6 +389,7 @@ public class GameManager : MonoBehaviour
         bool newAchievement = false;
         bool newSilver = false;
         bool newGold = false;
+        bool newAchBronzeOrSilver = false;
 
         if (Achievements.lvlsWonEasy[levelProgression])
             previousAchievementIndexForLastFinishedLevel = 1;
@@ -419,6 +409,7 @@ public class GameManager : MonoBehaviour
                     Achievements.lvlsUnlocked[levelProgression + 1] = true;
                 Achievements.lvlsWonEasy[levelProgression] = true;
                 newAchievement = true;
+                newAchBronzeOrSilver = true;
                 player.lvlsWonEasy[levelProgression] = true;
             }
         }
@@ -433,6 +424,7 @@ public class GameManager : MonoBehaviour
                     newAchievement = true;
                     player.lvlsWonFullHp[levelProgression] = true;
                     newSilver = true;
+                    newAchBronzeOrSilver = true;
                 }
                 silver = true;
             }
@@ -461,6 +453,7 @@ public class GameManager : MonoBehaviour
                 Achievements.lvlsWonEasy[levelProgression] = true;
                 Achievements.lvlsWon[levelProgression] = true;
                 newAchievement = true;
+                newAchBronzeOrSilver = true;
                 player.lvlsWon[levelProgression] = true;
                 tutorialUI.DisplayTip(levelProgression);
             }
@@ -477,6 +470,11 @@ public class GameManager : MonoBehaviour
         }
         player.easyMode = easyMode;
 
+        if (damageTakenThisLevel == 0)
+        {
+            soundManager.PlayLvlWinMusicPerfection();
+        }
+
 
         screenShake.ScreenShakeLevelCompleted();
         levelCompleted = true;
@@ -492,14 +490,15 @@ public class GameManager : MonoBehaviour
             betweenLevelsState = BetweenLevelsState.GameCompleted;
             gameCompleted = true;
             uiManager.ShowTextGameWon();
-            levelProgression = 0;
-            levelLoadDeveloperMode = false; // why though??
-            godMode = false;
+            levelProgression = 14;
+            //godMode = false;
         }
         else
         {
             betweenLevelsState = BetweenLevelsState.Continue;
-            uiManager.ShowTextLevelCompleted(newSilver, newGold);
+            if (newGold)
+                newAchBronzeOrSilver = false;
+            uiManager.ShowTextLevelCompleted(newAchBronzeOrSilver);
         }
         if (inTutorial)
         {
@@ -531,7 +530,7 @@ public class GameManager : MonoBehaviour
     private void UnloadLevel()
     {
         soundManager.ToggleTransposedMusic(false, false);
-        soundManager.FadeInMusicBetweenLevels();
+        //soundManager.FadeInMusicBetweenLevels();
 
         PauseMenu.exitingOrbit = false;
         nodeBehavior.AllAppear(false);
@@ -553,6 +552,8 @@ public class GameManager : MonoBehaviour
 
         //Screen.orientation = ScreenOrientation.AutoRotation;
         StartCoroutine(soundManager.StopTranToObjActivationSounds());
+
+        pauseMenu.UnloadLevel();
     }
 
     public void ToggleGodMode()

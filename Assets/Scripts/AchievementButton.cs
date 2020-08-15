@@ -24,10 +24,28 @@ public class AchievementButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public AchievementStar achievementStar;
 
+    private void Start()
+    {
+        highlightBgLvlMenu.enabled = false;
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         inFocusSelect = true;
         SetFocus();
+        //SoundManager.uiHoverStatic.TriggerAudioObject();
+        if (achievementStar.lvlStatus != AchievementStar.LevelStatus.Locked)
+            AudioTriggerLimiter(SoundManager.uiHoverStatic);
+    }
+    public static float timeLast;
+    public static float threshold = 0.0625f;
+    public static void AudioTriggerLimiter(AudioObject ao)
+    {
+        if (Time.time > timeLast + threshold)
+        {
+            timeLast = Time.time;
+            ao.TriggerAudioObject();
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -40,7 +58,10 @@ public class AchievementButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         Achievements.buttonDownHasHappened[achievementStar.levelNumber - 1] = true;
         //print("button down.lvlnum:" + achievementStar.levelNumber + ". " + transform.parent.gameObject.name);
         if (!levelInfoDisplay)
+        {
             overlayAnimation.SetBool("MousePressed", true);
+            //SoundManager.uiClickStatic.TriggerAudioObject();
+        }
     }
     public void OnPointerUp(PointerEventData eventData)
     {
@@ -49,6 +70,8 @@ public class AchievementButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         if (!levelInfoDisplay)
             overlayAnimation.SetBool("MousePressed", false);
         ToggleLevelInfo();
+        if (achievementStar.lvlStatus != AchievementStar.LevelStatus.Locked)
+            AudioTriggerLimiter(SoundManager.uiClickStatic);
 
 
     }

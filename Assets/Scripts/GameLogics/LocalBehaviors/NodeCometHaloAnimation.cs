@@ -45,15 +45,15 @@ public class NodeCometHaloAnimation : MonoBehaviour
     {
         anim.SetBool("IsTarget", isTarget);
         anim.SetBool("TargetCompleted", isCompleted);
-        if (!orbCollRunning)
-        {
-            anim.SetTrigger("CollOrb");
-            orbCollRunning = true;
-        }
-        else
-        {
-            anim.Play(0);
-        }
+        //if (!orbCollRunning)
+        //{
+        //    anim.SetTrigger("CollOrb");
+        //    orbCollRunning = true;
+        //}
+        //else
+        //{
+        //    anim.Play(0);
+        //}
     }
     public void Despawn()
     {

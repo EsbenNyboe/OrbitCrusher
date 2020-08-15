@@ -38,6 +38,7 @@ public class CometBehavior : MonoBehaviour
     public AnimationCurve lerpToTransitionNode;
 
     public Light light;
+
     public float intensityHigh;
     public float intensityLow;
 
@@ -123,6 +124,8 @@ public class CometBehavior : MonoBehaviour
     }
     #endregion
 
+
+    public CometWallHits cometWallHits;
     #region Move Comet
     private void MoveTheCometFreely()
     {
@@ -132,21 +135,25 @@ public class CometBehavior : MonoBehaviour
         {
             if (pos.x > OuterEdges.xMax)
             {
+                cometWallHits.EdgeHitRight();
                 soundManager.CometWallHit();
                 freeBirdStartDirection.x = -Mathf.Abs(freeBirdStartDirection.x);
             }
             if (pos.x < OuterEdges.xMin)
             {
+                cometWallHits.EdgeHitLeft();
                 soundManager.CometWallHit();
                 freeBirdStartDirection.x = Mathf.Abs(freeBirdStartDirection.x);
             }
             if (pos.y > OuterEdges.yMax)
             {
+                cometWallHits.EdgeHitTop();
                 soundManager.CometWallHit();
                 freeBirdStartDirection.y = -Mathf.Abs(freeBirdStartDirection.y);
             }
             if (pos.y < OuterEdges.yMin)
             {
+                cometWallHits.EdgeHitBottom();
                 soundManager.CometWallHit();
                 freeBirdStartDirection.y = Mathf.Abs(freeBirdStartDirection.y);
             }

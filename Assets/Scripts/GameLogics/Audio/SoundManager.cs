@@ -11,7 +11,8 @@ public class SoundManager : MonoBehaviour
     public AudioObject incorrectHit, incorrectHitComet;
     public AudioObject healthChargeLower, healthChargeUpper, healthDrainLower, healthDrainUpper;
     public AudioObject cometWallHit, uiClick, uiHover;
-    public AudioObject musicBetweenLevels, musicDefeat, musicVictory;
+    public static AudioObject uiClickStatic, uiHoverStatic;
+    public AudioObject musicBetweenLevels, musicPerfection;
 
     // dsp sounds
     public AudioObject orbSpawnStandard, orbSpawnTransposed, orbSpawnTransposedTwice;
@@ -72,9 +73,12 @@ public class SoundManager : MonoBehaviour
         {
             levelWon = levelWonGold;
         }
-        else if (GameManager.energy == gameManager.maxEnergy && LevelManager.levelObjectiveCurrent + 2 >= LevelManager.targetNodes.Length)
+        else if (GameManager.energy == gameManager.maxEnergy)
         {
-            levelWon = levelWonSilver;
+            if (GameManager.inTutorial || LevelManager.levelObjectiveCurrent + 2 >= LevelManager.targetNodes.Length)
+                levelWon = levelWonSilver;
+            else
+                levelWon = levelWonBronze;
         }
         else
         {
@@ -116,12 +120,17 @@ public class SoundManager : MonoBehaviour
     [HideInInspector]
     public SoundDsp soundDsp;
 
+    private void Awake()
+    {
+        uiClickStatic = uiClick;
+        uiHoverStatic = uiHover;
+    }
     private void Start()
     {
         fadeAnimStatic = fadeOutAnim;
         ToggleTransposedMusic(false, false);
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
-        FadeInMusicBetweenLevels();
+        FadeInMusicBetweenLevels(5f);
         musicBetweenLevelsAllowed = false; // a little confused about this one... 
 
         orbDrag.VolumeChangeInParent(0f, 0f, true);
@@ -150,10 +159,12 @@ public class SoundManager : MonoBehaviour
             if (menu)
             {
                 musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume * 0.25f, 0, false);
+                //musicPerfection.VolumeChangeInParent(musicPerfection.initialVolume * 0.25f, 0, false);
             }
             else
             {
                 musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 0, false);
+                //musicPerfection.VolumeChangeInParent(musicPerfection.initialVolume, 0, false);
             }
         }
     }
@@ -196,35 +207,71 @@ public class SoundManager : MonoBehaviour
         switch (nodeIndex)
         {
             case 0:
-                musTutLoopA.VolumeChangeInParent(musTutLoopA.initialVolume, musTutLoopFadeIn, false);
-                musTutLoopC.VolumeChangeInParent(0, musTutLoopFadeOut, false);
+                //musTutLoopA.VolumeChangeInParent(musTutLoopA.initialVolume, musTutLoopFadeIn, false);
+                //musTutLoopC.VolumeChangeInParent(0, musTutLoopFadeOut, false);
+                StartCoroutine(TutorialLoopFadeIn(musTutLoopA));
+                StartCoroutine(TutorialLoopFadeOut(musTutLoopC));
                 break;
             case 1:
-                musTutLoopB.VolumeChangeInParent(musTutLoopB.initialVolume, musTutLoopFadeIn, false);
-                musTutLoopA.VolumeChangeInParent(0, musTutLoopFadeOut, false);
+                //musTutLoopB.VolumeChangeInParent(musTutLoopB.initialVolume, musTutLoopFadeIn, false);
+                //musTutLoopA.VolumeChangeInParent(0, musTutLoopFadeOut, false);
+                StartCoroutine(TutorialLoopFadeIn(musTutLoopB));
+                StartCoroutine(TutorialLoopFadeOut(musTutLoopA));
                 break;
             case 2:
-                musTutLoopC.VolumeChangeInParent(musTutLoopC.initialVolume, musTutLoopFadeIn, false);
-                musTutLoopB.VolumeChangeInParent(0, musTutLoopFadeOut, false);
+                //musTutLoopC.VolumeChangeInParent(musTutLoopC.initialVolume, musTutLoopFadeIn, false);
+                //musTutLoopB.VolumeChangeInParent(0, musTutLoopFadeOut, false);
+                StartCoroutine(TutorialLoopFadeIn(musTutLoopC));
+                StartCoroutine(TutorialLoopFadeOut(musTutLoopB));
                 break;
         }
     }
+    IEnumerator TutorialLoopFadeOut(AudioObject ao)
+    {
+        float t = Time.realtimeSinceStartup;
+        while (Time.realtimeSinceStartup < t + musTutLoopFadeOut)
+        {
+            float timePassed = Time.realtimeSinceStartup - t;
+            float timeProgress = timePassed / musTutLoopFadeOut;
+            float timeProgressReversed = -timeProgress + 1;
+            float volProgress = timeProgressReversed * ao.initialVolume;
+            ao.VolumeChangeInParent(volProgress, 0, false);
+            //print(timeProgress);
+            yield return null;
+        }
+        ao.VolumeChangeInParent(0, 0, false);
+    }
+    IEnumerator TutorialLoopFadeIn(AudioObject ao)
+    {
+        float t = Time.realtimeSinceStartup;
+        while (Time.realtimeSinceStartup < t + musTutLoopFadeIn)
+        {
+            float timePassed = Time.realtimeSinceStartup - t;
+            float timeProgress = timePassed / musTutLoopFadeIn;
+            float volProgress = timeProgress * ao.initialVolume;
+            ao.VolumeChangeInParent(volProgress, 0, false);
+            //print(timeProgress);
+            yield return null;
+        }
+        ao.VolumeChangeInParent(ao.initialVolume, 0, false);
+    }
+
     #endregion
 
     #region Between Levels
-    public void FadeInMusicBetweenLevels()
+    public void FadeInMusicBetweenLevels(float fadeTime)
     {
-        StartCoroutine(FadeInMusicBetweenLevelsLameDelay());
+        StartCoroutine(FadeInMusicBetweenLevelsLameDelay(fadeTime));
     }
-    IEnumerator FadeInMusicBetweenLevelsLameDelay()
+    IEnumerator FadeInMusicBetweenLevelsLameDelay(float fadeTime)
     {
         yield return new WaitForSeconds(0.1f);
-        musicBetweenLevels.TriggerAudioObject();
+        //musicBetweenLevels.TriggerAudioObject();
         if (!musicBetweenLevels.IsPlaying())
         {
             musicBetweenLevels.TriggerAudioObject();
         }
-        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 5f, false);
+        musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, fadeTime, false);
         musicBetweenLevelsAllowed = true;
     }
     public void LevelTransition()
@@ -235,7 +282,9 @@ public class SoundManager : MonoBehaviour
         //levelWonSilver.VolumeChangeInParent(0f, 2f, false);
         //levelWonGold.VolumeChangeInParent(0f, 2f, false);
         levelFailed.VolumeChangeInParent(0f, 2f, false);
+        StopAllCoroutines();
         musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
+        musicPerfection.VolumeChangeInParent(0f, 3f, false);
         musicBetweenLevelsAllowed = false;
     }
     public void CometWallHit()
@@ -571,5 +620,24 @@ public class SoundManager : MonoBehaviour
                 }
             }
         }
+    }
+
+
+
+
+    public void PlayLvlWinMusicPerfection()
+    {
+        StartCoroutine(LvlWinMusicPerfection());
+    }
+
+    IEnumerator LvlWinMusicPerfection()
+    {
+        musicBetweenLevels.VolumeChangeInParent(0, 0.2f, false);
+        yield return new WaitForSeconds(6f);
+        musicPerfection.VolumeChangeInParent(musicPerfection.initialVolume, 1f, false);
+        musicPerfection.TriggerAudioObject();
+
+        yield return new WaitForSeconds(22f);
+        FadeInMusicBetweenLevels(5f);
     }
 }

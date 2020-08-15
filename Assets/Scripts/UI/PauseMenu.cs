@@ -9,7 +9,7 @@ public class PauseMenu : MonoBehaviour
     public static bool menu;
     public GameObject panel;
     public GameObject audioSettings;
-    public GameObject menuIcon;
+    public MenuIcon menuIcon;
     public GameObject tutorialText;
     
     public static bool firstLoad = true;
@@ -27,8 +27,12 @@ public class PauseMenu : MonoBehaviour
 
     public GameObject godModeButton;
 
-    public TextMeshProUGUI pageNumberDisplay;
+    public TextMeshProUGUI pageNumberDisplayHowToPlay;
+    public TextMeshProUGUI pageNumberDisplayAbout;
+    private TextMeshProUGUI pageNumberDisplayCurrentSubMenu;
     public GameObject[] pagesInHowToPlay;
+    public GameObject[] pagesInAbout;
+    private GameObject[] pagesInCurrentSubMenu;
     public static int pageNumber = 1;
 
     public GameObject exitOrbitObject;
@@ -36,6 +40,9 @@ public class PauseMenu : MonoBehaviour
 
     public GameObject firstLevel;
     public GameObject secondLevel;
+
+    public TextMeshProUGUI easyModeOnTmPro;
+    public Animator easyModeOnAnim;
 
 
     // Start is called before the first frame update
@@ -51,7 +58,8 @@ public class PauseMenu : MonoBehaviour
         displayVolSliders.ToggleSliderDisplay(menu);
         panel.SetActive(menu);
         pageNumber = 1;
-        ChoosePageInHowToPlay();
+        ResetPagesInAbout();
+        ResetPagesInHowToPlay();
 
         if (gameManager.easyMode)
             ChooseEasy();
@@ -113,7 +121,8 @@ public class PauseMenu : MonoBehaviour
     {
         uiManager.ToggleIngameUI(false);
         tutorialUI.DisplayTipsOnMenuToggle(false);
-        menuIcon.SetActive(false);
+        menuIcon.DeactivateAnimator();
+        menuIcon.gameObject.SetActive(false);
         tutorialText.SetActive(false);
         if (!GameManager.inTutorial)
         {
@@ -136,7 +145,7 @@ public class PauseMenu : MonoBehaviour
     {
         tutorialUI.DisplayTipsOnMenuToggle(true);
         uiManager.ToggleIngameUI(true);
-        menuIcon.SetActive(true);
+        menuIcon.gameObject.SetActive(true);
         tutorialText.SetActive(true);
         if (!GameManager.inTutorial)
         {
@@ -174,6 +183,8 @@ public class PauseMenu : MonoBehaviour
         exitOrbitObject.SetActive(true);
         menuObject.SetActive(false);
     }
+
+    public LevelManager levelManager;
     public void ExitOrbit()
     {
         exitOrbitObject.SetActive(false);
@@ -186,6 +197,8 @@ public class PauseMenu : MonoBehaviour
         GameManager.death = true;
         gameManager.godMode = false;
         gameManager.godMode = false;
+
+        //gameManager.levelManager.FadeOutLevelMusicNew(true);
     }
     public void CloseApplication()
     {
@@ -202,6 +215,18 @@ public class PauseMenu : MonoBehaviour
     }
 
 
+    public void ResetPagesInHowToPlay()
+    {
+        pageNumberDisplayCurrentSubMenu = pageNumberDisplayHowToPlay;
+        pagesInCurrentSubMenu = pagesInHowToPlay;
+        ChoosePageInHowToPlay();
+    }
+    public void ResetPagesInAbout()
+    {
+        pageNumberDisplayCurrentSubMenu = pageNumberDisplayAbout;
+        pagesInCurrentSubMenu = pagesInAbout;
+        ChoosePageInHowToPlay();
+    }
     public void ResetHowToPlayPageFocus()
     {
         pageNumber = 1;
@@ -210,7 +235,7 @@ public class PauseMenu : MonoBehaviour
     public void TurnPageInHowToPlay_Right()
     {
         pageNumber++;
-        if (pageNumber > pagesInHowToPlay.Length)
+        if (pageNumber > pagesInCurrentSubMenu.Length)
             pageNumber = 1;
         ChoosePageInHowToPlay();
     }
@@ -218,21 +243,20 @@ public class PauseMenu : MonoBehaviour
     {
         pageNumber--;
         if (pageNumber < 1)
-            pageNumber = pagesInHowToPlay.Length;
+            pageNumber = pagesInCurrentSubMenu.Length;
         ChoosePageInHowToPlay();
     }
 
-
     private void ChoosePageInHowToPlay()
     {
-        for (int i = 0; i < pagesInHowToPlay.Length; i++)
+        for (int i = 0; i < pagesInCurrentSubMenu.Length; i++)
         {
             if (i + 1 == pageNumber)
-                pagesInHowToPlay[i].SetActive(true);
+                pagesInCurrentSubMenu[i].SetActive(true);
             else
-                pagesInHowToPlay[i].SetActive(false);
+                pagesInCurrentSubMenu[i].SetActive(false);
         }
-        pageNumberDisplay.text = pageNumber + "/" + pagesInHowToPlay.Length;
+        pageNumberDisplayCurrentSubMenu.text = pageNumber + "/" + pagesInCurrentSubMenu.Length;
     }
 
     public GameObject chooseEasy, chooseNormal;
@@ -240,6 +264,7 @@ public class PauseMenu : MonoBehaviour
     public Image chooseEasyImage, chooseNormalImage;
     public void ChooseEasy()
     {
+        easyModeOnTmPro.enabled = true;
         chooseEasyTmPro.fontStyle = FontStyles.Bold;
         chooseEasyImage.enabled = true;
         chooseNormalTmPro.fontStyle = FontStyles.Normal;
@@ -248,10 +273,23 @@ public class PauseMenu : MonoBehaviour
     }
     public void ChooseNormal()
     {
+        easyModeOnTmPro.enabled = false;
         chooseNormalTmPro.fontStyle = FontStyles.Bold;
         chooseNormalImage.enabled = true;
         chooseEasyTmPro.fontStyle = FontStyles.Normal;
         chooseEasyImage.enabled = false;
         gameManager.easyMode = false;
+    }
+
+    public void LoadLevel()
+    {
+        easyModeOnAnim.SetBool("BetweenLevels", false);
+    }
+    public void UnloadLevel()
+    {
+        easyModeOnAnim.SetBool("BetweenLevels", true);
+        menuObject.SetActive(true);
+        exitOrbitObject.SetActive(false);
+        skipTutorial.SetActive(false);
     }
 }

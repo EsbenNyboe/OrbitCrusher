@@ -4,41 +4,21 @@ using UnityEngine.Audio;
 
 public class VoicePlayer : MonoBehaviour
 {
-    
+    [HideInInspector]
     public AudioSource audioSource;
-    AudioObject parent;
+    public AudioObject parent;
     private float pitchThisChild;
     private float pitchMin;
     private float pitchMax;
     [HideInInspector]
     public float volume;
 
-    void Awake()
+    public void BuildVoice()
     {
         parent = GetComponentInParent<AudioObject>();
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
         audioSource.loop = parent.loop;
-        if (parent.useAudioSourceInterface) // this is not used, but could come in handy, if 3D spatialization becomes relevant
-        {
-            audioSource.dopplerLevel = parent.audioSource.dopplerLevel;
-            audioSource.maxDistance = parent.audioSource.maxDistance;
-            audioSource.minDistance = parent.audioSource.minDistance;
-            audioSource.priority = parent.audioSource.priority;
-            audioSource.reverbZoneMix = parent.audioSource.reverbZoneMix;
-            audioSource.rolloffMode = parent.audioSource.rolloffMode;
-            audioSource.spatialBlend = parent.audioSource.spatialBlend;
-            audioSource.spatialize = parent.audioSource.spatialize;
-            audioSource.spread = parent.audioSource.spread;
-            audioSource.velocityUpdateMode = parent.audioSource.velocityUpdateMode;
-        }
-    }
-    private void Start()
-    {
-    }
-
-    private void Update()
-    {
     }
 
     float initialVol;

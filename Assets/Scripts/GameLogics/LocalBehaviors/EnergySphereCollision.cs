@@ -86,6 +86,7 @@ public class EnergySphereCollision : MonoBehaviour
             if (GameManager.inTutorial)
             {
                 tutorialUI.ShowTextFirstCorrectHit();
+                tutorialUI.ShowTextFinalPuzzle();
             }
         }
     }
@@ -112,7 +113,8 @@ public class EnergySphereCollision : MonoBehaviour
         {
             foreach (var gluedObject in EnergySphereBehavior.gluedObjects)
             {
-                gluedObject.ForceNodeCollisionOnGluedObject(node.transform.position);
+                if (gluedObject.isGlued)
+                    gluedObject.ForceNodeCollisionOnGluedObject(node.transform.position);
             }
             EnergySphereBehavior.gluedObjects = new EnergySphereBehavior[0];
         }

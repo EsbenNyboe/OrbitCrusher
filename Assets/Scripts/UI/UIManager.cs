@@ -119,6 +119,7 @@ public class UIManager : MonoBehaviour
         uiLevelFailedTmPro.text = "RE-ENTER: " + (gameManager.levelToLoad + 1);
     }
     public GameObject newGameText;
+    public TextMeshProUGUI newGameTextTmpro;
     private void Update()
     {
         
@@ -152,7 +153,6 @@ public class UIManager : MonoBehaviour
     public void StartGame()
     {
         lightLevelWinLight.enabled = true;
-        uiGameWon3DLight.enabled = true;
 
         if (!AchievementButton.levelMenuOpen)
         {
@@ -161,14 +161,17 @@ public class UIManager : MonoBehaviour
                 firstTimeStartingGame = true;
                 Screen.sleepTimeout = SleepTimeout.SystemSetting;
             }
-            uiGameWon3D.SetActive(false);
+            //uiGameWon3D.SetActive(false);
             gameManager.LevelStartTriggered(true);
             tutorialUI.LoadTutorial();
             uiStart.SetActive(false);
-            uiGameWonTxtTmPro.enabled = false;
+            //uiGameWonTxtTmPro.enabled = false;
             uiStart3D.SetActive(false);
             uiMenuIcon.SetActive(true);
             creditsAnim.SetBool("BetweenLevels", false);
+            uiGameWon3DAnim.SetBool("BetweenLevels", false);
+            uiGameWonTxtAnim.SetBool("BetweenLevels", false);
+
         }
     }
 
@@ -180,13 +183,9 @@ public class UIManager : MonoBehaviour
             tutorialUI.LoadTutorial();
             uiLevelCompletedTmPro.enabled = false;
             uiLevelCompletedAnim.SetBool("BetweenLevels", false);
-            //uiLevelCompleted.GetComponent<Animator>().SetBool("BetweenLevels", false);
             uiLevelCompleted3DAnim.SetBool("BetweenLevels", false);
-            //uiLevelCompleted3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
             uiGameWon3DAnim.SetBool("BetweenLevels", false);
-            //uiGameWon3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
             uiGameWonTxtAnim.SetBool("BetweenLevels", false);
-            //uiGameWonTxtTmPro.GetComponent<Animator>().SetBool("BetweenLevels", false);
             creditsAnim.SetBool("BetweenLevels", false);
         }
     }
@@ -230,12 +229,12 @@ public class UIManager : MonoBehaviour
             //uiStart3Dtext.enabled = notInMenu;
             uiGameWonTxtTmPro.enabled = notInMenu;
         }
-        if (GameManager.death)
+        else if (GameManager.death)
         {
             uiLevelFailed3Dtext.enabled = notInMenu;
             uiLevelFailedTmPro.enabled = notInMenu;
         }
-        if (GameManager.levelCompleted)
+        else if (GameManager.levelCompleted)
         {
             //tutorialUI.tipGameModes, tipOrbActivation, tipDamageControl, tipReenteringOrbits;
 
@@ -259,8 +258,13 @@ public class UIManager : MonoBehaviour
             uiLevelCompleted3Dtext.enabled = notInMenu;
         }
         if (GameManager.betweenLevels)// || GameManager.inTutorial)
+        {
             menuTitle.SetActive(!notInMenu);
-        
+            uiStart3Dtext.enabled = notInMenu;
+            uiStartTmPro.enabled = notInMenu;
+            newGameTextTmpro.enabled = notInMenu;
+        }
+
         creditsTmPro.enabled = notInMenu;
         //creditsAnim.GetComponent<TextMeshProUGUI>().enabled = notInMenu;
         creditsChildTmPro.enabled = notInMenu;
@@ -291,7 +295,7 @@ public class UIManager : MonoBehaviour
     public static float delayTextCompleted;
 
     public string txtWin, txtWinSilver, txtWinGold;
-    public void ShowTextLevelCompleted(bool newSilver, bool newGold)
+    public void ShowTextLevelCompleted(bool newWoodBronzeOrSilver)
     {
         if (!GameManager.silver && !GameManager.gold)
             uiLevelCompleted3Dtext.text = txtWin;
@@ -305,10 +309,11 @@ public class UIManager : MonoBehaviour
         if (gameManager.easyMode)
             uiLevelCompleted3Dtext.text = txtWin;
 
+        lightLevelWinLight.enabled = true;
         StartCoroutine(DelayedWinText(delayTextCompleted));
         uiLevelCompleted3DAnim.SetBool("BetweenLevels", true);
+        uiLevelCompleted3DAnim.SetBool("Instant", !newWoodBronzeOrSilver);
         uiLevelCompleted3DMesh.enabled = true;
-        lightLevelWinLight.enabled = false;
 
         if (GameManager.inTutorial)
             tutorialUI.UnloadTutorial();
@@ -327,12 +332,14 @@ public class UIManager : MonoBehaviour
         uiLevelCompletedTmPro.text = "ENTER: " + (GameManager.levelProgression + 1);
         uiLevelCompletedAnim.SetBool("BetweenLevels", true);
         uiLevelCompletedTmPro.enabled = true;
-        lightLevelWinLight.enabled = true;
-        lightLevelWin.Play(0);
+        //lightLevelWin.Play(0);
     }
     public void ShowTextGameWon()
     {
-        uiGameWon3D.SetActive(true);
+        lightLevelWinLight.enabled = false;
+        uiGameWon3DLight.enabled = true;
+
+        //uiGameWon3D.SetActive(true);
         uiGameWon3DMesh.enabled = true;
         //uiGameWon3D.GetComponent<MeshRenderer>().enabled = true;
         uiGameWon3DAnim.SetBool("BetweenLevels", true);

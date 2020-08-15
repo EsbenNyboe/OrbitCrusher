@@ -9,16 +9,23 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public static UIManager uiManager;
     public Image image;
     public static Color colorNormal;
+
     public static Color colorHover;
+    public static bool colorLoaded;
 
     void Awake()
     {
-        if (uiManager == null)
-            uiManager = FindObjectOfType<UIManager>();
         if (image == null)
             image = GetComponent<Image>();
-        colorNormal = image.color;
-        colorHover = uiManager.uiHoverColor;
+
+        if (!colorLoaded)
+        {
+            colorLoaded = true;
+            uiManager = FindObjectOfType<UIManager>();
+            colorNormal = image.color;
+        }
+        //colorHover = uiManager.uiHoverColor;
+        //Debug.Log("col", gameObject);
     }
     private bool thisButtonActive;
     void OnEnable()
@@ -34,7 +41,7 @@ public class HoverGraphicImage : MonoBehaviour, IPointerEnterHandler, IPointerEx
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        image.color = colorHover;
+        image.color = uiManager.uiHoverColor;
         if (thisButtonActive)
         {
             uiManager.HoverUI();

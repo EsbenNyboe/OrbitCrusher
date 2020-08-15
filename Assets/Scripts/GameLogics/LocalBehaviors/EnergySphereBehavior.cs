@@ -65,7 +65,8 @@ public class EnergySphereBehavior : MonoBehaviour
     public static EnergySphereBehavior[] gluedObjects;
     public static EnergySphereBehavior draggedObject;
 
-    bool isGlued;
+    [HideInInspector]
+    public bool isGlued;
     GameObject clickedObjectExternal;
     int initialSortingOrderA;
     int initialSortingOrderB;

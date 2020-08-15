@@ -355,6 +355,7 @@ public class LevelMusic : MonoBehaviour
     }
     public void LevelUnloaded()
     {
+        levelCompletedRiser.hasPlayed = false;
         musicMeterOffsetSection = 0;
         musicMeterOffsetBar = 0;
         activePart = 0;

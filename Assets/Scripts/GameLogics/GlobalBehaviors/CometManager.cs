@@ -54,6 +54,7 @@ public class CometManager : MonoBehaviour
     private bool crazyMovement;
     public Vector2[] crazyMovementApplications;
 
+    public Animator lightBetweenLevelsAnim;
 
     private void Start()
     {
@@ -62,9 +63,11 @@ public class CometManager : MonoBehaviour
     }
     public void LoadLevelTransition()
     {
+        lightBetweenLevelsAnim.SetBool("BetweenLevels", false);
         ChangeDirectionWhenHittingNode();
         musicMeter.SubscribeToTimeChecker(CheckTimeUntilNextNodeHit, false);
         musicMeter.SubscribeToTimeChecker(CheckTimeUntilNextNodeHit, true);
+
     }
     public void LoadLevel()
     {
@@ -77,6 +80,7 @@ public class CometManager : MonoBehaviour
     }
     public void UnloadLevel()
     {
+        lightBetweenLevelsAnim.SetBool("BetweenLevels", true);
         cometMovement.light.enabled = false;
         // light off
     }

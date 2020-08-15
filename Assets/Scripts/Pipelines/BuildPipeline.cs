@@ -24,6 +24,12 @@ public class BuildPipeline : MonoBehaviour
 
     [HideInInspector]
     public SoundDsp soundDsp;
+    [HideInInspector]
+    public AudioObjectManager audioObjectManager;
+    [HideInInspector]
+    public GameManager gameManager;
+
+    public BackgroundScript backgroundScript;
 
     private void Awake()
     {
@@ -35,6 +41,7 @@ public class BuildPipeline : MonoBehaviour
         {
             DetectPlatform();
         }
+        Input.multiTouchEnabled = false;
     }
 
     private void EmulatePlatform()
@@ -61,7 +68,9 @@ public class BuildPipeline : MonoBehaviour
 
     public void PrepareForBuild()
     {
-        GameManager gameManager = GetComponent<GameManager>();
+        audioObjectManager.BuildVoices();
+
+        //GameManager gameManager = GetComponent<GameManager>();
         if (gameManager != null)
         {
             gameManager.godMode = false;
@@ -84,6 +93,8 @@ public class BuildPipeline : MonoBehaviour
             debugger.enabled = debugTxt;
 
             emulatePlatformInEditor = false;
+
+            backgroundScript.LoadStarContainers();
         }
     }
 
@@ -132,6 +143,8 @@ public class BuildPipeline : MonoBehaviour
 
         if (sceneManagerScript != null)
             sceneManagerScript.delayNextSceneLoad += windowsLoadingScreenDelay;
+        else
+            backgroundScript.useBgStars = true;
     }
     public float windowsLoadingScreenDelay;
     private void SetPlatformSpecifics_IOS()

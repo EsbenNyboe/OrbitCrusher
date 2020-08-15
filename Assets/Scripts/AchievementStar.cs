@@ -55,13 +55,20 @@ public class AchievementStar : MonoBehaviour
     }
     private void Start()
     {
+        starHighlightBg.enabled = false;
+        ToggleBackgroundCircle();
+
+        ButtonTextPlayOtherLevel();
+    }
+
+    public void ToggleBackgroundCircle()
+    {
         if (lvlStatus == LevelStatus.Wood || lvlStatus == LevelStatus.Bronze || lvlStatus == LevelStatus.Silver || lvlStatus == LevelStatus.Gold)
             starBg.enabled = true;
         else
             starBg.enabled = false;
-
-        ButtonTextPlayOtherLevel();
     }
+
     private void Update()
     {
         if (alphaTime)
@@ -136,7 +143,7 @@ public class AchievementStar : MonoBehaviour
     }
     public void HighlightLevelStar()
     {
-        if (lvlStatus != LevelStatus.Locked && lvlStatus != LevelStatus.Unlocked)
+        if (lvlStatus != LevelStatus.Locked && lvlStatus != LevelStatus.Unlocked && !GameManager.death)
             starHighlightBg.enabled = true;
         achievementButton.inFocusNewAchievement = true;
         achievementButton.SetFocus();
@@ -166,6 +173,12 @@ public class AchievementStar : MonoBehaviour
         //HighlightLevelStar();
 
         shinyStarAnimation.enabled = true;
+
+        if (lvlStatus == LevelStatus.Silver || lvlStatus == LevelStatus.Gold)
+            shinyStarAnimation.SetBool("ExtraShiny", true);
+        else
+            shinyStarAnimation.SetBool("ExtraShiny", false);
+
         shinyStarAnimation.SetBool("NewStar", true);
         shinyStarAnimation.Play(0);
     }
@@ -302,4 +315,6 @@ public class AchievementStar : MonoBehaviour
     //    Vector3 pos = panel.GetComponent<RectTransform>().position;
     //    panel.GetComponent<RectTransform>().localPosition = new Vector3(pos.x, yPosition, pos.z);
     //}
+
+
 }

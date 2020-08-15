@@ -64,7 +64,7 @@ public class AudioObject : MonoBehaviour
     public int selectedFile = -1;
     private int prevFileSelection = -1;
     private int currentVoice = -1;
-    private GameObject[] voice;
+    public GameObject[] voice;
 
     [HideInInspector]
     public VoicePlayer[] voicePlayerNew;
@@ -79,8 +79,27 @@ public class AudioObject : MonoBehaviour
     [HideInInspector]
     public AudioSource audioSource;
 
+    public bool isLoaded;
+
+
     private void Awake()
     {
+        volume = volumeLastFrame = fadeVolDestinationValue = initialVolume;
+        pitch = pitchLastFrame = fadePitchDestinationValue = initialPitch;
+
+    }
+    private void Start()
+    {
+        if (!isLoaded)
+            ReBuildVoices(); 
+
+        if (playOnStart)
+            TriggerAudioObject();
+    }
+
+    public void ReBuildVoices()
+    {
+        //Debug.Log("Build Voices", gameObject);
         if (useAudioSourceInterface)
         {
             if (GetComponent<AudioSource>() == null)
@@ -90,12 +109,47 @@ public class AudioObject : MonoBehaviour
         }
         if (voiceMax < 1)
             voiceMax = 1;
+
+        DestroyVoices();
         BuildVoices(voiceMax);
-        volume = volumeLastFrame = fadeVolDestinationValue = initialVolume;
-        pitch = pitchLastFrame = fadePitchDestinationValue = initialPitch;
-        if (playOnStart)
-            TriggerAudioObject();
+        isLoaded = true;
+
+        if (GetComponent<AudioIgnorePause>() != null)
+            GetComponent<AudioIgnorePause>().LoadVariables();
     }
+    private void DestroyVoices()
+    {
+        GameObject[] goToDestroy = new GameObject[100];
+        int index = 0;
+        foreach (Transform child in transform)
+        {
+            goToDestroy[index] = child.gameObject;
+            index++;
+        }
+        for (int i = 0; i < index; i++)
+        {
+            DestroyImmediate(goToDestroy[i]);
+        }
+    }
+    private void BuildVoices(int numberOfVoices)
+    {
+        voice = new GameObject[numberOfVoices];
+        voicePlayerNew = new VoicePlayer[numberOfVoices];
+        for (int i = 0; i < numberOfVoices; i++)
+        {
+            voice[i] = new GameObject();
+            voice[i].transform.parent = transform;
+            voice[i].name = "voice" + i;
+            voicePlayerNew[i] = voice[i].AddComponent<VoicePlayer>();
+            voicePlayerNew[i].BuildVoice();
+        }
+    }
+
+
+
+
+
+
     private void Update()
     {
         if (volume != fadeVolDestinationValue && !disableFading)
@@ -108,19 +162,18 @@ public class AudioObject : MonoBehaviour
             ApplyFadingToTargetValue(ref pitch, fadePitchDestinationValue, fadePitchDestinationTime);
         SetVolumeAndPitch();
     }
-    private void BuildVoices(int numberOfVoices)
-    {
-        voice = new GameObject[numberOfVoices];
-        voicePlayerNew = new VoicePlayer[numberOfVoices];
-        AudioSource[] audioSources = new AudioSource[numberOfVoices];
-        for (int i = 0; i < numberOfVoices; i++)
-        {
-            voice[i] = new GameObject();
-            voice[i].transform.parent = transform;
-            voice[i].name = "voice" + i;
-            voicePlayerNew[i] = voice[i].AddComponent<VoicePlayer>();
-        }
-    }
+
+    //private IEnumerator FadeVolume(float target)
+    //{
+    //    float t = Time.realtimeSinceStartup;
+    //    while (Time.realtimeSinceStartup < target)
+    //    {
+    //        yield return null;
+    //    }
+
+    //}
+
+    
     private void PrepareVoicing()
     {
         currentVoice += 1;

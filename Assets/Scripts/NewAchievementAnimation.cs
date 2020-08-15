@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class NewAchievementAnimation : MonoBehaviour
 {
-    //public AudioObject newAchievementSoundA;
     public AudioObject newAchievementSoundB;
 
     //public void PlayAchievementSoundA()

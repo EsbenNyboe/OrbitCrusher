@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class AudioIgnorePause : MonoBehaviour
 {
-    AudioSource[] audioSources;
-    AudioObject audioObject;
+    public AudioSource[] audioSources;
+    public AudioObject audioObject;
     private void Start()
     {
         audioObject = GetComponent<AudioObject>();
@@ -15,5 +15,8 @@ public class AudioIgnorePause : MonoBehaviour
             audioSources[i] = audioObject.voicePlayerNew[i].audioSource;
             audioSources[i].ignoreListenerPause = true;
         }
+    }
+    public void LoadVariables()
+    {
     }
 }

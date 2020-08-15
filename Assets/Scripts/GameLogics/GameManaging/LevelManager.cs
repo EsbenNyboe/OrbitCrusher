@@ -318,25 +318,7 @@ public class LevelManager : MonoBehaviour
         progressBar.DisplayProgress(false);
         if (levelDesigner.useLevelMusicSystem)
         {
-            for (int i = 0; i < levelMusic.part.Length; i++)
-            {
-                LevelMusic.Sound[] s = levelMusic.part[i].sound;
-                AudioObject[] ao = new AudioObject[s.Length];
-
-                for (int e = 0; e < s.Length; e++)
-                {
-                    ao[e] = s[e].audioObject;
-                }
-
-                if (GameManager.death)
-                {
-                    FadeOutLevelMusic(ao, failFadeOutTime);
-                }
-                else
-                {
-                    FadeOutLevelMusic(ao, completedFadeOutTime);
-                }
-            }
+            FadeOutLevelMusicNew(false);
             levelMusic.LevelUnloaded();
         }
         else
@@ -350,7 +332,47 @@ public class LevelManager : MonoBehaviour
                 FadeOutLevelMusic(sounds, completedFadeOutTime);
             }
         }
+        cometWallHits.ToggleEdgehitParticles(true);
+        cometWallHits.SetEdgehitColor(!GameManager.death);
         musicMeter.UnsubscribeEvent(CheckIfNodeIsHitByComet, ref nodeHitSubscription);
+    }
+
+    public void FadeOutLevelMusicNew(bool exitOrbit)
+    {
+        float fadeTime;
+        if (exitOrbit)
+        {
+            fadeTime = 0.5f;
+        }
+        else if (GameManager.death)
+        {
+            fadeTime = failFadeOutTime;
+        }
+        else
+        {
+            fadeTime = completedFadeOutTime;
+        }
+
+        for (int i = 0; i < levelMusic.part.Length; i++)
+        {
+            LevelMusic.Sound[] s = levelMusic.part[i].sound;
+            AudioObject[] ao = new AudioObject[s.Length];
+
+            for (int e = 0; e < s.Length; e++)
+            {
+                ao[e] = s[e].audioObject;
+            }
+
+            FadeOutLevelMusic(ao, fadeTime);
+            //if (GameManager.death)
+            //{
+            //    FadeOutLevelMusic(ao, failFadeOutTime);
+            //}
+            //else
+            //{
+            //    FadeOutLevelMusic(ao, completedFadeOutTime);
+            //}
+        }
     }
 
     private void FadeOutLevelMusic(AudioObject[] audioObject, float fadeOutTime)
@@ -473,6 +495,7 @@ public class LevelManager : MonoBehaviour
         }
         else
         {
+            cometWallHits.ToggleEdgehitParticles(false);
             cometColor.Color_BetweenPuzzles();
             numberDisplayEnergyChange.NumberCharge();
             soundManager.ActivateGameStateSound(soundManager.objectiveCompleted);
@@ -489,18 +512,41 @@ public class LevelManager : MonoBehaviour
 
         ResetGameStateDichotomies();
 
+        CheckIfBackgroundShouldChange(true);
+        if (levelDesigner.useLevelMusicSystem)
+            levelMusic.ObjectiveCompleted();
+
+    }
+    public CometWallHits cometWallHits;
+
+    public bool bgPreFaded;
+    public void CheckIfBackgroundShouldChange(bool targetIsReached)
+    {
         if (bgColors.Length > 0)
         {
             for (int i = 0; i < bgColors.Length; i++)
             {
-                if (levelObjectiveCurrent == (int)bgColors[i].x)
+                if (targetIsReached && levelObjectiveCurrent == (int)bgColors[i].x)
                 {
-                    backgroundColorManager.LoadSpecialColor((int)bgColors[i].y);
+                    if (bgPreFaded)
+                        bgPreFaded = false;
+                    else
+                        backgroundColorManager.LoadSpecialColor((int)bgColors[i].y);
+                }
+                else if (!targetIsReached && levelObjectiveCurrent + 1 == (int)bgColors[i].x)
+                {
+                    MusicMeter.MeterCondition nxtTarget = cometTimings[targetNodes[levelObjectiveCurrent]];
+                    float timeUntilTarget = musicMeter.CheckTimeRemainingUntilMeterTarget(nxtTarget, "", 0, false);
+                    float preFadeTiming = 0.7f;
+                    if (timeUntilTarget > preFadeTiming)
+                    {
+                        BackgroundColorManager.currentBgIndex = (int)bgColors[i].y;
+                        StartCoroutine(backgroundColorManager.LoadSpecialColorDelayed(timeUntilTarget - preFadeTiming));
+                        bgPreFaded = true;
+                    }
                 }
             }
         }
-        if (levelDesigner.useLevelMusicSystem)
-            levelMusic.ObjectiveCompleted();
     }
 
     private void SetOrbSoundsToTransposed(bool timingSectionStart)
@@ -713,13 +759,18 @@ public class LevelManager : MonoBehaviour
 
     private void CheckCometTimingForLookaheadMusic()
     {
-        if (GameManager.death)
+        if (GameManager.death) // FIX: don't do every frame, duh
         {
-            soundManager.FadeInMusicBetweenLevels();
+            if (PauseMenu.exitingOrbit)
+                soundManager.FadeInMusicBetweenLevels(1f);
+            else
+                soundManager.FadeInMusicBetweenLevels(5f);
         }
 
         if (meterLookahead.SoundLookaheadRelativeToCondition(cometTimings[cometDestination]))
         {
+            if (PauseMenu.exitingOrbit)
+                FadeOutLevelMusicNew(true);
             ScheduleSoundsForNextNode();
 
             if (cometDestination == 0)
@@ -776,7 +827,7 @@ public class LevelManager : MonoBehaviour
                 {
                     if (levelObjectiveCurrent + 1 >= targetNodes.Length)
                     {
-                        soundManager.FadeInMusicBetweenLevels();
+                        soundManager.FadeInMusicBetweenLevels(5f);
                     }
                     else
                     {
@@ -834,7 +885,7 @@ private void CheckForLastMinuteStateChangesForLookaheadMusic()
             {
                 scheduledWin = false;
                 if (levelObjectiveCurrent + 1 >= targetNodes.Length)
-                    soundManager.FadeInMusicBetweenLevels();
+                    soundManager.FadeInMusicBetweenLevels(5f);
             }
             else if (scheduledLvlFail)
             {

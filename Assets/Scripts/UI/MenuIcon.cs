@@ -33,6 +33,19 @@ public class MenuIcon : MonoBehaviour
     //    ClickMenuIcon();
     //}
 
+    public Animator fadeinAnim;
+    public Image menuIconImage;
+    bool animDeactivated;
+    public void DeactivateAnimator()
+    {
+        if (!animDeactivated)
+        {
+            animDeactivated = true;
+            fadeinAnim.enabled = false;
+            Color c = menuIconImage.color;
+            menuIconImage.color = new Color(c.r, c.g, c.b, 1);
+        }
+    }
     public void ClickMenuIcon()
     {
         if (!inTransition && Time.timeScale != 0)

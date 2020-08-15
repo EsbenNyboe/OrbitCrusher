@@ -21,9 +21,10 @@ public class TutorialUI : MonoBehaviour
     public GameObject text6;
     public GameObject text7;
     public GameObject text8;
+    public GameObject text9;
 
     public GameObject tips;
-    public GameObject tipGameModes, tipOrbActivation, tipDamageControl, tipReenteringOrbits, tipExitingOrbits, tipGravitation;
+    public GameObject tipGameModes, tipOrbActivation, tipDamageControl, tipReenteringOrbits, tipGravitation;
 
     public static bool timeStopQueued;
     public static bool textShown1;
@@ -35,6 +36,7 @@ public class TutorialUI : MonoBehaviour
     bool textShown6;
     bool textShown7;
     bool textShown8;
+    bool textShown9;
 
     bool tutorialActive;
     public float firstSpawnDelay;
@@ -43,8 +45,9 @@ public class TutorialUI : MonoBehaviour
     public float firstObjFailDelay;
     public float firstCometHitDelay;
     public float firstRedNodeHitDelay;
-    public float threeAlignedDelay;
     public float clickDeniedDelay;
+    public float threeAlignedDelay;
+    public float lastPuzzleDelay;
 
     public LevelManager levelManager;
     public SoundManager soundManager;
@@ -105,12 +108,16 @@ public class TutorialUI : MonoBehaviour
         UnloadTutorial();
         NumberDisplayTargetNode.targetNodeIndexMemory = LevelManager.levelObjectiveCurrent;
         LevelManager.levelObjectiveCurrent = LevelManager.targetNodes.Length - 1;
-        levelManager.ObjectiveCompleted();
-        //soundManager.LevelCompleted(false);
-        //soundManager.FadeInMusicBetweenLevels();
+
+
 
         soundManager.LevelWonChooseSound();
+        soundManager.FadeInMusicBetweenLevels(5f);
+        soundManager.levelWon.VolumeChangeInParent(soundManager.levelWon.initialVolume, 0f, false);
         soundManager.levelWon.TriggerAudioObject();
+
+
+        levelManager.ObjectiveCompleted();
     }
     bool tutorialPause;
     public void ToggleWhenMenu(bool notInMenu)
@@ -141,7 +148,7 @@ public class TutorialUI : MonoBehaviour
         if (!tutorialSkip)
         {
             soundDsp.StopAndQueueMusicForRescheduling();
-            //soundManager.KillOrbSoundInstant();
+            soundManager.KillOrbSoundInstant();
             tutorialPause = true;
             Time.timeScale = 0;
         }
@@ -222,7 +229,7 @@ public class TutorialUI : MonoBehaviour
     public void ResetTutorial()
     {
         numberOfActiveTextboxes = 0;
-        textShown1 = textShown2 = textShown3 = textShown4 = textShown5B = textShown5 = textShown6 = textShown7 = textShown8 = false;
+        textShown1 = textShown2 = textShown3 = textShown4 = textShown5B = textShown5 = textShown6 = textShown7 = textShown8 = textShown9 = false;
         text1.SetActive(false);
         text2.SetActive(false);
         text3.SetActive(false);
@@ -232,6 +239,7 @@ public class TutorialUI : MonoBehaviour
         text6.SetActive(false);
         text7.SetActive(false);
         text8.SetActive(false);
+        text9.SetActive(false);
         //textSkipTutorial.SetActive(true);
         tutorialSkip = false;
     }
@@ -349,19 +357,6 @@ public class TutorialUI : MonoBehaviour
         }
         textShown7 = true;
     }
-    public void ShowTextThreeAligned(int currentObjective)
-    {
-        if (currentObjective == 5)
-        {
-            if (!textShown8 && !tutorialSkip)
-            {
-                text8.SetActive(true);
-                StartCoroutine(TimeStopDelayed(threeAlignedDelay));
-                StartCoroutine(EnableClickAnywhere(text8));
-            }
-            textShown8 = true;
-        }
-    }
 
     public void ShowTextPickupDenied()
     {
@@ -376,6 +371,41 @@ public class TutorialUI : MonoBehaviour
             textShown4 = true;
         }
     }
+
+    public void ShowTextThreeAligned(int currentObjective)
+    {
+        if (currentObjective == 5)
+        {
+            if (!textShown8 && !tutorialSkip)
+            {
+                text8.SetActive(true);
+                StartCoroutine(TimeStopDelayed(threeAlignedDelay));
+                StartCoroutine(EnableClickAnywhere(text8));
+            }
+            textShown8 = true;
+        }
+    }
+    public void ShowTextFinalPuzzle()
+    {
+        if (LevelManager.levelObjectiveCurrent == 6)
+        {
+            if (!textShown9 && !tutorialSkip)
+            {
+                text9.SetActive(true);
+                StartCoroutine(TimeStopDelayed(lastPuzzleDelay));
+                StartCoroutine(EnableClickAnywhere(text9));
+            }
+            textShown9 = true;
+        }
+    }
+
+
+
+
+
+
+
+
 
 
     public void DisplayTipsOnMenuToggle(bool notInMenu)
@@ -401,9 +431,6 @@ public class TutorialUI : MonoBehaviour
                 StartCoroutine(ShowTip(tipReenteringOrbits));
                 break;
             case 9:
-                StartCoroutine(ShowTip(tipExitingOrbits));
-                break;
-            case 11:
                 StartCoroutine(ShowTip(tipGravitation));
                 break;
         }

@@ -48,11 +48,11 @@ public class BackgroundColorManager : MonoBehaviour
     }
     private void Start()
     {
-        GameStarted();
+        GameStart();
         colorLerpFactorInitial = colorLerpFactor;
         //gameManager = FindObjectOfType<GameManager>();
-        bg1.LoadMaterial();
-        bg2.LoadMaterial();
+        bg1.LoadMaterial(betweenLevels);
+        //bg2.LoadMaterial();
     }
     private void FixedUpdate()
     {
@@ -101,13 +101,26 @@ public class BackgroundColorManager : MonoBehaviour
         colorLerpT = 0;
         bgColorFadeAnim.Play(0);
     }
-    public void GameStarted()
+    public void GameStart()
     {
-        LoadColors(betweenLevels, betweenLevels);
+        StartCoroutine(StartScreenFadeinDelay());
+    }
+    IEnumerator StartScreenFadeinDelay()
+    {
+        yield return new WaitForSeconds(2f);
+        LoadColors(Color.black, betweenLevels);
     }
     public void LvlLoaded()
     {
+        bgColorFadeAnim.SetBool("GameStarted", true);
         LoadColorEnd(lvlLoad);
+    }
+
+    public static int currentBgIndex;
+    public IEnumerator LoadSpecialColorDelayed(float t)
+    {
+        yield return new WaitForSeconds(t);
+        LoadSpecialColor(currentBgIndex);
     }
     public void LoadSpecialColor(int index)
     {
@@ -147,10 +160,11 @@ public class BackgroundColorManager : MonoBehaviour
         //}
 
         bg1.ColorChangeNew(colorFadeStart, colorFadeEnd, colorLerpT);
-        bg2.ColorChangeNew(colorFadeStart, colorFadeEnd, colorLerpT);
+        //bg2.ColorChangeNew(colorFadeStart, colorFadeEnd, colorLerpT);
 
         if (colorFade)
         {
+
             if (colorLerpT > 0.999f)
             {
                 colorFade = false;

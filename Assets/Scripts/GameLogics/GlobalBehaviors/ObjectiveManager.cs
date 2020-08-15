@@ -73,6 +73,8 @@ public class ObjectiveManager : MonoBehaviour
             LevelManager.nodes[LevelManager.targetNodes[LevelManager.levelObjectiveCurrent]].GetComponentInChildren<NumberDisplayTargetNode>().AllOrbsHaveHitTarget();
             if (LevelManager.levelMusic != null)
                 LevelManager.levelMusic.AllOrbsHaveHitTarget();
+
+            gameManager.levelManager.CheckIfBackgroundShouldChange(false);
         }
         else
         {
