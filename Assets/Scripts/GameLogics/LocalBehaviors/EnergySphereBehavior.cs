@@ -171,6 +171,7 @@ public class EnergySphereBehavior : MonoBehaviour
             mPosLast = mPos;
         }
     }
+    public EnergySphereCollision energySphereCollision;
     private void OnMouseDown()
     {
         if (isGhost)
@@ -191,7 +192,8 @@ public class EnergySphereBehavior : MonoBehaviour
             SetColorPickup(psmainB);
             isBeingDragged = true;
             playerIsDraggingAnEnergySphere = true;
-
+            //print("start checking");
+            energySphereCollision.checkForStackedOrbs = energySphereCollision.oneCoroutine = true;
 
             particleTrailPrefabA_psRenderer.sortingOrder = initialSortingOrderA;
             particleTrailPrefabB_psRenderer.sortingOrder = initialSortingOrderB;
@@ -202,7 +204,6 @@ public class EnergySphereBehavior : MonoBehaviour
     }
     [HideInInspector]
     public bool hasBeenMoved;
-    public AnimationCurvePrint animationCurvePrint;
     private void OnMouseDrag()
     {
         if (!hasHitNode && !isGhost && isBeingDragged && !isDead)

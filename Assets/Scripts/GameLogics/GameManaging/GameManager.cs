@@ -555,10 +555,14 @@ public class GameManager : MonoBehaviour
         StartCoroutine(soundManager.StopTranToObjActivationSounds());
 
         pauseMenu.UnloadLevel();
+        webGLMessage.DisplayMessage();
     }
 
-    public void ToggleGodMode()
-    {
-        godMode = !godMode;
-    }
+    //public void ToggleGodMode()
+    //{
+    //    godMode = !godMode;
+    //}
+
+
+    public WebGLMessage webGLMessage;
 }

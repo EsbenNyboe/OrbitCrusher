@@ -132,14 +132,6 @@ public class SoundManager : MonoBehaviour
         musicBetweenLevels.VolumeChangeInParent(0f, 0f, true);
         FadeInMusicBetweenLevels(5f);
         musicBetweenLevelsAllowed = false; // a little confused about this one... 
-
-        orbDrag.VolumeChangeInParent(0f, 0f, true);
-        orbDrag.TriggerAudioObject();
-        for (int i = 0; i < orbDragGlued.Length; i++)
-        {
-            orbDragGlued[i].VolumeChangeInParent(0f, 0f, true);
-            orbDragGlued[i].TriggerAudioObject();
-        }
     }
     private void Update()
     {
@@ -263,6 +255,8 @@ public class SoundManager : MonoBehaviour
     #region Between Levels
     public void FadeInMusicBetweenLevels(float fadeTime)
     {
+        if (platformIsWebGL)
+            StopCoroutine(DelayedMusicBetweenLevelsStop());
         StartCoroutine(FadeInMusicBetweenLevelsLameDelay(fadeTime));
     }
     IEnumerator FadeInMusicBetweenLevelsLameDelay(float fadeTime)
@@ -277,6 +271,7 @@ public class SoundManager : MonoBehaviour
         musicBetweenLevelsAllowed = true;
     }
     bool musicPerfectionIsPlaying;
+    public static bool platformIsWebGL;
     public void LevelTransition()
     {
         if (levelWon == null)
@@ -290,6 +285,16 @@ public class SoundManager : MonoBehaviour
         musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
         musicPerfection.VolumeChangeInParent(0f, 3f, false);
         musicBetweenLevelsAllowed = false;
+
+        if (platformIsWebGL)
+        {
+            StartCoroutine(DelayedMusicBetweenLevelsStop());
+        }
+    }
+    IEnumerator DelayedMusicBetweenLevelsStop()
+    {
+        yield return new WaitForSeconds(3f);
+        musicBetweenLevels.StopAudioAllVoices();
     }
     public void CometWallHit()
     {
@@ -407,8 +412,17 @@ public class SoundManager : MonoBehaviour
     }
     public void OrbPickup()
     {
+        if (delayedOrbDragStop != null)
+            StopCoroutine(delayedOrbDragStop);
         orbPickup.TriggerAudioObject();
+        orbDrag.VolumeChangeInParent(0f, 0f, false);
         orbDrag.VolumeChangeInParent(orbDrag.initialVolume, sphereDragVolFade, false);
+        orbDrag.TriggerAudioObject();
+        for (int i = 0; i < orbDragGlued.Length; i++)
+        {
+            orbDragGlued[i].VolumeChangeInParent(0f, 0f, false);
+            orbDragGlued[i].TriggerAudioObject();
+        }
     }
     public void OrbPickupDenied()
     {
@@ -435,6 +449,18 @@ public class SoundManager : MonoBehaviour
         }
         orbsGluedIndex = 0;
         //orbDisconnect.TriggerAudioObject();
+        delayedOrbDragStop = DelayedOrbDragStop();
+        StartCoroutine(delayedOrbDragStop);
+    }
+    IEnumerator delayedOrbDragStop;
+    IEnumerator DelayedOrbDragStop()
+    {
+        yield return new WaitForSeconds(sphereDragVolFade);
+        orbDrag.StopAudioAllVoices();
+        for (int i = 0; i < orbDragGlued.Length; i++)
+        {
+            orbDragGlued[i].StopAudioAllVoices();
+        }
     }
     public void CorrectNodeHit()
     {

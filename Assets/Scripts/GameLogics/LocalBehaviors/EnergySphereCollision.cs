@@ -72,6 +72,30 @@ public class EnergySphereCollision : MonoBehaviour
             }
         }
     }
+    [HideInInspector]
+    public bool checkForStackedOrbs;
+    public bool oneCoroutine;
+    private void OnCollisionStay(Collision collision)
+    {
+        if (checkForStackedOrbs && collision.gameObject.CompareTag("EnergySphere"))
+        {
+            if (energySphereBehavior.isBeingDragged && collision.gameObject.name != transform.parent.gameObject.name)
+                collision.gameObject.GetComponentInParent<EnergySphereBehavior>().GlueUnclickedObjectToClickedObject(transform.parent.gameObject);
+
+            if (oneCoroutine)
+            {
+                oneCoroutine = false;
+                StartCoroutine(StopCheckingForStackedOrbs());
+            }
+            //print("check");
+        }
+    }
+    IEnumerator StopCheckingForStackedOrbs()
+    {
+        yield return new WaitForEndOfFrame();
+        checkForStackedOrbs = false;
+        //print("finished checking");
+    }
 
     public void GoodCollision4Reals(GameObject node)
     {

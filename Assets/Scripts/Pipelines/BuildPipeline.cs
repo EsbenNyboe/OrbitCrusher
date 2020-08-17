@@ -162,6 +162,8 @@ public class BuildPipeline : MonoBehaviour
 
     private void SetPlatformSpecifics_WebGL()
     {
+        SoundManager.platformIsWebGL = true;
+        WebGLMessage.platformIsWebGL = true;
         Debugger.platformSpecification = "WebGL";
         if (soundDsp != null)
             soundDsp.musicLatencyCompensation = latencyCompensationMac;
