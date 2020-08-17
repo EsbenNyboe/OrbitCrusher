@@ -41,7 +41,6 @@ public class BuildPipeline : MonoBehaviour
         {
             DetectPlatform();
         }
-        Input.multiTouchEnabled = false;
     }
 
     private void EmulatePlatform()

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine;
+using System;
 
 public class PauseMenu : MonoBehaviour
 {
@@ -117,6 +118,7 @@ public class PauseMenu : MonoBehaviour
         }
     }
 
+    public CometBehavior cometBehavior;
     public void EnterMenu()
     {
         uiManager.ToggleIngameUI(false);
@@ -124,16 +126,24 @@ public class PauseMenu : MonoBehaviour
         menuIcon.DeactivateAnimator();
         menuIcon.gameObject.SetActive(false);
         tutorialText.SetActive(false);
-        if (!GameManager.inTutorial)
+
+        if (GameManager.inTutorial)
+        {
+            tutorialUI.ToggleWhenMenu(false);
+        }
+        else if (GameManager.betweenLevels)
+        {
+            Time.timeScale = 0;
+            //cometBehavior.speedFreeBird = cometBehavior.speedFreeBird * 0.25f;
+            soundManager.MenuMix(true);
+        }
+        else
         {
             soundManager.PauseAll();
             soundManager.MenuMix(true);
             Time.timeScale = 0;
         }
-        else
-        {
-            tutorialUI.ToggleWhenMenu(false);
-        }
+
         menu = true;
         if (audioSettingsIsActive)
             displayVolSliders.ToggleSliderDisplay(true);
@@ -147,15 +157,29 @@ public class PauseMenu : MonoBehaviour
         uiManager.ToggleIngameUI(true);
         menuIcon.gameObject.SetActive(true);
         tutorialText.SetActive(true);
-        if (!GameManager.inTutorial)
+
+        if (GameManager.inTutorial)
+        {
+            tutorialUI.ToggleWhenMenu(true);
+        }
+        else if (GameManager.betweenLevels)
+        {
+            Time.timeScale = 1;
+            //cometBehavior.speedFreeBird = cometBehavior.speedFreeBird * 4f;
+            soundManager.MenuMix(false);
+        }
+        else
         {
             Time.timeScale = 1;
             soundManager.UnpauseAll();
             soundManager.MenuMix(false);
         }
+
+        if (!GameManager.inTutorial)
+        {
+        }
         else
         {
-            tutorialUI.ToggleWhenMenu(true);
         }
         menu = false;
         displayVolSliders.ToggleSliderDisplay(false);

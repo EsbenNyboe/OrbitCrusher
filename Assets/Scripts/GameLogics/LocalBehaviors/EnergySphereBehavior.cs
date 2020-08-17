@@ -1,4 +1,5 @@
 ﻿
+using System;
 using UnityEngine;
 
 public class EnergySphereBehavior : MonoBehaviour
@@ -180,7 +181,7 @@ public class EnergySphereBehavior : MonoBehaviour
         {
             tutorialUI.ClickOrbAfterFirstSpawn();
         }
-        if (!hasHitNode && !isGhost && !isDead && Time.timeScale == 1)
+        if (!hasHitNode && !isGhost && !isDead && Time.timeScale == 1 && !playerIsDraggingAnEnergySphere)
         {
             hasBeenMoved = true;
             soundManager.OrbPickup();
@@ -201,17 +202,40 @@ public class EnergySphereBehavior : MonoBehaviour
     }
     [HideInInspector]
     public bool hasBeenMoved;
+    public AnimationCurvePrint animationCurvePrint;
     private void OnMouseDrag()
     {
         if (!hasHitNode && !isGhost && isBeingDragged && !isDead)
         {
-            AnimationCurvePrint curve = FindObjectOfType<AnimationCurvePrint>();
-            Vector3 oldPosition = transform.position;
-            Vector3 worldPos = GetMouseWorldPos();
-            StayWithinScreenEdges(ref worldPos);
-            transform.position = worldPos + mOffset;
-            currentSpeed = (transform.position - oldPosition).sqrMagnitude;
-            curve.valueSpeed = currentSpeed;
+            if (Input.touchCount > 1)
+            {
+                Vector3[] touchWorldPos = new Vector3[Input.touchCount];
+                float[] touchDist = new float[Input.touchCount];
+                int touchClosest = 0;
+                for (int i = 0; i < Input.touchCount; i++)
+                {
+                    Vector3 touchPos = Input.GetTouch(i).position;
+                    touchPos.z = mZCoord;
+                    touchWorldPos[i] = Camera.main.ScreenToWorldPoint(touchPos);
+                    touchDist[i] = Mathf.Abs((transform.position - touchWorldPos[i]).sqrMagnitude);
+                    if (i > 0 && touchDist[i] < touchDist[i])
+                        touchClosest = i;
+                }
+                StayWithinScreenEdges(ref touchWorldPos[touchClosest]);
+                transform.position = touchWorldPos[touchClosest] + mOffset;
+            }
+            else
+            {
+                Vector3 worldPos = GetMouseWorldPos();
+                StayWithinScreenEdges(ref worldPos);
+                transform.position = worldPos + mOffset;
+            }
+            //Vector3 oldPosition = transform.position;
+            //currentSpeed = (transform.position - oldPosition).sqrMagnitude;
+
+
+            //AnimationCurvePrint curve = FindObjectOfType<AnimationCurvePrint>();
+            //curve.valueSpeed = currentSpeed;
         }
     }
     
@@ -279,6 +303,8 @@ public class EnergySphereBehavior : MonoBehaviour
     
     private Vector3 GetMouseWorldPos()
     {
+        //Input.touches[0].position;
+
         mPos = Input.mousePosition;
         mPos.z = mZCoord;
         return Camera.main.ScreenToWorldPoint(mPos);

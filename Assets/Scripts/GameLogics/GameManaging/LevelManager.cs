@@ -408,6 +408,7 @@ public class LevelManager : MonoBehaviour
         objectiveManager.RemoveEnergySpheres();
         objectiveManager.ResetSphereArrays();
         gameManager.UpdateEnergyHealth(sphereYetToBeAccountedFor, true);
+
         StopWinSounds("targethit");
         if (GameManager.death)
         {
@@ -475,6 +476,7 @@ public class LevelManager : MonoBehaviour
 
         gameManager.UpdateEnergyHealth(1, true);
 
+        soundManager.OrbPickedUpNoMore();
 
         levelObjectiveCurrent++;
 

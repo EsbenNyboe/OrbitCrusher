@@ -23,7 +23,7 @@ TagManager:
   - 
   - Nodes
   - Achievements
-  - 
+  - Background
   - 
   - 
   - 
@@ -48,4 +48,7 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: TestLayer
+    uniqueID: 2104161585
     locked: 0

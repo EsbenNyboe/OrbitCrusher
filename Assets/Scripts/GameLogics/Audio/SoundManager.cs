@@ -154,15 +154,17 @@ public class SoundManager : MonoBehaviour
     #region Menu
     public void MenuMix(bool menu)
     {
-        if (musicBetweenLevelsAllowed)
+        if (musicBetweenLevelsAllowed && !musicPerfectionIsPlaying)
         {
             if (menu)
             {
+                cometWallHit.VolumeChangeInParent(cometWallHit.initialVolume * 0.25f, 0, false);
                 musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume * 0.25f, 0, false);
                 //musicPerfection.VolumeChangeInParent(musicPerfection.initialVolume * 0.25f, 0, false);
             }
             else
             {
+                cometWallHit.VolumeChangeInParent(cometWallHit.initialVolume, 0, false);
                 musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, 0, false);
                 //musicPerfection.VolumeChangeInParent(musicPerfection.initialVolume, 0, false);
             }
@@ -274,6 +276,7 @@ public class SoundManager : MonoBehaviour
         musicBetweenLevels.VolumeChangeInParent(musicBetweenLevels.initialVolume, fadeTime, false);
         musicBetweenLevelsAllowed = true;
     }
+    bool musicPerfectionIsPlaying;
     public void LevelTransition()
     {
         if (levelWon == null)
@@ -283,6 +286,7 @@ public class SoundManager : MonoBehaviour
         //levelWonGold.VolumeChangeInParent(0f, 2f, false);
         levelFailed.VolumeChangeInParent(0f, 2f, false);
         StopAllCoroutines();
+        musicPerfectionIsPlaying = false;
         musicBetweenLevels.VolumeChangeInParent(0f, 3f, false);
         musicPerfection.VolumeChangeInParent(0f, 3f, false);
         musicBetweenLevelsAllowed = false;
@@ -430,7 +434,7 @@ public class SoundManager : MonoBehaviour
             orbDragGlued[i].VolumeChangeInParent(0, sphereDragVolFade, false);
         }
         orbsGluedIndex = 0;
-        orbDisconnect.TriggerAudioObject();
+        //orbDisconnect.TriggerAudioObject();
     }
     public void CorrectNodeHit()
     {
@@ -632,12 +636,15 @@ public class SoundManager : MonoBehaviour
 
     IEnumerator LvlWinMusicPerfection()
     {
-        musicBetweenLevels.VolumeChangeInParent(0, 0.2f, false);
-        yield return new WaitForSeconds(6f);
+        musicPerfectionIsPlaying = true;
+        yield return new WaitForSecondsRealtime(0.5f);
+        musicBetweenLevels.VolumeChangeInParent(0, 1.5f, false);
+        yield return new WaitForSecondsRealtime(2.5f);
         musicPerfection.VolumeChangeInParent(musicPerfection.initialVolume, 1f, false);
         musicPerfection.TriggerAudioObject();
 
-        yield return new WaitForSeconds(22f);
+        yield return new WaitForSecondsRealtime(21f);
         FadeInMusicBetweenLevels(5f);
+        musicPerfectionIsPlaying = false;
     }
 }

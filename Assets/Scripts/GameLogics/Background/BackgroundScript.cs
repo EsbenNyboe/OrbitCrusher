@@ -34,6 +34,8 @@ public class BackgroundScript : MonoBehaviour
 
     private void Start()
     {
+        meshRenderer.sortingOrder = -1;
+
         if (!useBgStars)
             Destroy(bgStarsParentGo);
         else

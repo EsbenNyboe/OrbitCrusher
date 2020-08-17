@@ -16,6 +16,11 @@ public class BgStarBehavior : MonoBehaviour
         //starIdleSprite.color = new Color(1, 1, 1, 0);
     }
 
+    private void Start()
+    {
+        starAnimSpriteSimple.sortingOrder = 0;
+    }
+
     //public void ApplyColorToIdle(Color c)
     //{
     //    starIdleSprite.color = new Color(c.r, c.g, c.b, starIdleSprite.color.a);

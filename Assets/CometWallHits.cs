@@ -26,7 +26,7 @@ public class CometWallHits : MonoBehaviour
     }
     public void SetEdgehitColor(bool win)
     {
-        if (win)
+        if (win || PauseMenu.exitingOrbit)
         {
             psmain_lr.startColor = edgehitWin;
             psmain_tb.startColor = edgehitWin;

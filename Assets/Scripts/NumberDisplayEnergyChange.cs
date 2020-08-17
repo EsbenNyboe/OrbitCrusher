@@ -30,7 +30,7 @@ public class NumberDisplayEnergyChange : MonoBehaviour
     public void NumberDrain()
     {
         num = amountOnTargetMemory - ObjectiveManager.amountSpawned;
-        if (num == -1 && ObjectiveManager.amountSpawned > 1)
+        if (num == -1 && !GameManager.inTutorial)
         {
             num = 0;
             textMesh.color = neutral;

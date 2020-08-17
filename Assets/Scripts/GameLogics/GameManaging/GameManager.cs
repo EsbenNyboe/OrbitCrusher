@@ -103,6 +103,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Input.simulateMouseWithTouches = true;
+        //Input.multiTouchEnabled = false;
         Application.targetFrameRate = targetFrameRate;
 
         achievements.PrepareAchievementObjects();
@@ -335,7 +336,7 @@ public class GameManager : MonoBehaviour
         {
             if (amount > 0)
                 amount += energyPool;
-            else if (energyPool > 0)
+            else if (energyPool > 0 && !inTutorial)
                 amount += 1;
             energyPool = 0;
         }
@@ -532,11 +533,11 @@ public class GameManager : MonoBehaviour
         soundManager.ToggleTransposedMusic(false, false);
         //soundManager.FadeInMusicBetweenLevels();
 
-        PauseMenu.exitingOrbit = false;
         nodeBehavior.AllAppear(false);
         nodeBehavior.AllExplode();
         betweenLevels = true;
         levelManager.UnloadLevel();
+        PauseMenu.exitingOrbit = false;
         CometBehavior.isMoving = false;
         musicMeter.StopMusicMeter();
         cometColor.Color_OutOfOrbit();

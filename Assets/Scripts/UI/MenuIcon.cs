@@ -48,7 +48,7 @@ public class MenuIcon : MonoBehaviour
     }
     public void ClickMenuIcon()
     {
-        if (!inTransition && Time.timeScale != 0)
+        if (!inTransition && Time.timeScale != 0 && Input.touchCount < 2)
         {
             PauseMenu.ClickedOnUI();
             pauseMenu.ClickUI();
