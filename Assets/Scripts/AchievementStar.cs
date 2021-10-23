@@ -202,7 +202,8 @@ public class AchievementStar : MonoBehaviour
         float delay = 0;
         if (altUiMode)
             delay = 1;
-        StartCoroutine(DelayedFocusRemoval(delay));
+        if (gameObject.activeInHierarchy)
+            StartCoroutine(DelayedFocusRemoval(delay));
     }
     IEnumerator DelayedFocusRemoval(float t)
     {
