@@ -89,8 +89,12 @@ public class HealthBar : MonoBehaviour
         //frameSprite = frame.GetComponent<SpriteRenderer>();
     }
     public bool setColorManually;
+    public static bool isPause;
     private void FixedUpdate()
     {
+        if (isPause)
+            return;
+
         if (setColorManually)
         {
             if (BackgroundColorManager.colorTransTesterHealthbarSync != 0)
@@ -257,6 +261,8 @@ public class HealthBar : MonoBehaviour
     public void FadeOutHealthbar()
     {
         healthbarAnimator.enabled = true;
+        if (TrailerPipeline.useTrailerSettingsImSerious)
+            healthbarAnimator.SetBool("Trailer", true);
         healthbarAnimator.Play(0);
         StartCoroutine(DelayedHealthbarDrain());
     }

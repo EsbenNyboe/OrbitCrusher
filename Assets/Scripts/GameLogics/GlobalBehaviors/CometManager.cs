@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class CometManager : MonoBehaviour
 {
+    [HideInInspector]
     public GameObject cometParticleEffect;
+    [HideInInspector]
     public MusicMeter musicMeter;
 
     [HideInInspector]
@@ -50,16 +52,35 @@ public class CometManager : MonoBehaviour
     public AnimationCurve nodeTravelCurve;
     public AnimationCurve nodeTravelAngryCurve;
     public AnimationCurve nodeTravelCrazyCurve;
+    public AnimationCurve nodeTravelStupidCurve;
 
     private bool crazyMovement;
+    [HideInInspector]
     public Vector2[] crazyMovementApplications;
 
+    [HideInInspector]
     public Animator lightBetweenLevelsAnim;
+
+    public bool manualCurves;
 
     private void Start()
     {
         //this used to be in awake
         cometParticleEffect.SetActive(true);
+    }
+    private void Update()
+    {
+        if (manualCurves)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1))
+                manualCurvesIndex = 1;
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+                manualCurvesIndex = 2;
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+                manualCurvesIndex = 3;
+            if (Input.GetKeyDown(KeyCode.Alpha4))
+                manualCurvesIndex = 4;
+        }
     }
     public void LoadLevelTransition()
     {
@@ -130,33 +151,55 @@ public class CometManager : MonoBehaviour
         //print("timeProgress:" + timeProgressAdapted);
     }
 
+    private int manualCurvesIndex = 1;
     private void NewTimeProgressAlgorithm()
     {
         float timeProgressClamped = timeUntilMeterTarget / initialTimeUntilTarget; // 1: set off time. 0: destination time.
         float timeProgressReversed = -timeProgressClamped + 1; // 0: set off time. 1: destination time.
 
-        if (LevelManager.lastObjective)
-            timeProgressAdapted = nodeTravelAngryCurve.Evaluate(timeProgressReversed);
-        else
-            timeProgressAdapted = nodeTravelCurve.Evaluate(timeProgressReversed);
-
-        crazyMovement = false;
-        if (LevelManager.lastTravelBeforeActivation)
-            crazyMovement = true;
-
-        for (int i = 0; i < crazyMovementApplications.Length; i++)
+        if (manualCurves)
         {
-            if (GameManager.levelProgression == (int)crazyMovementApplications[i].x)
+            switch (manualCurvesIndex)
             {
-                if (LevelManager.levelObjectiveCurrent == (int)crazyMovementApplications[i].y)
-                {
-                    crazyMovement = true;
-                }
+                case 1:
+                    timeProgressAdapted = nodeTravelCurve.Evaluate(timeProgressReversed);
+                    break;
+                case 2:
+                    timeProgressAdapted = nodeTravelAngryCurve.Evaluate(timeProgressReversed);
+                    break;
+                case 3:
+                    timeProgressAdapted = nodeTravelCrazyCurve.Evaluate(timeProgressReversed);
+                    break;
+                case 4:
+                    timeProgressAdapted = nodeTravelStupidCurve.Evaluate(timeProgressReversed);
+                    break;
             }
         }
-        if (crazyMovement)
+        else
         {
-            timeProgressAdapted = nodeTravelCrazyCurve.Evaluate(timeProgressReversed);
+            if (LevelManager.lastObjective)
+                timeProgressAdapted = nodeTravelAngryCurve.Evaluate(timeProgressReversed);
+            else
+                timeProgressAdapted = nodeTravelCurve.Evaluate(timeProgressReversed);
+
+            crazyMovement = false;
+            if (LevelManager.lastTravelBeforeActivation)
+                crazyMovement = true;
+
+            for (int i = 0; i < crazyMovementApplications.Length; i++)
+            {
+                if (GameManager.levelProgression == (int)crazyMovementApplications[i].x)
+                {
+                    if (LevelManager.levelObjectiveCurrent == (int)crazyMovementApplications[i].y)
+                    {
+                        crazyMovement = true;
+                    }
+                }
+            }
+            if (crazyMovement)
+            {
+                timeProgressAdapted = nodeTravelCrazyCurve.Evaluate(timeProgressReversed);
+            }
         }
     }
     private void OldTimeProgressAlgorithm()

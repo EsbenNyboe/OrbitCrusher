@@ -147,9 +147,14 @@ public class SoundDsp : MonoBehaviour
     }
     #endregion
 
+    public SoundManager soundManager;
     #region Rescheduling Music (when pausing in tutorial)
     public void AddScheduledMusicToList(AudioObject audioObject, double dspTiming)
     {
+        if (!TutorialUI.textShown3 && audioObject == soundManager.objectiveCompleted)
+            return;
+        else if (!TutorialUI.textShown5 && audioObject == soundManager.objectiveFailed)
+            return;
         ScheduledMusic newItem = new ScheduledMusic();
         newItem.audioObject = audioObject;
         newItem.scheduledDspTiming = dspTiming;

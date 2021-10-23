@@ -29,10 +29,10 @@ public class TutorialUI : MonoBehaviour
     public static bool timeStopQueued;
     public static bool textShown1;
     bool textShown2;
-    bool textShown3;
+    public static bool textShown3;
     bool textShown4;
     bool textShown5B;
-    bool textShown5;
+    public static bool textShown5;
     bool textShown6;
     bool textShown7;
     bool textShown8;
@@ -41,6 +41,7 @@ public class TutorialUI : MonoBehaviour
     bool tutorialActive;
     public float firstSpawnDelay;
     public float firstCorrectHitDelay;
+    public float almostThereDelay;
     public float healthBarDelay;
     public float firstObjFailDelay;
     public float firstCometHitDelay;
@@ -63,6 +64,8 @@ public class TutorialUI : MonoBehaviour
         panel.SetActive(false);
         tips.SetActive(true);
         ForceCloseTips();
+        if (levelManager.gameManager.developerMode)
+            dontDisplayTips = true;
     }
     private void Update()
     {
@@ -100,6 +103,7 @@ public class TutorialUI : MonoBehaviour
 
         //textSkipTutorial.SetActive(false);
         Time.timeScale = 1;
+        HealthBar.isPause = false;
         //textSkipTutorial_tmp.enabled = false;
         tutorialSkip = true;
         StopAllCoroutines();
@@ -132,11 +136,13 @@ public class TutorialUI : MonoBehaviour
                 {
                     soundDsp.RescheduleQueuedMusic();
                     Time.timeScale = 1;
+                    HealthBar.isPause = false;
                 }
                 else
                 {
                     soundDsp.StopAndQueueMusicForRescheduling();
                     Time.timeScale = 0;
+                    HealthBar.isPause = true;
                 }
             }
         }
@@ -151,6 +157,7 @@ public class TutorialUI : MonoBehaviour
             soundManager.KillOrbSoundInstant();
             tutorialPause = true;
             Time.timeScale = 0;
+            HealthBar.isPause = true;
         }
     }
     IEnumerator TimeStopDelayed(float time)
@@ -187,6 +194,7 @@ public class TutorialUI : MonoBehaviour
         {
             tutorialPause = false;
             Time.timeScale = 1;
+            HealthBar.isPause = false;
             //soundManager.RescheduleQueuedMusic();
             soundDsp.RescheduleQueuedMusic();
         }
@@ -255,6 +263,10 @@ public class TutorialUI : MonoBehaviour
     }
     private void ClickAnywhere()
     {
+        if (activeTextbox == text3)
+            soundManager.HealthChargeInstant();
+        else if (activeTextbox == text5 || activeTextbox == text6 || activeTextbox == text7)
+            soundManager.HealthDrainInstant();
         activeTextbox.SetActive(false);
         activeTextbox.GetComponentInChildren<HoverGraphicText>().TextClicked();
         TimeNormal();
@@ -299,7 +311,7 @@ public class TutorialUI : MonoBehaviour
             if (!textShown5B && !tutorialSkip && EnergySphereBehavior.gluedObjects == null)
             {
                 text5B.SetActive(true);
-                StartCoroutine(TimeStopDelayed(firstCorrectHitDelay));
+                StartCoroutine(TimeStopDelayed(almostThereDelay));
                 StartCoroutine(EnableClickAnywhere(text5B));
             }
             textShown5B = true;
@@ -319,6 +331,7 @@ public class TutorialUI : MonoBehaviour
                 text3.SetActive(true);
                 StartCoroutine(TimeStopDelayed(healthBarDelay));
                 StartCoroutine(EnableClickAnywhere(text3));
+                SoundManager.conclusionSoundInterrupted = true;
             }
             textShown3 = true;
         }
@@ -333,6 +346,7 @@ public class TutorialUI : MonoBehaviour
                 text5.SetActive(true);
                 StartCoroutine(TimeStopDelayed(firstObjFailDelay));
                 StartCoroutine(EnableClickAnywhere(text5));
+                SoundManager.conclusionSoundInterrupted = true;
             }
             textShown5 = true;
         }
@@ -413,38 +427,46 @@ public class TutorialUI : MonoBehaviour
         tips.SetActive(notInMenu);
     }
 
+    bool dontDisplayTips;
     public void DisplayTip(int levelNumber)
     {
         //print("display:" + levelNumber);
-        switch (levelNumber)
+        
+        if (!dontDisplayTips)
         {
-            case 1:
-                StartCoroutine(ShowTip(tipGameModes));
-                break;
-            case 3:
-                StartCoroutine(ShowTip(tipOrbActivation));
-                break;
-            case 5:
-                StartCoroutine(ShowTip(tipDamageControl));
-                break;
-            case 7:
-                StartCoroutine(ShowTip(tipReenteringOrbits));
-                break;
-            case 9:
-                StartCoroutine(ShowTip(tipGravitation));
-                break;
+            switch (levelNumber)
+            {
+                case 1:
+                    StartCoroutine(ShowTip(tipGameModes));
+                    break;
+                case 3:
+                    StartCoroutine(ShowTip(tipOrbActivation));
+                    break;
+                case 5:
+                    StartCoroutine(ShowTip(tipDamageControl));
+                    break;
+                case 7:
+                    StartCoroutine(ShowTip(tipReenteringOrbits));
+                    break;
+                case 9:
+                    StartCoroutine(ShowTip(tipGravitation));
+                    break;
+            }
         }
     }
 
     public static float tipDelay;
     private IEnumerator ShowTip(GameObject tip)
     {
-        yield return new WaitForEndOfFrame();
-        tip.SetActive(true);
-        ToggleComponentsActivation(tip, false);
-        yield return new WaitForSeconds(tipDelay + 0.1f);
-        ToggleComponentsActivation(tip, true);
-        TipUIDisabling();
+        if (!TrailerPipeline.useTrailerSettingsImSerious)
+        {
+            yield return new WaitForEndOfFrame();
+            tip.SetActive(true);
+            ToggleComponentsActivation(tip, false);
+            yield return new WaitForSeconds(tipDelay + 0.1f);
+            ToggleComponentsActivation(tip, true);
+            TipUIDisabling();
+        }
     }
     public void ForceCloseTips()
     {

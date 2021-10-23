@@ -423,6 +423,7 @@ public class EnergySphereBehavior : MonoBehaviour
             AlterParticleParameters(ref particleTrailPrefabB, 1);
 
             int arrayLength = 1;
+
             if (gluedObjects != null)
                 arrayLength = gluedObjects.Length + 1;
             EnergySphereBehavior[] gluedObjectArray = new EnergySphereBehavior[arrayLength];

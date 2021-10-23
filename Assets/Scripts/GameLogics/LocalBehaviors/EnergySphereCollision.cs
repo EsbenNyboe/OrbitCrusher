@@ -31,13 +31,13 @@ public class EnergySphereCollision : MonoBehaviour
                     GameObject comet = collision.gameObject;
                     MakeSpherePosSnapToCollObjectPos(comet);
                     ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(comet);
+                    BadCollision();
+                    screenShake.ScreenShakeCollBadComet();
                     if (GameManager.inTutorial)
                     {
                         tutorialUI.ShowTextFirstCometHit();
                     }
                     soundManager.CometHitsOrb();
-                    BadCollision();
-                    screenShake.ScreenShakeCollBadComet();
                 }
             }
             if (collision.gameObject.CompareTag("Node"))
@@ -50,7 +50,6 @@ public class EnergySphereCollision : MonoBehaviour
                     {
                         MakeSpherePosSnapToCollObjectPos(node);
                         ForceCollisionOnGluedObjectIfThisObjectIsBeingDragged(node);
-                        soundManager.IncorrectNodeHit();
                         nodeManager.CollisionNodeEnergySphereColor(node, false);
                         BadCollision();
                         screenShake.ScreenShakeCollBadNode();
@@ -58,6 +57,7 @@ public class EnergySphereCollision : MonoBehaviour
                         {
                             tutorialUI.ShowTextFirstRedNodeHit();
                         }
+                        soundManager.IncorrectNodeHit();
                     }
                     else if (EnergySphereBehavior.playerIsDraggingAnEnergySphere)
                     {
@@ -65,7 +65,7 @@ public class EnergySphereCollision : MonoBehaviour
                     }
                 }
             }
-            if (collision.gameObject.CompareTag("EnergySphere") && collision.gameObject.name != transform.parent.gameObject.name)
+            if (collision.gameObject.CompareTag("EnergySphere"))// && collision.gameObject.name != transform.parent.gameObject.name)
             {
                 if (energySphereBehavior.isBeingDragged)
                     collision.gameObject.GetComponentInParent<EnergySphereBehavior>().GlueUnclickedObjectToClickedObject(transform.parent.gameObject);
@@ -79,7 +79,7 @@ public class EnergySphereCollision : MonoBehaviour
     {
         if (checkForStackedOrbs && collision.gameObject.CompareTag("EnergySphere"))
         {
-            if (energySphereBehavior.isBeingDragged && collision.gameObject.name != transform.parent.gameObject.name)
+            if (energySphereBehavior.isBeingDragged && collision.transform.parent.gameObject.name != transform.parent.gameObject.name)
                 collision.gameObject.GetComponentInParent<EnergySphereBehavior>().GlueUnclickedObjectToClickedObject(transform.parent.gameObject);
 
             if (oneCoroutine)
@@ -104,7 +104,6 @@ public class EnergySphereCollision : MonoBehaviour
             energySphereBehavior.SetColorGoodCollision();
             MakeSpherePosSnapToCollObjectPos(node);
             ForceCollisionOnGluedObjectsAndDraggedObject(node);
-            soundManager.CorrectNodeHit();
             nodeManager.CollisionNodeEnergySphereColor(node, true);
             GoodCollision();
             if (GameManager.inTutorial)
@@ -112,6 +111,7 @@ public class EnergySphereCollision : MonoBehaviour
                 tutorialUI.ShowTextFirstCorrectHit();
                 tutorialUI.ShowTextFinalPuzzle();
             }
+            soundManager.CorrectNodeHit();
         }
     }
 

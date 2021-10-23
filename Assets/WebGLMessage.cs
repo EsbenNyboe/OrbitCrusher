@@ -11,7 +11,9 @@ public class WebGLMessage : MonoBehaviour
     public Animator toggleMessageAnim;
     public static bool platformIsWebGL;
     public float timeThreshFirst;
-    public float timeThreshAfterFirst;
+    public float timeThreshSecond;
+    bool shownOnce;
+    bool shownTwice;
 
     private void Awake()
     {
@@ -34,19 +36,33 @@ public class WebGLMessage : MonoBehaviour
     }
     public void DisplayMessage()
     {
-        if (platformIsWebGL && Time.realtimeSinceStartup > timeThreshFirst && Time.realtimeSinceStartup - timeLastMessageShown > timeThreshAfterFirst && !displayingMessage)
+        if (platformIsWebGL && !displayingMessage)
         {
-            messageImage.enabled = true;
-            messageTmpro.enabled = true;
-            toggleMessageAnim.SetBool("Display", true);
-            displayingMessage = true;
+            if (!shownOnce && Time.realtimeSinceStartup > timeThreshFirst)
+            {
+                shownOnce = true;
+                Display();
+            }
+            else if (!shownTwice && Time.realtimeSinceStartup > timeThreshSecond)
+            {
+                shownTwice = true;
+                Display();
+            }
         }
     }
+
+    private void Display()
+    {
+        messageImage.enabled = true;
+        messageTmpro.enabled = true;
+        toggleMessageAnim.SetBool("Display", true);
+        displayingMessage = true;
+    }
+
     public void HideMessage()
     {
         if (platformIsWebGL)
         {
-            timeLastMessageShown = Time.realtimeSinceStartup;
             displayingMessage = false;
             toggleMessageAnim.SetBool("Display", false);
         }

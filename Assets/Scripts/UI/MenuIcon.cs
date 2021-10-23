@@ -36,6 +36,11 @@ public class MenuIcon : MonoBehaviour
     public Animator fadeinAnim;
     public Image menuIconImage;
     bool animDeactivated;
+    private void Start()
+    {
+        if (TrailerPipeline.useTrailerSettingsImSerious)
+            menuIconImage.enabled = false;
+    }
     public void DeactivateAnimator()
     {
         if (!animDeactivated)

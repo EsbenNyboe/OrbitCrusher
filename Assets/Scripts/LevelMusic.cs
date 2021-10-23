@@ -70,6 +70,8 @@ public class LevelMusic : MonoBehaviour
         public bool hasFadedIn;
         [HideInInspector]
         public bool wasClutchFadein;
+        [HideInInspector]
+        public MusicMeter.MeterCondition localMeter;
     }
     public enum ClutchTrigger
     {
@@ -109,7 +111,7 @@ public class LevelMusic : MonoBehaviour
 
     private void Start() 
     {
-        PrepareLevelMusic();    //TEMPORARY: REMOVE WHEN FINISHED WITH LEVELMUSIC DESIGNING!!!!!
+        //PrepareLevelMusic();    //TEMPORARY: REMOVE WHEN FINISHED WITH LEVELMUSIC DESIGNING!!!!!
         mcOne = new MusicMeter.MeterCondition();
         mcOne.section = mcOne.bar = 0;
         mcOne.beat = mcOne.division = 1;
@@ -532,12 +534,12 @@ public class LevelMusic : MonoBehaviour
             }
         }
     }
-
+    MusicMeter.MeterCondition localMeter;
     private void CheckTimingsAndPlaySounds(int p, Sound[] s, int i)
     {
         //print(s[i].name + ": " + s[i].meterCondition.section + " " + s[i].meterCondition.bar + " " + s[i].meterCondition.beat + " " + s[i].meterCondition.division);
 
-        MusicMeter.MeterCondition localMeter = new MusicMeter.MeterCondition();
+        localMeter = new MusicMeter.MeterCondition();
         if (s[i].meterCondition.section != 0)
         {
             localMeter.section = musicMeterOffsetSection + s[i].meterCondition.section;
@@ -594,12 +596,18 @@ public class LevelMusic : MonoBehaviour
                 PlaySound(p, i);
             }
         }
+        s[i].localMeter = localMeter;
+        StartCoroutine(WaitForEndFrameToAllowForSoundPlay(s[i]));
+    }
 
-        if (s[i].clutchFadein && !s[i].clutchRiser && !s[i].hasFadedIn)
+    IEnumerator WaitForEndFrameToAllowForSoundPlay(Sound s)
+    {
+        yield return new WaitForEndOfFrame();
+        if (s.clutchFadein && !s.clutchRiser && !s.hasFadedIn)
         {
-            if (musicMeter.MeterConditionSpecificTarget(localMeter))
+            if (musicMeter.MeterConditionSpecificTarget(s.localMeter))
             {
-                s[i].audioObject.StopAudioAllVoices();
+                s.audioObject.StopAudioAllVoices();
             }
         }
     }

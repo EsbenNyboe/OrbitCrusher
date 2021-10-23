@@ -62,8 +62,11 @@ public class UIManager : MonoBehaviour
 
     public Player player;
 
+    public GameObject progressBar;
+
     private void Start()
     {
+        progressBar.SetActive(true);
         lightLevelWinLight.enabled = false;
         uiGameWon3DLight.enabled = false;
 
@@ -159,7 +162,7 @@ public class UIManager : MonoBehaviour
             if (!firstTimeStartingGame)
             {
                 firstTimeStartingGame = true;
-                Screen.sleepTimeout = SleepTimeout.SystemSetting;
+                //Screen.sleepTimeout = SleepTimeout.SystemSetting;
             }
             //uiGameWon3D.SetActive(false);
             gameManager.LevelStartTriggered(true);
@@ -203,16 +206,17 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    float failTime;
+    float failAnimLength = 3.0f;
     private void FailScreenExit()
     {
         tutorialUI.LoadTutorial();
         uiLevelFailedTmPro.enabled = false;
         uiLevelFailedAnim.SetBool("BetweenLevels", false);
-        //uiLevelFailed.GetComponent<Animator>().SetBool("BetweenLevels", false);
         uiLevelFailed3DAnim.SetBool("BetweenLevels", false);
-        //uiLevelFailed3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
+        if (Time.time < failTime + failAnimLength)
+            uiLevelFailed3DMesh.enabled = false;
         uiGameWon3DAnim.SetBool("BetweenLevels", false);
-        //uiGameWon3D.GetComponent<Animator>().SetBool("BetweenLevels", false);
         creditsAnim.SetBool("BetweenLevels", false);
     }
     #endregion
@@ -280,6 +284,7 @@ public class UIManager : MonoBehaviour
 
         if (!PauseMenu.exitingOrbit)
         {
+            failTime = Time.time;
             uiLevelFailed3DAnim.SetBool("BetweenLevels", true);
             //uiLevelFailed3D.GetComponent<Animator>().SetBool("BetweenLevels", true);
             uiLevelFailed3DMesh.enabled = true;
@@ -312,7 +317,17 @@ public class UIManager : MonoBehaviour
         lightLevelWinLight.enabled = true;
         StartCoroutine(DelayedWinText(delayTextCompleted));
         uiLevelCompleted3DAnim.SetBool("BetweenLevels", true);
-        uiLevelCompleted3DAnim.SetBool("Instant", !newWoodBronzeOrSilver);
+
+        if (TrailerPipeline.useTrailerSettingsImSerious)
+        {
+            uiLevelCompleted3Dtext.text = "ORBIT CRUSHER";
+            uiLevelCompleted3DAnim.SetBool("Trailer", true);
+            creditsAnim.SetBool("Trailer", true);
+        }
+        else
+        {
+            uiLevelCompleted3DAnim.SetBool("Instant", !newWoodBronzeOrSilver);
+        }
         uiLevelCompleted3DMesh.enabled = true;
 
         if (GameManager.inTutorial)
@@ -332,6 +347,8 @@ public class UIManager : MonoBehaviour
         uiLevelCompletedTmPro.text = "ENTER: " + (GameManager.levelProgression + 1);
         uiLevelCompletedAnim.SetBool("BetweenLevels", true);
         uiLevelCompletedTmPro.enabled = true;
+        if (TrailerPipeline.useTrailerSettingsImSerious)
+            uiLevelCompletedTmPro.enabled = false;
         //lightLevelWin.Play(0);
     }
     public void ShowTextGameWon()

@@ -433,6 +433,9 @@ public class LevelManager : MonoBehaviour
 
         ResetGameStateDichotomies();
         nodes[cometDestination].GetComponentInChildren<NumberDisplayTargetNode>().SetText();
+
+        if (GameManager.inTutorial)
+            soundManager.ObjectiveConclusionInTutorial(false);
     }
 
     private static void ResetLevelMusicValues()
@@ -510,6 +513,7 @@ public class LevelManager : MonoBehaviour
         if (GameManager.inTutorial)
         {
             tutorialUI.ShowTextFirstHealthbarCharge();
+            soundManager.ObjectiveConclusionInTutorial(true);
         }
 
         ResetGameStateDichotomies();

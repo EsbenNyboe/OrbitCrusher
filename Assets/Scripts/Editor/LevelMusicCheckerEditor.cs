@@ -11,9 +11,13 @@ public class LevelMusicCheckerEditor : Editor
 
 		EditorGUI.BeginDisabledGroup(serializedObject.isEditingMultipleObjects);
 
-        if (GUILayout.Button("Check Level Music Content"))
+        //if (GUILayout.Button("Check Level Music Content"))
+        //{
+        //    ((LevelMusicChecker)target).CheckLevelMusic();
+        //}
+        if (GUILayout.Button("Print Level Music Data"))
         {
-            ((LevelMusicChecker)target).CheckLevelMusic();
+            ((LevelMusicChecker)target).PrintAllLevelMusicData();
         }
 
         EditorGUI.EndDisabledGroup();

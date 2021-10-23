@@ -21,7 +21,7 @@ public class ObjectiveManager : MonoBehaviour
 
     private void Update()
     {
-        if (gameManager.levelLoadDeveloperMode)
+        if (gameManager.developerMode)
         {
             if (Input.GetKeyDown(KeyCode.Return))
             {

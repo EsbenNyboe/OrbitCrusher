@@ -17,7 +17,10 @@ public class CometColor : MonoBehaviour
     {
         SetCometColors(trailOutOfOrbit, cOutOfOrbit);
         SetCometColors(trailInOrbit, cInOrbit);
-        Color_OutOfOrbit();
+        if (TrailerPipeline.useTrailerSettingsImSerious)
+            Color_InOrbit();
+        else
+            Color_OutOfOrbit();
     }
 
     public void Color_BetweenPuzzles()

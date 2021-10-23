@@ -105,15 +105,21 @@ public class BackgroundColorManager : MonoBehaviour
     {
         StartCoroutine(StartScreenFadeinDelay());
     }
+
+    public static float startFadeinTime = 2f;
     IEnumerator StartScreenFadeinDelay()
     {
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(startFadeinTime);
         LoadColors(Color.black, betweenLevels);
     }
+    bool ignoredFirstColorLoad;
     public void LvlLoaded()
     {
         bgColorFadeAnim.SetBool("GameStarted", true);
-        LoadColorEnd(lvlLoad);
+        if (!gameManager.useSaveSystem && !ignoredFirstColorLoad)
+            ignoredFirstColorLoad = true;
+        else
+            LoadColorEnd(lvlLoad);
     }
 
     public static int currentBgIndex;

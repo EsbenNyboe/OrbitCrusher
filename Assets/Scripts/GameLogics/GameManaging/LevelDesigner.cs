@@ -85,7 +85,7 @@ public class LevelDesigner : MonoBehaviour
     public Vector2[] bgColors;
 
 
-    bool onOff;
+    public static bool onOff;
     public GameObject customSpawnZones;
 
     //public SpawnZone[] defaultSpawnZones;
@@ -108,11 +108,23 @@ public class LevelDesigner : MonoBehaviour
 
     public void ToggleSpawnZoneMeshrenderers()
     {
+        GameManager gameManager = FindObjectOfType<GameManager>();
         onOff = !onOff;
-        foreach (Transform child in customSpawnZones.transform)
-                {
-                    child.GetComponent<MeshRenderer>().enabled = onOff;
-                }
+
+        foreach (var level in gameManager.levels)
+        {
+            foreach (Transform spawnZone in level.GetComponent<LevelDesigner>().customSpawnZones.transform)
+            {
+                spawnZone.GetComponent<MeshRenderer>().enabled = onOff;
+            }
+        }
+
+        //foreach (Transform spawnZone in gameManager.levelManager.objectiveManager.transform)
+        //{
+        //    spawnZone.GetComponent<MeshRenderer>().enabled = onOff;
+        //}
+
+
     }
 
     public void NameSoundTriggers()
@@ -245,7 +257,7 @@ public class LevelDesigner : MonoBehaviour
         LevelManager.bpm = bpm;
         
         GameManager gameManager = FindObjectOfType<GameManager>();
-        if (gameManager.levelLoadDeveloperMode && !gameManager.levelLoadUseSaveSystem)
+        if (gameManager.developerMode && !gameManager.useSaveSystem)
         {
             LevelManager.levelObjectiveCurrent = gameManager.objectiveToLoad;
             LoadSpawnSequence(LevelManager.levelObjectiveCurrent);
@@ -300,5 +312,16 @@ public class LevelDesigner : MonoBehaviour
             //print("duplicating comet timing");
         }
     }
-    
+
+
+    public static bool transitionNodeMeshActive;
+    public void TransitionNodeMeshToggle()
+    {
+        GameManager gameManager = FindObjectOfType<GameManager>();
+        transitionNodeMeshActive = !transitionNodeMeshActive;
+        foreach (var level in gameManager.levels)
+        {
+            level.GetComponent<LevelDesigner>().transitionNode.GetComponent<MeshRenderer>().enabled = transitionNodeMeshActive;
+        }
+    }
 }

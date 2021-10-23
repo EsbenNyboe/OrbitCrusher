@@ -71,6 +71,14 @@ public class PauseMenu : MonoBehaviour
     public static bool menuFrameClicked;
     private void Update()
     {
+        if (gameManager.developerMode)
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                ExitOrbitSimple();
+            }
+        }
+
         if (Input.GetMouseButtonUp(0))
         {
             if (!menuFrameClicked && menu)
@@ -209,6 +217,18 @@ public class PauseMenu : MonoBehaviour
     }
 
     public LevelManager levelManager;
+
+    public void ExitOrbitSimple()
+    {
+        if (gameManager.altUiMode)
+            gameManager.achievements.achievementStars[GameManager.levelProgression].starHighlightBg.enabled = true;
+        exitingOrbit = true;
+        soundManager.ScheduleGameStateSound(soundManager.levelFailed, false, false);
+        soundManager.ActivateGameStateSound(soundManager.levelFailed);
+        GameManager.death = true;
+        gameManager.godMode = false;
+        gameManager.godMode = false;
+    }
     public void ExitOrbit()
     {
         exitOrbitObject.SetActive(false);

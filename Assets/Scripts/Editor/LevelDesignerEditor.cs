@@ -15,6 +15,10 @@ public class LevelDesignerEditor : Editor
 		{
 			((LevelDesigner)target).ToggleSpawnZoneMeshrenderers();
 		}
+        if (GUILayout.Button("Toggle TransitionBox Meshes"))
+        {
+            ((LevelDesigner)target).TransitionNodeMeshToggle();
+        }
 
         if (GUILayout.Button("Copy/Paste Sound Triggers"))
         {

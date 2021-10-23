@@ -98,4 +98,24 @@ public class LevelMusicChecker : MonoBehaviour
         //    ShortestLengthHP(levelDesigner, secondsPerBeat);
         //}
     }
+
+    public LevelMusic[] levelMusic;
+    public void PrintAllLevelMusicData()
+    {
+        string allLevelMusicData = "";
+
+        for (int levelIndex= 0; levelIndex < levelMusic.Length; levelIndex++)
+        {
+            for (int partIndex = 0; partIndex < levelMusic[levelIndex].part.Length; partIndex++)
+            {
+                for (int soundIndex = 0; soundIndex < levelMusic[levelIndex].part[partIndex].sound.Length; soundIndex++)
+                {
+                    string soundName = levelMusic[levelIndex].part[partIndex].sound[soundIndex].name;
+                    int objective = levelMusic[levelIndex].part[partIndex].objective;
+                    allLevelMusicData += "\n" + "l:" + levelIndex + ".p:" + partIndex + ".o:" + objective + ".s:" + soundIndex + ":" + soundName;
+                }
+            }
+        }
+        print(allLevelMusicData);
+    }
 }

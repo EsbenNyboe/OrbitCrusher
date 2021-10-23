@@ -7,8 +7,9 @@ public class GameManager : MonoBehaviour
 {
     public bool autoPauseEnabled;
     public bool godMode;
-    public bool levelLoadDeveloperMode;
-    public bool levelLoadUseSaveSystem;
+    public bool developerMode;
+    public bool altUiMode;
+    public bool useSaveSystem;
     public int levelToLoad;
     public int objectiveToLoad;
     public bool autoUnloadActiveLevels;
@@ -98,17 +99,26 @@ public class GameManager : MonoBehaviour
     [HideInInspector]
     public bool easyMode;
 
-
+    public TrailerPipeline trailerPipeline;
 
     private void Awake()
     {
         Input.simulateMouseWithTouches = true;
         //Input.multiTouchEnabled = false;
-        Application.targetFrameRate = targetFrameRate;
+        if (frameRateDeveloperMode)
+            Application.targetFrameRate = targetFrameRate;
+        else
+            Application.targetFrameRate = -1;
+
+        if (developerMode)
+        {
+            player.SavePlayer();
+            trailerPipeline.useGameplayVideoSettings = true;
+        }
 
         achievements.PrepareAchievementObjects();
         player.LoadPlayer();
-        if (levelLoadUseSaveSystem)
+        if (useSaveSystem)
         {
             levelToLoad = player.lvl;
             easyMode = player.easyMode;
@@ -122,6 +132,7 @@ public class GameManager : MonoBehaviour
     }
     private void Start()
     {
+        AchievementStar.altUiMode = altUiMode;
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
 
         if (Achievements.lvlsWon[1])
@@ -135,17 +146,18 @@ public class GameManager : MonoBehaviour
             achievements.DisplayAchievements(false, true);
         }
 
-        if (levelLoadUseSaveSystem)
+        if (autoUnloadActiveLevels)
+        {
+            foreach (var levelObject in levels)
+            {
+                levelObject.SetActive(false);
+            }
+        }
+
+        if (useSaveSystem)
         {
             betweenLevelsState = BetweenLevelsState.GameStart;
 
-            if (autoUnloadActiveLevels)
-            {
-                foreach (var levelObject in levels)
-                {
-                    levelObject.SetActive(false);
-                }
-            }
             levelProgression = levelToLoad;
         }
         else
@@ -158,8 +170,8 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (timeScaleDeveloper)
-            Time.timeScale = tScale;
+        //if (timeScaleDeveloper)
+        //    Time.timeScale = tScale;
 
         //if (frameRateDeveloperMode)
         //{
@@ -167,6 +179,55 @@ public class GameManager : MonoBehaviour
         //}
 
         CheckIfEnergyFull();
+
+        if (altUiMode)
+        {
+            if (!cometManager.manualCurves)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1))
+                    SelectLevelThenLoad(1);
+                if (Input.GetKeyDown(KeyCode.Alpha2))
+                    SelectLevelThenLoad(2);
+                if (Input.GetKeyDown(KeyCode.Alpha3))
+                    SelectLevelThenLoad(3);
+                if (Input.GetKeyDown(KeyCode.Alpha4))
+                    SelectLevelThenLoad(4);
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha5))
+                SelectLevelThenLoad(5);
+            if (Input.GetKeyDown(KeyCode.Alpha6))
+                SelectLevelThenLoad(6);
+            if (Input.GetKeyDown(KeyCode.Alpha7))
+                SelectLevelThenLoad(7);
+            if (Input.GetKeyDown(KeyCode.Alpha8))
+                SelectLevelThenLoad(8);
+            if (Input.GetKeyDown(KeyCode.Alpha9))
+                SelectLevelThenLoad(9);
+            if (Input.GetKeyDown(KeyCode.Alpha0))
+                SelectLevelThenLoad(10);
+
+
+            if (Input.GetKeyDown(KeyCode.T))
+                levelDesigner.TransitionNodeMeshToggle();
+        }
+    }
+    private void SelectLevelThenLoad(int level)
+    {
+        achievements.achievementStars[levelToLoad].starHighlightBg.enabled = false;
+        levelToLoad = level - 1;
+        //achievements.HighlightCompletedLevel(levelToLoad);
+        achievements.achievementStars[levelToLoad].starHighlightBg.enabled = true;
+        devStartDelay = 0;
+
+        StopAllCoroutines();
+        StartCoroutine(DelayedLevelLoad());
+    }
+    IEnumerator DelayedLevelLoad()
+    {
+        yield return new WaitForSeconds(0.3f);
+        print("test");
+        LoadQuickloadLevelSelection();
+        uiManager.uiLevelFailed.SetActive(false);
     }
 
     public void NewGame()
@@ -204,10 +265,16 @@ public class GameManager : MonoBehaviour
         }
         StartCoroutine(DeveloperStart());
     }
+
+    public static float devStartDelay = 1f;
     IEnumerator DeveloperStart()
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(devStartDelay);
         uiManager.StartGame();
+    }
+
+    public void StartSelectedLevel_DeveloperMode()
+    {
     }
 
     public void LevelStartTriggered(bool newLevel)
@@ -229,7 +296,7 @@ public class GameManager : MonoBehaviour
         damageTakenThisLevel = 0;
         fullHpBonusChecked = false;
         hpAtLevelCompletion = 0;
-        if (levelLoadUseSaveSystem)
+        if (useSaveSystem)
             godMode = easyMode;
 
         Screen.autorotateToLandscapeLeft = false;
@@ -386,7 +453,8 @@ public class GameManager : MonoBehaviour
     public static bool gold;
     public void LevelCompleted()
     {
-        achievements.DisplayAchievements(true, false);
+        if (!TrailerPipeline.useTrailerSettingsImSerious)
+            achievements.DisplayAchievements(true, false);
         bool newAchievement = false;
         bool newSilver = false;
         bool newGold = false;
@@ -401,79 +469,82 @@ public class GameManager : MonoBehaviour
         if (Achievements.lvlsWonNoDmg[levelProgression])
             previousAchievementIndexForLastFinishedLevel = 4;
 
-        if (easyMode)
+        if (!TrailerPipeline.useTrailerSettingsImSerious)
         {
-            if (!Achievements.lvlsWonEasy[levelProgression])
+            if (easyMode)
             {
-                Achievements.lvlsUnlocked[levelProgression] = true;
-                if (levelProgression + 1 < levels.Length)
-                    Achievements.lvlsUnlocked[levelProgression + 1] = true;
-                Achievements.lvlsWonEasy[levelProgression] = true;
-                newAchievement = true;
-                newAchBronzeOrSilver = true;
-                player.lvlsWonEasy[levelProgression] = true;
-            }
-        }
-        else
-        {
-            if (hpAtLevelCompletion == maxEnergy)
-            {
-                if (!Achievements.lvlsWonFullHp[levelProgression])
+                if (!Achievements.lvlsWonEasy[levelProgression])
                 {
-                    //print("full hp");
-                    Achievements.lvlsWonFullHp[levelProgression] = true;
+                    Achievements.lvlsUnlocked[levelProgression] = true;
+                    if (levelProgression + 1 < levels.Length)
+                        Achievements.lvlsUnlocked[levelProgression + 1] = true;
+                    Achievements.lvlsWonEasy[levelProgression] = true;
                     newAchievement = true;
-                    player.lvlsWonFullHp[levelProgression] = true;
-                    newSilver = true;
                     newAchBronzeOrSilver = true;
+                    player.lvlsWonEasy[levelProgression] = true;
                 }
-                silver = true;
             }
             else
-                silver = false;
+            {
+                if (hpAtLevelCompletion == maxEnergy)
+                {
+                    if (!Achievements.lvlsWonFullHp[levelProgression])
+                    {
+                        //print("full hp");
+                        Achievements.lvlsWonFullHp[levelProgression] = true;
+                        newAchievement = true;
+                        player.lvlsWonFullHp[levelProgression] = true;
+                        newSilver = true;
+                        newAchBronzeOrSilver = true;
+                    }
+                    silver = true;
+                }
+                else
+                    silver = false;
+                if (damageTakenThisLevel == 0)
+                {
+                    if (!Achievements.lvlsWonNoDmg[levelProgression])
+                    {
+                        //print("no dmg");
+                        Achievements.lvlsWonNoDmg[levelProgression] = true;
+                        newAchievement = true;
+                        player.lvlsWonZeroDmg[levelProgression] = true;
+                        newGold = true;
+                    }
+                    gold = true;
+                }
+                else
+                    gold = false;
+                if (!Achievements.lvlsWon[levelProgression])
+                {
+                    //print("completed");
+                    Achievements.lvlsUnlocked[levelProgression] = true;
+                    if (levelProgression + 1 < levels.Length)
+                        Achievements.lvlsUnlocked[levelProgression + 1] = true;
+                    Achievements.lvlsWonEasy[levelProgression] = true;
+                    Achievements.lvlsWon[levelProgression] = true;
+                    newAchievement = true;
+                    newAchBronzeOrSilver = true;
+                    player.lvlsWon[levelProgression] = true;
+                    tutorialUI.DisplayTip(levelProgression);
+                }
+            }
+            if (newAchievement)
+            {
+                achievements.NewAchievement(levelProgression, newSilver, newGold);
+                achievements.ChangeLevelText(levelProgression);
+            }
+            else
+            {
+                achievements.HighlightCompletedLevel(levelProgression);
+                achievements.ChangeLevelText(levelProgression);
+            }
+            player.easyMode = easyMode;
+
             if (damageTakenThisLevel == 0)
             {
-                if (!Achievements.lvlsWonNoDmg[levelProgression])
-                {
-                    //print("no dmg");
-                    Achievements.lvlsWonNoDmg[levelProgression] = true;
-                    newAchievement = true;
-                    player.lvlsWonZeroDmg[levelProgression] = true;
-                    newGold = true;
-                }
-                gold = true;
+                soundManager.PlayLvlWinMusicPerfection();
             }
-            else
-                gold = false;
-            if (!Achievements.lvlsWon[levelProgression])
-            {
-                //print("completed");
-                Achievements.lvlsUnlocked[levelProgression] = true;
-                if (levelProgression + 1 < levels.Length)
-                    Achievements.lvlsUnlocked[levelProgression + 1] = true;
-                Achievements.lvlsWonEasy[levelProgression] = true;
-                Achievements.lvlsWon[levelProgression] = true;
-                newAchievement = true;
-                newAchBronzeOrSilver = true;
-                player.lvlsWon[levelProgression] = true;
-                tutorialUI.DisplayTip(levelProgression);
-            }
-        }
-        if (newAchievement)
-        {
-            achievements.NewAchievement(levelProgression, newSilver, newGold);
-            achievements.ChangeLevelText(levelProgression);
-        }
-        else
-        {
-            achievements.HighlightCompletedLevel(levelProgression);
-            achievements.ChangeLevelText(levelProgression);
-        }
-        player.easyMode = easyMode;
-
-        if (damageTakenThisLevel == 0)
-        {
-            soundManager.PlayLvlWinMusicPerfection();
         }
 
 
@@ -513,18 +584,26 @@ public class GameManager : MonoBehaviour
     {
         if (!godMode)
         {
-            betweenLevelsState = BetweenLevelsState.Retry;
-            screenShake.ScreenShakeLevelFailed();
-            cometMovement.LevelFailed();
-            backgroundColorManager.LevelFailed();
-            HoverGraphicText.allButtonsActive = false;
-            healthBar.FadeOutHealthbar();
-            LevelManager.firstTimeHittingTarget = true;
-            uiManager.ShowTextLevelFailed();
-            UnloadLevel();
-            achievements.DisplayAchievements(true, false);
-            achievements.HighlightCompletedLevel(levelProgression);
-            achievements.ChangeLevelText(levelProgression);
+            if (TrailerPipeline.useTrailerSettingsImSerious)
+            {
+                death = false;
+                LevelCompleted();
+            }
+            else
+            {
+                betweenLevelsState = BetweenLevelsState.Retry;
+                screenShake.ScreenShakeLevelFailed();
+                cometMovement.LevelFailed();
+                backgroundColorManager.LevelFailed();
+                HoverGraphicText.allButtonsActive = false;
+                healthBar.FadeOutHealthbar();
+                LevelManager.firstTimeHittingTarget = true;
+                uiManager.ShowTextLevelFailed();
+                UnloadLevel();
+                achievements.DisplayAchievements(true, false);
+                achievements.HighlightCompletedLevel(levelProgression);
+                achievements.ChangeLevelText(levelProgression);
+            }
         }
     }
 

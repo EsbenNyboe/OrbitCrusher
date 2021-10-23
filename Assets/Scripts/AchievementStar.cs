@@ -196,8 +196,17 @@ public class AchievementStar : MonoBehaviour
         AchievementButton.levelMenuOpen = false;
     }
 
+    public static bool altUiMode;
     public void RemoveFocus()
     {
+        float delay = 0;
+        if (altUiMode)
+            delay = 1;
+        StartCoroutine(DelayedFocusRemoval(delay));
+    }
+    IEnumerator DelayedFocusRemoval(float t)
+    {
+        yield return new WaitForSeconds(t);
         achievementButton.inFocusNewAchievement = false;
         starHighlightBg.enabled = false;
         achievementButton.SetFocus();

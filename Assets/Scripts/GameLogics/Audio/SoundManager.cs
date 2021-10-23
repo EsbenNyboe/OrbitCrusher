@@ -105,7 +105,10 @@ public class SoundManager : MonoBehaviour
     int orbsGluedIndex;
 
     bool musicBetweenLevelsAllowed;
-    float hitTimer;
+    float hitTimerCorrectNode;
+    float hitTimerIncorrectComet;
+    float hitTimerIncorrectNode;
+
 
     float cometWallHitTimer;
 
@@ -139,7 +142,9 @@ public class SoundManager : MonoBehaviour
         //    FadeInMusicBetweenLevels();
 
         orbGluedTimer += Time.deltaTime;
-        hitTimer += Time.deltaTime;
+        hitTimerCorrectNode += Time.deltaTime;
+        hitTimerIncorrectNode += Time.deltaTime;
+        hitTimerIncorrectComet += Time.deltaTime;
         cometWallHitTimer += Time.deltaTime;
     }
 
@@ -315,14 +320,14 @@ public class SoundManager : MonoBehaviour
     #endregion
 
     #region Health
-    public void StopHealthSoundsWhenPausing()
+    public void StopHealthSoundsWhenPausing() 
     {
         healthChargeLower.StopAudioAllVoices();
         healthChargeUpper.StopAudioAllVoices();
         healthDrainLower.StopAudioAllVoices();
         healthDrainUpper.StopAudioAllVoices();
     }
-    public void HealthChargeInstant()
+    public void HealthChargeInstant() 
     {
         healthChargeLower.TriggerAudioObject();
         healthChargeLower.VolumeChangeInParent(healthChargeLower.initialVolume, 0, false);
@@ -464,21 +469,21 @@ public class SoundManager : MonoBehaviour
     }
     public void CorrectNodeHit()
     {
-        HitTimer(correctHit);
+        HitTimer(correctHit, ref hitTimerCorrectNode, 0.3f);
     }
     public void IncorrectNodeHit()
     {
-        HitTimer(incorrectHit);
+        HitTimer(incorrectHit, ref hitTimerIncorrectNode, 0.3f);
     }
     public void CometHitsOrb()
     {
-        HitTimer(incorrectHitComet);
+        HitTimer(incorrectHitComet, ref hitTimerIncorrectComet, 0.1f);
     }
-    private void HitTimer(AudioObject hitSound)
+    private void HitTimer(AudioObject hitSound, ref float hitTimer, float thresh)
     {
-        if (hitTimer < Random.Range(0.05f, 0.1f))
+        if (hitTimer < thresh)//Random.Range(0.05f, 0.1f))
         {
-            hitSound.TriggerSoundWithDelay(Random.Range(0.02f, 0.1f));
+            //hitSound.TriggerSoundWithDelay(Random.Range(0.02f, 0.1f));
         }
         else
         {
@@ -672,5 +677,27 @@ public class SoundManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(21f);
         FadeInMusicBetweenLevels(5f);
         musicPerfectionIsPlaying = false;
+    }
+
+
+
+    public static bool conclusionSoundInterrupted; // remove
+    public void ObjectiveConclusionInTutorial(bool completed)
+    {
+        //print(conclusionSoundInterrupted + " " + completed);
+        //if (conclusionSoundInterrupted)
+        //{
+        //    conclusionSoundInterrupted = false;
+        //    if (completed)
+        //    {
+        //        objectiveCompleted.StopAudioAllVoices();
+        //        objectiveCompleted.TriggerAudioObject();
+        //    }
+        //    else
+        //    {
+        //        objectiveFailed.StopAudioAllVoices();
+        //        objectiveFailed.TriggerAudioObject();
+        //    }
+        //}
     }
 }

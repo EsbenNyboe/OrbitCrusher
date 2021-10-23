@@ -73,9 +73,9 @@ public class BuildPipeline : MonoBehaviour
         if (gameManager != null)
         {
             gameManager.godMode = false;
-            gameManager.levelLoadDeveloperMode = false;
+            gameManager.developerMode = false;
             gameManager.autoPauseEnabled = true;
-            gameManager.levelLoadUseSaveSystem = true;
+            gameManager.useSaveSystem = true;
             gameManager.levelToLoad = 0;
             gameManager.objectiveToLoad = 0;
 
